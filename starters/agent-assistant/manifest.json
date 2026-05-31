@@ -1,0 +1,21 @@
+{
+  "formatVersion": "1.0",
+  "name": "agent-assistant",
+  "summary": "A static starter for describing a public research assistant resource.",
+  "source": {
+    "type": "git",
+    "url": "https://github.com/agentique-examples/agent-assistant"
+  },
+  "distribution": {
+    "mode": "package_download",
+    "notes": "Prepared for platform upload review before publication."
+  },
+  "package": {
+    "formatVersion": "1.0",
+    "files": ["README.md", "agents/research-assistant.md"],
+    "hashes": {
+      "README.md": "sha256:19d9ecdc2e2e9a72371b32cbe2e64818b100319dd435688fe06cb38e7d472389",
+      "agents/research-assistant.md": "sha256:a4390a25018e7a003a00570c6aa8984e0be878434e9a3fae8b913ee76e46908b"
+    }
+  }
+}

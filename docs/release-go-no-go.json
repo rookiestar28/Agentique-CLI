@@ -1,0 +1,33 @@
+{
+  "decision": "no_go",
+  "releaseBlocked": true,
+  "localChecks": {
+    "cleanBaseline": true,
+    "governanceReviewRouting": true,
+    "workflowPosture": true,
+    "packageDryRun": true,
+    "publicUrlInventory": true,
+    "tests": true,
+    "starterValidation": true,
+    "releaseCheck": true,
+    "dependencyAudits": true
+  },
+  "externalEvidence": {
+    "hostedCiRun": false,
+    "repositoryProtection": false,
+    "finalPublicUrls": false,
+    "packageRegistryUrls": false,
+    "platformLinks": false,
+    "platformLaunchEvidence": false,
+    "ownerApproval": false
+  },
+  "blockers": [
+    "hosted CI run evidence is not recorded",
+    "public repository protection evidence is not recorded",
+    "final public URLs are not approved",
+    "package registry URLs are not approved",
+    "platform public links are not approved",
+    "platform launch evidence is not recorded",
+    "owner go/no-go approval is not recorded"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "formatVersion": "1.0",
+  "name": "tool-mcp-listing",
+  "summary": "A static starter for describing a public tool or MCP-style listing.",
+  "source": {
+    "type": "website",
+    "url": "https://example.com/agentique-tool-listing"
+  },
+  "distribution": {
+    "mode": "metadata_view",
+    "notes": "Prepared for platform listing review before publication."
+  },
+  "package": {
+    "formatVersion": "1.0",
+    "files": ["README.md", "tools/example-mcp-listing.json"],
+    "hashes": {
+      "README.md": "sha256:289b694dcb5caec8120c6bceca1fbcb93dd11dc66320bc1535e792e1dd57c5a7",
+      "tools/example-mcp-listing.json": "sha256:e8f282b5a6921273efe24399d12eb5c0acb36bb05bbcad02e71bc597e10a0f0c"
+    }
+  }
+}

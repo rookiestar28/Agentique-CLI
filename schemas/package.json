@@ -1,0 +1,15 @@
+{
+  "name": "@agentique/schemas",
+  "version": "0.1.0",
+  "description": "Public JSON Schema contracts for Agentique resource preparation.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "files": [
+    "*.schema.json",
+    "fixtures"
+  ]
+}

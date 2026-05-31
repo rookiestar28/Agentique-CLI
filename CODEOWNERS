@@ -1,0 +1,17 @@
+* @agentique-owner
+
+/.github/ @agentique-owner
+/CODEOWNERS @agentique-owner
+/CONTRIBUTING.md @agentique-owner
+/SECURITY.md @agentique-owner
+/README.md @agentique-owner
+/docs/ @agentique-owner
+/schemas/ @agentique-owner
+/starters/ @agentique-owner
+/packages/validator/ @agentique-owner
+/packages/action/ @agentique-owner
+/packages/readback/ @agentique-owner
+/scripts/ @agentique-owner
+/release-manifest.json @agentique-owner
+/package.json @agentique-owner
+/package-lock.json @agentique-owner

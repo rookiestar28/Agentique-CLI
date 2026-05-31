@@ -1,0 +1,198 @@
+{
+  "distribution-mode.schema.json": {
+    "valid": {
+      "mode": "package_download",
+      "notes": "Prepared for platform upload review."
+    },
+    "invalid": {
+      "missing-required": {},
+      "extra-property": {
+        "mode": "package_download",
+        "unexpected": true
+      },
+      "boundary": {
+        "mode": "direct_execution"
+      }
+    }
+  },
+  "package-manifest.schema.json": {
+    "valid": {
+      "formatVersion": "1.0",
+      "files": ["README.md"],
+      "hashes": {
+        "README.md": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    },
+    "invalid": {
+      "missing-required": {
+        "formatVersion": "1.0"
+      },
+      "extra-property": {
+        "formatVersion": "1.0",
+        "files": ["README.md"],
+        "hashes": {
+          "README.md": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "unexpected": true
+      },
+      "boundary": {
+        "formatVersion": "1.0",
+        "files": ["node_modules/pkg/index.js"],
+        "hashes": {
+          "node_modules/pkg/index.js": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+        }
+      }
+    }
+  },
+  "public-readback.schema.json": {
+    "valid": {
+      "resourceId": "example-resource",
+      "state": "published",
+      "updatedAt": "2026-05-31T00:00:00.000Z",
+      "platformUrl": "https://agentique.io/resources/example-resource",
+      "tokenCount": 12
+    },
+    "invalid": {
+      "missing-required": {
+        "resourceId": "example-resource"
+      },
+      "extra-property": {
+        "resourceId": "example-resource",
+        "state": "published",
+        "updatedAt": "2026-05-31T00:00:00.000Z",
+        "platformUrl": "https://agentique.io/resources/example-resource",
+        "unexpected": true
+      },
+      "boundary": {
+        "resourceId": "Example Resource",
+        "state": "published",
+        "updatedAt": "2026-05-31T00:00:00.000Z",
+        "platformUrl": "https://agentique.io/resources/example-resource"
+      }
+    }
+  },
+  "resource-manifest.schema.json": {
+    "valid": {
+      "formatVersion": "1.0",
+      "name": "example-resource",
+      "summary": "A public fixture resource manifest.",
+      "source": {
+        "type": "git",
+        "url": "https://github.com/agentique/example-resource"
+      },
+      "distribution": {
+        "mode": "package_download"
+      },
+      "package": {
+        "formatVersion": "1.0",
+        "files": ["README.md"],
+        "hashes": {
+          "README.md": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+        }
+      }
+    },
+    "invalid": {
+      "missing-required": {
+        "formatVersion": "1.0"
+      },
+      "extra-property": {
+        "formatVersion": "1.0",
+        "name": "example-resource",
+        "summary": "A public fixture resource manifest.",
+        "source": {
+          "type": "git",
+          "url": "https://github.com/agentique/example-resource"
+        },
+        "distribution": {
+          "mode": "package_download"
+        },
+        "package": {
+          "formatVersion": "1.0",
+          "files": ["README.md"],
+          "hashes": {
+            "README.md": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+          }
+        },
+        "unexpected": true
+      },
+      "boundary": {
+        "formatVersion": "1.0",
+        "name": "x",
+        "summary": "too short",
+        "source": {
+          "type": "git",
+          "url": "http://example.com"
+        },
+        "distribution": {
+          "mode": "package_download"
+        },
+        "package": {
+          "formatVersion": "1.0",
+          "files": ["README.md"],
+          "hashes": {
+            "README.md": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+          }
+        }
+      }
+    }
+  },
+  "skill-metadata.schema.json": {
+    "valid": {
+      "name": "source-summarizer",
+      "summary": "Summarizes public sources with attribution.",
+      "inputs": ["topic"],
+      "outputs": ["summary"]
+    },
+    "invalid": {
+      "missing-required": {
+        "name": "source-summarizer"
+      },
+      "extra-property": {
+        "name": "source-summarizer",
+        "summary": "Summarizes public sources with attribution.",
+        "inputs": ["topic"],
+        "outputs": ["summary"],
+        "unexpected": true
+      },
+      "boundary": {
+        "name": "x",
+        "summary": "too short",
+        "inputs": [],
+        "outputs": []
+      }
+    }
+  },
+  "workflow-metadata.schema.json": {
+    "valid": {
+      "name": "evidence-review",
+      "summary": "Reviews public evidence and unresolved questions.",
+      "steps": [
+        {
+          "id": "collect-sources",
+          "description": "Collect public source links."
+        }
+      ]
+    },
+    "invalid": {
+      "missing-required": {
+        "name": "evidence-review"
+      },
+      "extra-property": {
+        "name": "evidence-review",
+        "summary": "Reviews public evidence and unresolved questions.",
+        "steps": [
+          {
+            "id": "collect-sources",
+            "description": "Collect public source links."
+          }
+        ],
+        "unexpected": true
+      },
+      "boundary": {
+        "name": "x",
+        "summary": "too short",
+        "steps": []
+      }
+    }
+  }
+}

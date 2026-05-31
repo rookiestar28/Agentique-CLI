@@ -1,0 +1,27 @@
+{
+  "formatVersion": "1.0",
+  "name": "skill-source-summarizer",
+  "summary": "A static starter for documenting a reusable public summarization skill.",
+  "source": {
+    "type": "git",
+    "url": "https://github.com/agentique-examples/skill-source-summarizer"
+  },
+  "distribution": {
+    "mode": "package_download",
+    "notes": "Prepared for platform upload review before publication."
+  },
+  "package": {
+    "formatVersion": "1.0",
+    "files": ["README.md", "skills/source-summarizer.md"],
+    "hashes": {
+      "README.md": "sha256:26792d21545661512d819673ba7ca7c200a173861f58a92c8dcf8f078f6a1d1f",
+      "skills/source-summarizer.md": "sha256:913beaecc829313d7ae467fe2e9b850f0e347be8137c979dd8b55428a00712ae"
+    }
+  },
+  "skill": {
+    "name": "source-summarizer",
+    "summary": "Summarizes public source links with attribution and uncertainty notes.",
+    "inputs": ["topic", "source list", "preferred tone"],
+    "outputs": ["summary", "source notes", "follow-up questions"]
+  }
+}

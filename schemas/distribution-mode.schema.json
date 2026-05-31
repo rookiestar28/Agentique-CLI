@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.agentique.io/distribution-mode.schema.json",
+  "title": "Agentique Public Distribution Mode",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["mode"],
+  "properties": {
+    "mode": {
+      "type": "string",
+      "enum": ["metadata_view", "package_download", "external_project", "readback_only"]
+    },
+    "notes": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 280
+    }
+  }
+}

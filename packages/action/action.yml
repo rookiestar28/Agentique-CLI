@@ -1,0 +1,27 @@
+name: Agentique resource validation
+description: Run local Agentique resource validation without upload or publication side effects.
+author: Agentique
+
+inputs:
+  package-dir:
+    description: Resource package directory to validate.
+    required: true
+  schemas-dir:
+    description: Local directory containing Agentique public schemas.
+    required: true
+  validator-script:
+    description: Path to the Agentique validator CLI script.
+    required: false
+    default: packages/validator/src/cli.mjs
+  output-file:
+    description: File path for JSON validation output.
+    required: false
+    default: agentique-validation.json
+
+outputs:
+  report:
+    description: Path to the JSON validation report.
+
+runs:
+  using: node20
+  main: src/action.mjs

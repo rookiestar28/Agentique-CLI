@@ -1,0 +1,76 @@
+{
+  "releaseBlocked": true,
+  "reason": "Downstream package, documentation, badge, and platform launch evidence are pending.",
+  "entries": [
+    {
+      "id": "public-repository",
+      "label": "Public repository",
+      "url": "https://github.com/rookiestar28/Agentique",
+      "status": "approved",
+      "advertise": true
+    },
+    {
+      "id": "schemas-package",
+      "label": "Schemas package page",
+      "url": null,
+      "status": "pending_owner_approval",
+      "advertise": false
+    },
+    {
+      "id": "validator-package",
+      "label": "Validator package page",
+      "url": null,
+      "status": "pending_owner_approval",
+      "advertise": false
+    },
+    {
+      "id": "action-usage",
+      "label": "Action usage reference",
+      "url": null,
+      "status": "pending_owner_approval",
+      "advertise": false
+    },
+    {
+      "id": "readback-package",
+      "label": "Readback package page",
+      "url": null,
+      "status": "pending_owner_approval",
+      "advertise": false
+    },
+    {
+      "id": "schema-url-base",
+      "label": "Public schema URL base",
+      "url": null,
+      "status": "pending_owner_approval",
+      "advertise": false
+    },
+    {
+      "id": "docs-url",
+      "label": "Public documentation URL",
+      "url": null,
+      "status": "pending_owner_approval",
+      "advertise": false
+    },
+    {
+      "id": "badge-example",
+      "label": "Badge example URL",
+      "url": null,
+      "status": "pending_owner_approval",
+      "advertise": false
+    },
+    {
+      "id": "platform-companion-link",
+      "label": "agentique.io companion link",
+      "url": null,
+      "status": "pending_platform_launch_evidence",
+      "advertise": false
+    },
+    {
+      "id": "platform-readback-endpoint",
+      "label": "agentique.io public readback endpoint",
+      "url": null,
+      "status": "pending_platform_launch_evidence",
+      "advertise": false
+    }
+  ]
+}

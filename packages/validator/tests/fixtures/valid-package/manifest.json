@@ -1,0 +1,21 @@
+{
+  "formatVersion": "1.0",
+  "name": "valid-starter",
+  "summary": "A safe static package used for local validator tests.",
+  "source": {
+    "type": "git",
+    "url": "https://github.com/agentique-examples/valid-starter"
+  },
+  "distribution": {
+    "mode": "package_download",
+    "notes": "Prepared for platform upload review before publication."
+  },
+  "package": {
+    "formatVersion": "1.0",
+    "files": ["README.md", "notes.md"],
+    "hashes": {
+      "README.md": "sha256:4a5965846526d7a3d644fc577f3ed07784d245a5760ba635e5a02666b6263b10",
+      "notes.md": "sha256:af5815dc6e4bfd2415e74a4f707d1763fab8c7e36878f6f24ef321be2749567a"
+    }
+  }
+}

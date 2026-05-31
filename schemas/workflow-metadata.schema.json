@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.agentique.io/workflow-metadata.schema.json",
+  "title": "Agentique Public Workflow Metadata",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["name", "summary", "steps"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{1,63}$"
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 12,
+      "maxLength": 240
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 40,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "description"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]{1,63}$"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 240
+          }
+        }
+      }
+    }
+  }
+}

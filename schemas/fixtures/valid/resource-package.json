@@ -1,0 +1,42 @@
+{
+  "formatVersion": "1.0",
+  "name": "research-helper",
+  "summary": "A public example package for preparing an Agentique resource.",
+  "source": {
+    "type": "git",
+    "url": "https://github.com/example/research-helper"
+  },
+  "distribution": {
+    "mode": "package_download",
+    "notes": "Package is prepared for platform review before publication."
+  },
+  "package": {
+    "formatVersion": "1.0",
+    "files": ["README.md", "manifest.json", "skills/research-helper.md"],
+    "hashes": {
+      "README.md": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "manifest.json": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "skills/research-helper.md": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    }
+  },
+  "skill": {
+    "name": "research-helper",
+    "summary": "Helps organize public research notes into a reusable workflow.",
+    "inputs": ["topic", "source list"],
+    "outputs": ["summary", "source table"]
+  },
+  "workflow": {
+    "name": "research-review",
+    "summary": "Reviews public sources and creates a structured summary.",
+    "steps": [
+      {
+        "id": "collect-sources",
+        "description": "Collect public source links supplied by the user."
+      },
+      {
+        "id": "summarize",
+        "description": "Summarize public information with source attribution."
+      }
+    ]
+  }
+}
