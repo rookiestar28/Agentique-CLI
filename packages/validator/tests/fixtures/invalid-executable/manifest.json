@@ -1,0 +1,20 @@
+{
+  "formatVersion": "1.0",
+  "name": "invalid-executable",
+  "summary": "A static package that intentionally lists a blocked executable extension.",
+  "source": {
+    "type": "git",
+    "url": "https://github.com/agentique-examples/invalid-executable"
+  },
+  "distribution": {
+    "mode": "package_download",
+    "notes": "Prepared for platform upload review before publication."
+  },
+  "package": {
+    "formatVersion": "1.0",
+    "files": ["run.sh"],
+    "hashes": {
+      "run.sh": "sha256:11a42aa96db213ee9fa2b661f06c8a6fb0269ae2d53e1988c739578ab43f912f"
+    }
+  }
+}

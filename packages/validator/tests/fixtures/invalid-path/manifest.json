@@ -1,0 +1,20 @@
+{
+  "formatVersion": "1.0",
+  "name": "invalid-path",
+  "summary": "A static package that intentionally lists an unsafe path.",
+  "source": {
+    "type": "git",
+    "url": "https://github.com/agentique-examples/invalid-path"
+  },
+  "distribution": {
+    "mode": "package_download",
+    "notes": "Prepared for platform upload review before publication."
+  },
+  "package": {
+    "formatVersion": "1.0",
+    "files": ["../README.md"],
+    "hashes": {
+      "../README.md": "sha256:f84f3eac5de529d9185e820b670f635e1657b3d07cfc5146a1c3ff6d5850bdb8"
+    }
+  }
+}

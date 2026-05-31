@@ -1,0 +1,7 @@
+{
+  "name": "example-public-tool",
+  "summary": "Describes a public lookup tool listing for review.",
+  "capabilities": ["lookup", "summarize"],
+  "supportUrl": "https://example.com/support",
+  "documentationUrl": "https://example.com/docs"
+}

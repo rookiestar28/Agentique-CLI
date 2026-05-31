@@ -1,0 +1,20 @@
+{
+  "formatVersion": "1.0",
+  "name": "invalid-hash",
+  "summary": "A static package that intentionally lists an incorrect hash.",
+  "source": {
+    "type": "git",
+    "url": "https://github.com/agentique-examples/invalid-hash"
+  },
+  "distribution": {
+    "mode": "package_download",
+    "notes": "Prepared for platform upload review before publication."
+  },
+  "package": {
+    "formatVersion": "1.0",
+    "files": ["README.md"],
+    "hashes": {
+      "README.md": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+}

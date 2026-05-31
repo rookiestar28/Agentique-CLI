@@ -1,0 +1,33 @@
+{
+  "name": "@agentique/readback",
+  "version": "0.1.0",
+  "description": "Read-only public readback helpers for Agentique resources.",
+  "type": "module",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "main": "./src/index.mjs",
+  "exports": {
+    ".": "./src/index.mjs"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "release:check": "node scripts/release-check.mjs",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "keywords": [
+    "agentique",
+    "readback",
+    "badge",
+    "sdk"
+  ],
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=20"
+  }
+}

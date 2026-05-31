@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.agentique.io/package-manifest.schema.json",
+  "title": "Agentique Public Package Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["formatVersion", "files", "hashes"],
+  "properties": {
+    "formatVersion": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "files": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 200,
+      "items": {
+        "type": "string",
+        "pattern": "^(?!/)(?![A-Za-z]:)(?!.*(?:^|/)\\.env(?:/|$))(?!.*(?:^|/)\\.git(?:/|$))(?!.*(?:^|/)\\.cache(?:/|$))(?!.*(?:^|/)node_modules(?:/|$))(?!.*(?:^|/)private(?:/|$))(?!.*\\.\\.)(?!.*[\\\\]).{1,160}$"
+      }
+    },
+    "hashes": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^sha256:[a-f0-9]{64}$"
+      },
+      "propertyNames": {
+        "pattern": "^(?!/)(?![A-Za-z]:)(?!.*(?:^|/)\\.env(?:/|$))(?!.*(?:^|/)\\.git(?:/|$))(?!.*(?:^|/)\\.cache(?:/|$))(?!.*(?:^|/)node_modules(?:/|$))(?!.*(?:^|/)private(?:/|$))(?!.*\\.\\.)(?!.*[\\\\]).{1,160}$"
+      },
+      "minProperties": 1,
+      "maxProperties": 200
+    }
+  }
+}

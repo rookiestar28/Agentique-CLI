@@ -1,0 +1,31 @@
+{
+  "name": "agentique",
+  "releaseType": "single-public-companion-monorepo",
+  "packageArtifacts": true,
+  "requiredChecks": [
+    "public-content-scan",
+    "secret-scan",
+    "manual-review",
+    "tests",
+    "dependency-audit",
+    "workflow-review"
+  ],
+  "allowedPathPrefixes": [
+    ".github/",
+    ".gitignore",
+    "CODEOWNERS",
+    "CONTRIBUTING.md",
+    "LICENSE",
+    "README.md",
+    "SECURITY.md",
+    "assets/",
+    "docs/",
+    "package-lock.json",
+    "package.json",
+    "packages/",
+    "release-manifest.json",
+    "schemas/",
+    "scripts/",
+    "starters/"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "name": "agentique",
+  "version": "0.1.0",
+  "description": "Public companion monorepo for Agentique resource preparation and readback tooling.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "pack:dry-run": "node scripts/package-dry-run.mjs",
+    "release:go-no-go": "node scripts/check-release-go-no-go.mjs",
+    "release:check": "node scripts/release-check.mjs .",
+    "urls:check": "node scripts/check-public-url-inventory.mjs",
+    "validate:starters": "node scripts/validate-starters.mjs",
+    "workflow:check": "node scripts/check-workflow-posture.mjs",
+    "test": "node --test scripts/tests/*.test.mjs && npm --prefix packages/validator test && npm --prefix packages/action test && npm --prefix packages/readback test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

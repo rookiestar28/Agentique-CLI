@@ -1,0 +1,39 @@
+{
+  "formatVersion": "1.0",
+  "name": "workflow-evidence-review",
+  "summary": "A static workflow template for reviewing public source evidence.",
+  "source": {
+    "type": "git",
+    "url": "https://github.com/agentique-examples/workflow-evidence-review"
+  },
+  "distribution": {
+    "mode": "package_download",
+    "notes": "Prepared for platform upload review before publication."
+  },
+  "package": {
+    "formatVersion": "1.0",
+    "files": ["README.md", "workflows/evidence-review.md"],
+    "hashes": {
+      "README.md": "sha256:f2240b4091bbb6813dc378f6c54200b48bb5f3263692f23c7cb68f883780daef",
+      "workflows/evidence-review.md": "sha256:46a2372ebd618183c1258ec9d416938e8bba3568d99d65715ec60324ea4ce5bb"
+    }
+  },
+  "workflow": {
+    "name": "evidence-review",
+    "summary": "Reviews public sources and produces a source-grounded brief.",
+    "steps": [
+      {
+        "id": "collect-sources",
+        "description": "Collect public source links supplied by the user."
+      },
+      {
+        "id": "group-claims",
+        "description": "Group source material by claim or topic."
+      },
+      {
+        "id": "write-brief",
+        "description": "Produce a concise brief with unresolved questions."
+      }
+    ]
+  }
+}

@@ -1,0 +1,149 @@
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { join, relative, sep } from "node:path";
+
+export function collectWorkflowPostureFindings(repoRoot) {
+  const failures = [];
+  const workflowFiles = listWorkflowFiles(join(repoRoot, ".github", "workflows"));
+
+  for (const workflowFile of workflowFiles) {
+    const relativePath = toPosix(relative(repoRoot, workflowFile));
+    const content = stripYamlComments(readFileSync(workflowFile, "utf8"));
+
+    if (/pull_request_target\s*:/i.test(content)) {
+      failures.push(`workflow uses privileged pull request trigger: ${relativePath}`);
+    }
+    if (/secrets\./i.test(content)) {
+      failures.push(`workflow references repository secrets: ${relativePath}`);
+    }
+    if (/\bnpm\s+publish\b/i.test(content)) {
+      failures.push(`workflow publishes packages during release check: ${relativePath}`);
+    }
+    failures.push(...collectNpmInstallPostureFindings(content, relativePath));
+    failures.push(...collectSecretScannerInstallFindings(repoRoot, content, relativePath));
+    if (!hasReadOnlyContentsPermission(content)) {
+      failures.push(`workflow must declare read-only contents permission: ${relativePath}`);
+    }
+  }
+
+  return failures;
+}
+
+export function listWorkflowFiles(directory) {
+  if (!existsSync(directory)) {
+    return [];
+  }
+
+  const entries = [];
+  for (const entry of readdirSync(directory)) {
+    const fullPath = join(directory, entry);
+    const stats = statSync(fullPath);
+    if (stats.isDirectory()) {
+      entries.push(...listWorkflowFiles(fullPath));
+    } else if (/\.(ya?ml)$/i.test(entry)) {
+      entries.push(fullPath);
+    }
+  }
+  return entries.sort();
+}
+
+export function stripYamlComments(content) {
+  return content
+    .split(/\r?\n/)
+    .filter((line) => !/^\s*#/.test(line))
+    .join("\n");
+}
+
+export function hasReadOnlyContentsPermission(content) {
+  const lines = content.split(/\r?\n/);
+  const permissionsIndex = lines.findIndex((line) => /^permissions:\s*$/.test(line));
+  if (permissionsIndex === -1) {
+    return false;
+  }
+
+  for (let index = permissionsIndex + 1; index < lines.length; index += 1) {
+    const line = lines[index];
+    if (/^\S/.test(line) && line.trim() !== "") {
+      return false;
+    }
+    if (/^\s+contents:\s+read\s*$/.test(line)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function collectNpmInstallPostureFindings(content, relativePath) {
+  const failures = [];
+  const lines = content.split(/\r?\n/);
+
+  for (const line of lines) {
+    const command = line.replace(/^\s*-\s*run:\s*/i, "").trim();
+    if (!/\bnpm\b/i.test(command)) {
+      continue;
+    }
+
+    if (/\bnpm(?:\s+--prefix\s+\S+)?\s+install\b/i.test(command)) {
+      failures.push(`workflow uses lifecycle-enabled npm install: ${relativePath}`);
+      continue;
+    }
+
+    if (/\bnpm(?:\s+--prefix\s+\S+)?\s+ci\b/i.test(command) && !/\s--ignore-scripts(?:\s|$)/i.test(command)) {
+      failures.push(`workflow uses npm ci without --ignore-scripts: ${relativePath}`);
+    }
+  }
+
+  return failures;
+}
+
+function collectSecretScannerInstallFindings(repoRoot, content, relativePath) {
+  const failures = [];
+  const lines = content.split(/\r?\n/);
+
+  for (const line of lines) {
+    const command = line.replace(/^\s*-\s*run:\s*/i, "").trim();
+    if (!/\bpip\s+install\b/i.test(command)) {
+      continue;
+    }
+
+    if (/\bdetect-secrets\b/i.test(command)) {
+      if (/--upgrade\b/i.test(command) || !/\bdetect-secrets==[^\s]+/i.test(command)) {
+        failures.push(`workflow uses unpinned detect-secrets install: ${relativePath}`);
+      }
+      continue;
+    }
+
+    const requirementsPath = extractRequirementPath(command);
+    if (!requirementsPath) {
+      continue;
+    }
+
+    const fullPath = join(repoRoot, requirementsPath);
+    if (!existsSync(fullPath)) {
+      failures.push(`workflow references missing Python requirements file: ${requirementsPath}`);
+      continue;
+    }
+
+    const requirements = readFileSync(fullPath, "utf8");
+    if (!/^\s*detect-secrets==[^\s#]+/im.test(requirements)) {
+      failures.push(`workflow requirements file must pin detect-secrets exactly: ${requirementsPath}`);
+    }
+  }
+
+  return failures;
+}
+
+function extractRequirementPath(command) {
+  const tokens = command.split(/\s+/);
+  for (let index = 0; index < tokens.length; index += 1) {
+    const token = tokens[index];
+    if ((token === "--requirement" || token === "-r") && tokens[index + 1]) {
+      return tokens[index + 1].replace(/^['"]|['"]$/g, "");
+    }
+  }
+  return null;
+}
+
+function toPosix(path) {
+  return path.split(sep).join("/");
+}

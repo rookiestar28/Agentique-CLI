@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.agentique.io/resource-manifest.schema.json",
+  "title": "Agentique Public Resource Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["formatVersion", "name", "summary", "source", "distribution", "package"],
+  "properties": {
+    "formatVersion": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{1,63}$"
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 12,
+      "maxLength": 240
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "url"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["git", "website", "package"]
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://"
+        }
+      }
+    },
+    "distribution": {
+      "$ref": "https://schemas.agentique.io/distribution-mode.schema.json"
+    },
+    "package": {
+      "$ref": "https://schemas.agentique.io/package-manifest.schema.json"
+    },
+    "skill": {
+      "$ref": "https://schemas.agentique.io/skill-metadata.schema.json"
+    },
+    "workflow": {
+      "$ref": "https://schemas.agentique.io/workflow-metadata.schema.json"
+    }
+  }
+}

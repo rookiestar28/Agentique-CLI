@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.agentique.io/public-readback.schema.json",
+  "title": "Agentique Public Readback Projection",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["resourceId", "state", "updatedAt", "platformUrl"],
+  "properties": {
+    "resourceId": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{1,80}$"
+    },
+    "state": {
+      "type": "string",
+      "enum": ["draft", "review_required", "published", "blocked", "unavailable", "stale"]
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "platformUrl": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://agentique\\.io/"
+    },
+    "message": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240
+    },
+    "internalId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "storageUsage": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              { "type": "number" },
+              { "type": "integer" },
+              { "type": "string" },
+              { "type": "boolean" },
+              { "type": "null" }
+            ]
+          }
+        },
+        {
+          "type": "number",
+          "minimum": 0
+        }
+      ]
+    },
+    "deploymentDate": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "tokenCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "objectType": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "storageMode": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    }
+  }
+}
