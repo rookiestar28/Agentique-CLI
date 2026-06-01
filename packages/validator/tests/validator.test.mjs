@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import Ajv from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
+import { scanExternalIntake } from "../src/intake/scanner.mjs";
 import { validatePackage } from "../src/validator.mjs";
 
 const repoDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -240,6 +241,55 @@ test("CLI reports clear missing schemas-dir errors", async () => {
     (error) => {
       assert.equal(error.code, 2);
       assert.match(error.stderr, /CLI error: Unable to load schema distribution-mode\.schema\.json/);
+      return true;
+    }
+  );
+});
+
+test("external intake emits a v1 relative-path report without executing files", async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agentique-intake-"));
+  const markerPath = path.join(tempDir, "would-run.txt");
+  await fs.mkdir(path.join(tempDir, "nested"), { recursive: true });
+  await fs.writeFile(path.join(tempDir, "README.md"), "Public candidate notes.\n", "utf8");
+  await fs.writeFile(
+    path.join(tempDir, "nested", "run-if-executed.js"),
+    `import { writeFileSync } from "node:fs"; writeFileSync(${JSON.stringify(markerPath)}, "executed");\n`,
+    "utf8"
+  );
+
+  const report = await scanExternalIntake({ sourceDir: tempDir });
+
+  assert.equal(report.schemaVersion, "agentique.externalIntake.v1");
+  assert.equal(report.command, "external-intake");
+  assert.equal(report.source.label, path.basename(tempDir));
+  assert.equal(report.decision, "passed");
+  assert.deepEqual(
+    report.inventory.map((item) => item.path),
+    ["README.md", "nested/run-if-executed.js"]
+  );
+  assert.equal(JSON.stringify(report).includes(tempDir), false);
+  await assert.rejects(() => fs.stat(markerPath), /ENOENT/);
+});
+
+test("external intake CLI supports json output and usage errors", async () => {
+  const cliPath = path.join(repoDir, "src", "cli.mjs");
+  const { stdout } = await execFileAsync(process.execPath, [
+    cliPath,
+    "external-intake",
+    path.join(fixturesDir, "valid-package"),
+    "--json"
+  ]);
+  const report = JSON.parse(stdout);
+
+  assert.equal(report.schemaVersion, "agentique.externalIntake.v1");
+  assert.equal(report.decision, "passed");
+  assert.equal(JSON.stringify(report).includes(fixturesDir), false);
+
+  await assert.rejects(
+    () => execFileAsync(process.execPath, [cliPath, "external-intake"]),
+    (error) => {
+      assert.equal(error.code, 2);
+      assert.match(error.stderr, /external-intake <repo-or-dir>/);
       return true;
     }
   );
