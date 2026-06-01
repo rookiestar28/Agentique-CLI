@@ -13,6 +13,7 @@ const LFS_POINTER_READ_LIMIT_BYTES = 2048;
 const LFS_POINTER_HEADER = "version https://git-lfs.github.com/spec/v1";
 const PAYLOAD_PREFIX_READ_LIMIT_BYTES = 4096;
 const SCRIPT_TEXT_READ_LIMIT_BYTES = 32 * 1024;
+const DANGEROUS_TEXT_READ_LIMIT_BYTES = 32 * 1024;
 const ARCHIVE_EXTENSIONS = new Set([".7z", ".gz", ".rar", ".tar", ".tar.gz", ".tgz", ".zip"]);
 const EXECUTABLE_EXTENSIONS = new Set([
   ".bat",
@@ -31,6 +32,36 @@ const EXECUTABLE_EXTENSIONS = new Set([
 ]);
 const PACKAGE_LIFECYCLE_SCRIPTS = new Set(["preinstall", "install", "postinstall", "prepare", "prepublish", "prepublishonly", "prepack", "postpack"]);
 const EXECUTABLE_SURFACE_EXTENSIONS = new Set([".bash", ".ps1", ".sh", ".zsh"]);
+const DANGEROUS_CAPABILITY_RULES = Object.freeze([
+  Object.freeze({
+    category: "download-pipe-execute",
+    pattern: /\b(?:curl|wget|iwr|invoke-webrequest)\b[\s\S]{0,120}\|\s*(?:bash|sh|zsh|powershell|pwsh|iex|invoke-expression)\b/i
+  }),
+  Object.freeze({
+    category: "destructive-filesystem",
+    pattern: /\b(?:rm\s+-rf|rmdir\s+\/s|remove-item\b[\s\S]{0,80}-recurse|del\s+\/[fqsa])\b/i
+  }),
+  Object.freeze({
+    category: "credential-environment-access",
+    pattern: /\b(?:process\.env|os\.environ|getenv\(|GITHUB_TOKEN|AWS_SECRET_ACCESS_KEY|npm_token|pypi_token|\.env)\b/i
+  }),
+  Object.freeze({
+    category: "encoded-payload",
+    pattern: /\b(?:base64\s+(?:-d|--decode)|frombase64string|atob\(|Buffer\.from\([^)]{0,80}base64)\b/i
+  }),
+  Object.freeze({
+    category: "process-spawn",
+    pattern: /\b(?:child_process|execSync|spawnSync|execFileSync|subprocess\.(?:run|popen|call)|ProcessBuilder)\b/i
+  }),
+  Object.freeze({
+    category: "unpinned-reference",
+    pattern: /\b(?:uses\s*:\s*[^@\s]+@(?:main|master|latest)|image\s*:\s*[^:\s]+:latest)\b/i
+  }),
+  Object.freeze({
+    category: "self-hosted-runner",
+    pattern: /\bruns-on\s*:\s*\[?[^\n]*self-hosted\b/i
+  })
+]);
 
 export async function scanExternalIntake(options) {
   const command = options.command ?? "external-intake";
@@ -129,6 +160,7 @@ async function walkDirectory({ root, current, inventory, findings }) {
       await applyRepositoryMetadataGates({ filePath: absolutePath, rel, stat, findings });
       await applyPayloadClassifier({ filePath: absolutePath, rel, findings });
       await applyScriptWorkflowInventory({ filePath: absolutePath, rel, findings });
+      await applyDangerousCapabilityClassifier({ filePath: absolutePath, rel, findings });
     } catch (error) {
       findings.push(
         createFinding({
@@ -142,6 +174,50 @@ async function walkDirectory({ root, current, inventory, findings }) {
       );
     }
   }
+}
+
+async function applyDangerousCapabilityClassifier({ filePath, rel, findings }) {
+  const content = await readTextPrefix({
+    filePath,
+    rel,
+    maxBytes: DANGEROUS_TEXT_READ_LIMIT_BYTES,
+    findings,
+    purpose: "dangerous-capability"
+  });
+  if (!content) {
+    return;
+  }
+
+  const seenCategories = new Set();
+  for (const rule of DANGEROUS_CAPABILITY_RULES) {
+    if (seenCategories.has(rule.category)) {
+      continue;
+    }
+    const match = content.match(rule.pattern);
+    if (!match) {
+      continue;
+    }
+    seenCategories.add(rule.category);
+    findings.push(
+      createFinding({
+        code: "dangerous.capability",
+        severity: "high",
+        message: "Dangerous capability pattern is present in external intake.",
+        path: rel,
+        blocking: true,
+        details: {
+          category: rule.category,
+          snippet: redactSnippet(extractSnippet(content, match.index ?? 0, match[0].length))
+        }
+      })
+    );
+  }
+}
+
+function extractSnippet(content, index, length) {
+  const start = Math.max(0, index - 40);
+  const end = Math.min(content.length, index + length + 40);
+  return content.slice(start, end);
 }
 
 async function applyScriptWorkflowInventory({ filePath, rel, findings }) {
@@ -576,15 +652,18 @@ async function readBufferPrefix({ filePath, rel, maxBytes, findings, purpose }) 
   } catch (error) {
     const isPayloadRead = purpose === "payload-classifier";
     const isScriptRead = purpose.startsWith("script-");
+    const isDangerousRead = purpose === "dangerous-capability";
     findings.push(
       createFinding({
-        code: isPayloadRead ? "payload.read-file" : isScriptRead ? "script.read-file" : "repo.metadata-read",
+        code: isPayloadRead ? "payload.read-file" : isScriptRead ? "script.read-file" : isDangerousRead ? "dangerous.read-file" : "repo.metadata-read",
         severity: "high",
         message: isPayloadRead
           ? "Unable to read file prefix for payload classification."
           : isScriptRead
             ? "Unable to read file prefix for script inventory."
-            : "Unable to read repository metadata.",
+            : isDangerousRead
+              ? "Unable to read file prefix for dangerous capability classification."
+              : "Unable to read repository metadata.",
         path: rel,
         blocking: true,
         details: {
