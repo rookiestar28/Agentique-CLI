@@ -40,7 +40,21 @@ const internalPathPattern = new RegExp(
 const forbiddenTextPatterns = [
   { id: "internal-path", pattern: internalPathPattern },
   { id: "local-absolute-path", pattern: /(?:[A-Za-z]:\\|\/home\/|\/Users\/|\/mnt\/)/ },
-  { id: "private-directory", pattern: /(?:^|[\\/\s])private(?:[\\/\s]|$)/i }
+  { id: "private-directory", pattern: /(?:^|[\\/\s])private(?:[\\/\s]|$)/i },
+  {
+    id: "unbounded-context",
+    pattern: /\b(?:all[-\s]?catalog|full[-\s]?catalog|entire[-\s]?catalog|default[-\s]?unbounded|include everything|load everything|expose everything)\b/i
+  },
+  {
+    id: "strong-claim",
+    pattern: new RegExp(
+      [
+        "\\b(?:platform[-\\s]?approved|approved by validator|",
+        "certified\\s+safe|safety certification|guaranteed safe|guaranteed compatible|guaranteed execution)\\b"
+      ].join(""),
+      "i"
+    )
+  }
 ];
 
 const secretLikePatterns = [
@@ -78,6 +92,7 @@ export async function validatePackage(options) {
       findings.push(finding("schema", `${error.instancePath || "/"} ${error.message ?? "is invalid"}`, "manifest"));
     }
   }
+  validateManifestContracts(manifest, findings);
 
   const packageFiles = Array.isArray(manifest?.package?.files) ? manifest.package.files : [];
   const packageHashes = isRecord(manifest?.package?.hashes) ? manifest.package.hashes : {};
@@ -94,7 +109,7 @@ export async function validatePackage(options) {
   }
 
   for (const rel of packageFiles) {
-    await inspectPackageFile({ packageDir, rel, expectedHash: packageHashes[rel], findings });
+    await inspectPackageFile({ packageDir, rel, expectedHash: packageHashes[rel], findings, ajv });
   }
 
   scanJsonValue(manifest, "manifest", findings);
@@ -190,7 +205,7 @@ function validatePackagePath(rel, findings) {
   }
 }
 
-async function inspectPackageFile({ packageDir, rel, expectedHash, findings }) {
+async function inspectPackageFile({ packageDir, rel, expectedHash, findings, ajv }) {
   const filePath = resolveInside(packageDir, rel);
   if (!filePath) {
     findings.push(finding("unsafe-path", "Resolved file path escaped the package directory.", rel));
@@ -212,6 +227,84 @@ async function inspectPackageFile({ packageDir, rel, expectedHash, findings }) {
 
   const text = bytes.toString("utf8");
   scanText(text, rel, findings);
+  inspectStructuredPackageFile({ rel, text, findings, ajv });
+}
+
+function validateManifestContracts(manifest, findings) {
+  if (!isRecord(manifest)) return;
+
+  if (!isRecord(manifest.permissionRisk)) {
+    findings.push(
+      finding(
+        "permission-risk-missing",
+        "Resource manifests must declare permission and risk metadata for agent-facing selection.",
+        "manifest.permissionRisk"
+      )
+    );
+  }
+
+  if (isRecord(manifest.skill) && !isRecord(manifest.skill.outputContract)) {
+    findings.push(
+      finding(
+        "output-contract-missing",
+        "Skill metadata must declare an output contract for bounded agent-facing use.",
+        "manifest.skill.outputContract"
+      )
+    );
+  }
+
+  if (isRecord(manifest.workflow) && !isRecord(manifest.workflow.outputContract)) {
+    findings.push(
+      finding(
+        "output-contract-missing",
+        "Workflow metadata must declare an output contract for bounded agent-facing use.",
+        "manifest.workflow.outputContract"
+      )
+    );
+  }
+}
+
+function inspectStructuredPackageFile({ rel, text, findings, ajv }) {
+  const normalized = rel.replaceAll("\\", "/").toLowerCase();
+  const schemaId = schemaIdForPackageJson(normalized);
+  if (!schemaId) return;
+
+  let value;
+  try {
+    value = JSON.parse(text);
+  } catch {
+    findings.push(finding("json-contract-read", "Package JSON contract file must contain valid JSON.", rel));
+    return;
+  }
+
+  const validate = ajv.getSchema(schemaId);
+  if (!validate) {
+    findings.push(finding("schema-loader", `Required package contract schema was not loaded: ${path.basename(schemaId)}`, rel));
+    return;
+  }
+
+  if (!validate(value)) {
+    for (const error of validate.errors ?? []) {
+      findings.push(
+        finding(
+          "contract-schema",
+          `${error.instancePath || "/"} ${error.message ?? "is invalid"}`,
+          rel
+        )
+      );
+    }
+  }
+}
+
+function schemaIdForPackageJson(normalizedRel) {
+  if (!normalizedRel.endsWith(".json")) return null;
+  if (normalizedRel.startsWith("tools/")) {
+    return "https://schemas.agentique.io/tool-listing.schema.json";
+  }
+  if (normalizedRel.includes("context-bundle")) {
+    return "https://schemas.agentique.io/context-bundle.schema.json";
+  }
+  return null;
 }
 
 function resolveInside(root, rel) {

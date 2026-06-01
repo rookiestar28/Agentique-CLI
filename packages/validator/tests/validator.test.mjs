@@ -137,6 +137,181 @@ test("permission risk schema covers read-only open-world destructive and credent
   );
 });
 
+test("rejects packages without manifest permission risk metadata", async () => {
+  const tempDir = await copyFixture("valid-package");
+  const manifest = await readManifest(tempDir);
+  delete manifest.permissionRisk;
+  await writeManifest(tempDir, manifest);
+
+  const report = await validatePackage({ command: "validate", packageDir: tempDir, schemasDir });
+
+  assert.equal(report.ok, false);
+  assertFindings(report, ["permission-risk-missing"]);
+  assert.equal(JSON.stringify(report).includes(tempDir), false);
+});
+
+test("rejects skill and workflow metadata without output contracts", async () => {
+  for (const metadataKind of ["skill", "workflow"]) {
+    const tempDir = await copyFixture("valid-package");
+    const manifest = await readManifest(tempDir);
+    manifest[metadataKind] =
+      metadataKind === "skill"
+        ? {
+            name: "sample-skill",
+            summary: "Summarizes public sources for local validator coverage.",
+            inputs: ["topic"],
+            outputs: ["summary"]
+          }
+        : {
+            name: "sample-workflow",
+            summary: "Reviews public sources for local validator coverage.",
+            steps: [{ id: "review-sources", description: "Review public source notes." }]
+          };
+    await writeManifest(tempDir, manifest);
+
+    const report = await validatePackage({ command: "validate", packageDir: tempDir, schemasDir });
+
+    assert.equal(report.ok, false, `expected ${metadataKind} without output contract to fail`);
+    assertFindings(report, ["output-contract-missing"]);
+  }
+});
+
+test("rejects invalid manifest output contracts", async () => {
+  const tempDir = await copyFixture("valid-package");
+  const manifest = await readManifest(tempDir);
+  manifest.skill = {
+    name: "sample-skill",
+    summary: "Summarizes public sources for local validator coverage.",
+    inputs: ["topic"],
+    outputs: ["summary"],
+    outputContract: {
+      inputSchema: { type: "object" },
+      outputSchema: { type: "object" },
+      maxOutputBytes: 2048,
+      timeoutMs: 1000,
+      errorBehavior: "typed-error",
+      redaction: {
+        secrets: true,
+        privateFields: false
+      }
+    }
+  };
+  await writeManifest(tempDir, manifest);
+
+  const report = await validatePackage({ command: "validate", packageDir: tempDir, schemasDir });
+
+  assert.equal(report.ok, false);
+  assertFindings(report, ["schema"]);
+});
+
+test("validates packaged tool listing contracts", async () => {
+  const tempDir = await copyFixture("valid-package");
+  await addPackageFile(
+    tempDir,
+    "tools/example-tool.json",
+    `${JSON.stringify(
+      {
+        name: "example-tool",
+        summary: "Public lookup tool used for validator contract coverage.",
+        capabilities: ["lookup"],
+        permissionRisk: {
+          readOnly: true,
+          destructive: false,
+          idempotent: true,
+          openWorld: true,
+          externalNetwork: true,
+          credentialed: false,
+          approvalRequired: false,
+          dataSensitivity: "public",
+          capabilities: ["read-public-content", "external-network"],
+          reviewNotes: "Public metadata lookup only."
+        },
+        outputContract: {
+          inputSchema: { type: "object" },
+          outputSchema: { type: "object" },
+          maxOutputBytes: 2048,
+          timeoutMs: 1000,
+          errorBehavior: "typed-error",
+          redaction: {
+            secrets: true,
+            privateFields: false
+          }
+        },
+        documentationUrl: "https://example.com/docs"
+      },
+      null,
+      2
+    )}\n`
+  );
+
+  const report = await validatePackage({ command: "validate", packageDir: tempDir, schemasDir });
+
+  assert.equal(report.ok, false);
+  assertFindings(report, ["contract-schema"]);
+  assert.equal(JSON.stringify(report).includes(tempDir), false);
+});
+
+test("validates packaged context bundle budgets", async () => {
+  const tempDir = await copyFixture("valid-package");
+  await addPackageFile(
+    tempDir,
+    "bundle/context-bundle-example.json",
+    `${JSON.stringify(
+      {
+        bundleId: "example-bundle",
+        summary: "Public context bundle used for validator contract coverage.",
+        budget: {
+          maxItems: 200,
+          maxTokens: 1600,
+          maxBytes: 12288
+        },
+        items: [
+          {
+            resourceId: "example-resource",
+            title: "Example Resource",
+            summary: "A bounded public resource summary for validator coverage.",
+            resourceUrl: "https://example.com/resources/example-resource",
+            selectedContent: [{ kind: "summary", text: "A short public summary.", maxBytes: 512 }],
+            deeperFetch: {
+              resourceUrl: "https://example.com/resources/example-resource",
+              readbackUrl: "https://example.com/resources/example-resource/readback"
+            }
+          }
+        ],
+        deeperFetch: {
+          resourceUrl: "https://example.com/bundles/example-bundle",
+          readbackUrl: "https://example.com/bundles/example-bundle/readback"
+        }
+      },
+      null,
+      2
+    )}\n`
+  );
+
+  const report = await validatePackage({ command: "validate", packageDir: tempDir, schemasDir });
+
+  assert.equal(report.ok, false);
+  assertFindings(report, ["contract-schema"]);
+});
+
+test("rejects unbounded context wording and strong claims without leaking paths", async () => {
+  const cases = [
+    ["unbounded-context", "Load everything from the full catalog before ranking."],
+    ["strong-claim", ["This package is platform-", "approved for agent use."].join("")]
+  ];
+
+  for (const [expectedCode, content] of cases) {
+    const tempDir = await copyFixture("valid-package");
+    await replaceNotes(tempDir, `${content}\n`);
+
+    const report = await validatePackage({ command: "validate", packageDir: tempDir, schemasDir });
+
+    assert.equal(report.ok, false, `expected ${expectedCode} to fail`);
+    assertFindings(report, [expectedCode]);
+    assert.equal(JSON.stringify(report).includes(tempDir), false);
+  }
+});
+
 test("rejects traversal and local path entries", async () => {
   const report = await validatePackage({
     command: "validate",
@@ -720,6 +895,24 @@ async function copyFixture(name) {
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agentique-validator-"));
   await fs.cp(path.join(fixturesDir, name), tempDir, { recursive: true });
   return tempDir;
+}
+
+async function readManifest(packageDir) {
+  return JSON.parse(await fs.readFile(path.join(packageDir, "manifest.json"), "utf8"));
+}
+
+async function writeManifest(packageDir, manifest) {
+  await fs.writeFile(path.join(packageDir, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
+}
+
+async function addPackageFile(packageDir, packagePath, content) {
+  const fullPath = path.join(packageDir, ...packagePath.split("/"));
+  await fs.mkdir(path.dirname(fullPath), { recursive: true });
+  await fs.writeFile(fullPath, content, "utf8");
+  const manifest = await readManifest(packageDir);
+  manifest.package.files = [...manifest.package.files, packagePath];
+  manifest.package.hashes[packagePath] = await sha256ManifestValue(fullPath);
+  await writeManifest(packageDir, manifest);
 }
 
 async function sha256ManifestValue(filePath) {

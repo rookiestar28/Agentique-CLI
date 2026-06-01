@@ -10,6 +10,29 @@
     "mode": "package_download",
     "notes": "Prepared for platform upload review before publication."
   },
+  "surfacing": {
+    "taskIntents": ["validator-fixture"],
+    "audience": ["developer", "reviewer"],
+    "priority": 0.5,
+    "contextBudget": {
+      "maxTokens": 512,
+      "maxBytes": 4096,
+      "preferredSummaryBytes": 512
+    },
+    "notes": "Static validator fixture with bounded public package metadata."
+  },
+  "permissionRisk": {
+    "readOnly": true,
+    "destructive": false,
+    "idempotent": true,
+    "openWorld": false,
+    "externalNetwork": false,
+    "credentialed": false,
+    "approvalRequired": false,
+    "dataSensitivity": "public",
+    "capabilities": ["read-public-content"],
+    "reviewNotes": "Static fixture files only; no execution or state mutation is declared."
+  },
   "package": {
     "formatVersion": "1.0",
     "files": ["README.md", "notes.md"],
