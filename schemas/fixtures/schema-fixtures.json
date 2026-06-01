@@ -89,6 +89,25 @@
         "hashes": {
           "README.md": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
         }
+      },
+      "surfacing": {
+        "taskIntents": ["source-review", "public-summary"],
+        "audience": ["agent", "developer"],
+        "priority": 0.6,
+        "recency": {
+          "lastReviewedAt": "2026-06-01T00:00:00.000Z",
+          "reviewCadenceDays": 90
+        },
+        "compatibility": {
+          "runtimeFamilies": ["node", "browser"],
+          "protocols": ["https"]
+        },
+        "contextBudget": {
+          "maxTokens": 4000,
+          "maxBytes": 65536,
+          "preferredSummaryBytes": 4096
+        },
+        "notes": "Public creator-provided hints for resource selection."
       }
     },
     "invalid": {
@@ -159,6 +178,44 @@
         "summary": "too short",
         "inputs": [],
         "outputs": []
+      }
+    }
+  },
+  "surfacing-metadata.schema.json": {
+    "valid": {
+      "taskIntents": ["source-review", "public-summary"],
+      "audience": ["agent", "developer"],
+      "priority": 0.5,
+      "recency": {
+        "lastReviewedAt": "2026-06-01T00:00:00.000Z"
+      },
+      "contextBudget": {
+        "maxTokens": 4000,
+        "maxBytes": 65536
+      }
+    },
+    "invalid": {
+      "missing-required": {
+        "taskIntents": ["source-review"]
+      },
+      "extra-property": {
+        "taskIntents": ["source-review"],
+        "audience": ["agent"],
+        "priority": 0.5,
+        "contextBudget": {
+          "maxTokens": 4000,
+          "maxBytes": 65536
+        },
+        "approved": true
+      },
+      "boundary": {
+        "taskIntents": [],
+        "audience": ["unknown"],
+        "priority": 2,
+        "contextBudget": {
+          "maxTokens": 64,
+          "maxBytes": 128
+        }
       }
     }
   },

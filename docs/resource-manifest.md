@@ -25,6 +25,38 @@ A workflow template should describe steps, public parameters, and expected outpu
 
 A distribution mode explains how users can inspect or obtain a resource after `agentique.io` accepts it. Examples include public metadata view, package download, external project link, or read-only readback. The platform decides the final publication and distribution state.
 
+## Surfacing Metadata
+
+Resource manifests may include optional `surfacing` metadata. These fields are public creator or integrator hints that help describe intended task use, audience, rough priority, review recency, compatibility, and context budget preferences.
+
+Example:
+
+```json
+{
+  "surfacing": {
+    "taskIntents": ["source-review", "public-summary"],
+    "audience": ["agent", "developer"],
+    "priority": 0.6,
+    "recency": {
+      "lastReviewedAt": "2026-06-01T00:00:00.000Z",
+      "reviewCadenceDays": 90
+    },
+    "compatibility": {
+      "runtimeFamilies": ["node", "browser"],
+      "protocols": ["https"]
+    },
+    "contextBudget": {
+      "maxTokens": 4000,
+      "maxBytes": 65536,
+      "preferredSummaryBytes": 4096
+    },
+    "notes": "Public creator-provided hints for resource selection."
+  }
+}
+```
+
+Surfacing metadata is not a ranking promise, review outcome, platform approval, or safety guarantee. The platform remains authoritative for upload review, scanning, moderation, publication state, and final public readback.
+
 ## Scan Readback
 
 Scan readback is the public status that `agentique.io` exposes after platform processing. Local validation is not platform approval. Local validation is not safety certification.

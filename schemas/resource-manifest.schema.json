@@ -46,6 +46,9 @@
     },
     "workflow": {
       "$ref": "https://schemas.agentique.io/workflow-metadata.schema.json"
+    },
+    "surfacing": {
+      "$ref": "https://schemas.agentique.io/surfacing-metadata.schema.json"
     }
   }
 }

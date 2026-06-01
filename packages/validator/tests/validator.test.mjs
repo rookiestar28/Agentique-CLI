@@ -22,6 +22,7 @@ const schemaFiles = [
   "public-readback.schema.json",
   "resource-manifest.schema.json",
   "skill-metadata.schema.json",
+  "surfacing-metadata.schema.json",
   "workflow-metadata.schema.json"
 ];
 
