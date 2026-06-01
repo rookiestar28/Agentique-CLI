@@ -10,6 +10,37 @@
     "mode": "package_download",
     "notes": "Prepared for platform upload review before publication."
   },
+  "surfacing": {
+    "taskIntents": ["research-brief", "source-organization"],
+    "audience": ["agent", "reviewer", "developer"],
+    "priority": 0.74,
+    "recency": {
+      "lastReviewedAt": "2026-06-01T00:00:00Z",
+      "reviewCadenceDays": 90
+    },
+    "compatibility": {
+      "runtimeFamilies": ["markdown", "agent-profile"],
+      "protocols": ["https"]
+    },
+    "contextBudget": {
+      "maxTokens": 1200,
+      "maxBytes": 8192,
+      "preferredSummaryBytes": 1024
+    },
+    "notes": "Surface this profile when the task needs a compact public-source research assistant example."
+  },
+  "permissionRisk": {
+    "readOnly": true,
+    "destructive": false,
+    "idempotent": true,
+    "openWorld": false,
+    "externalNetwork": false,
+    "credentialed": false,
+    "approvalRequired": false,
+    "dataSensitivity": "public",
+    "capabilities": ["read-public-content"],
+    "reviewNotes": "Static documentation only; it does not request auth material or mutate state."
+  },
   "package": {
     "formatVersion": "1.0",
     "files": ["README.md", "agents/research-assistant.md"],

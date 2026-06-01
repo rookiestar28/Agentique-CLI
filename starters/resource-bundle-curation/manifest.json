@@ -10,12 +10,44 @@
     "mode": "package_download",
     "notes": "Prepared for platform upload review before publication."
   },
+  "surfacing": {
+    "taskIntents": ["bundle-curation", "minimal-context"],
+    "audience": ["agent", "human", "developer", "reviewer"],
+    "priority": 0.78,
+    "recency": {
+      "lastReviewedAt": "2026-06-01T00:00:00Z",
+      "reviewCadenceDays": 90
+    },
+    "compatibility": {
+      "runtimeFamilies": ["markdown", "json"],
+      "protocols": ["https"]
+    },
+    "contextBudget": {
+      "maxTokens": 1800,
+      "maxBytes": 16384,
+      "preferredSummaryBytes": 2048
+    },
+    "notes": "Surface this bundle when the task needs a small curated context package example."
+  },
+  "permissionRisk": {
+    "readOnly": true,
+    "destructive": false,
+    "idempotent": true,
+    "openWorld": false,
+    "externalNetwork": false,
+    "credentialed": false,
+    "approvalRequired": false,
+    "dataSensitivity": "public",
+    "capabilities": ["read-public-content"],
+    "reviewNotes": "Static bundle guidance with bounded public examples only."
+  },
   "package": {
     "formatVersion": "1.0",
-    "files": ["README.md", "bundle/curation-guide.md"],
+    "files": ["README.md", "bundle/curation-guide.md", "bundle/context-bundle-example.json"],
     "hashes": {
       "README.md": "sha256:ea23bef2f7fda3ea401e200a9c645b1aaf1ea3d89bafc7f399920956d623aa28",
-      "bundle/curation-guide.md": "sha256:025765ec77954bc34d2b21434d3eeae4d011c56b6466b9223251a5bc1c4620c3"
+      "bundle/curation-guide.md": "sha256:025765ec77954bc34d2b21434d3eeae4d011c56b6466b9223251a5bc1c4620c3",
+      "bundle/context-bundle-example.json": "sha256:6c70fe7f246399f9afa79e6e77390e31a00a970f79aedfa9a901bad9ce86a1f0"
     }
   }
 }

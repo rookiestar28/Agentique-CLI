@@ -1,0 +1,60 @@
+{
+  "bundleId": "public-source-review",
+  "summary": "A bounded context bundle for reviewing a small set of public package notes.",
+  "budget": {
+    "maxItems": 2,
+    "maxTokens": 1600,
+    "maxBytes": 12288
+  },
+  "items": [
+    {
+      "resourceId": "curation-guide",
+      "title": "Curation Guide",
+      "summary": "Reviewer-facing notes that explain the package contents and inspection checklist.",
+      "resourceUrl": "https://example.com/agentique/bundles/curation-guide",
+      "selectedContent": [
+        {
+          "kind": "summary",
+          "text": "Use the package summary, stable file names, public source links, and restricted-material checks as the primary review context.",
+          "maxBytes": 512
+        },
+        {
+          "kind": "contract",
+          "text": "The package is static documentation with public examples and does not declare mutation, credential use, or executable payloads.",
+          "maxBytes": 512
+        }
+      ],
+      "surfacing": {
+        "taskIntents": ["bundle-curation", "package-review"],
+        "audience": ["agent", "reviewer"],
+        "priority": 0.72,
+        "contextBudget": {
+          "maxTokens": 900,
+          "maxBytes": 6144,
+          "preferredSummaryBytes": 768
+        },
+        "notes": "Use this item when the current step needs a compact review checklist."
+      },
+      "permissionRisk": {
+        "readOnly": true,
+        "destructive": false,
+        "idempotent": true,
+        "openWorld": false,
+        "externalNetwork": false,
+        "credentialed": false,
+        "approvalRequired": false,
+        "dataSensitivity": "public",
+        "capabilities": ["read-public-content"],
+        "reviewNotes": "Static public guide content only."
+      },
+      "deeperFetch": {
+        "resourceUrl": "https://example.com/agentique/bundles/curation-guide",
+        "readbackUrl": "https://example.com/agentique/bundles/curation-guide/readback"
+      }
+    }
+  ],
+  "deeperFetch": {
+    "resourceUrl": "https://example.com/agentique/bundles/public-source-review",
+    "readbackUrl": "https://example.com/agentique/bundles/public-source-review/readback"
+  }
+}

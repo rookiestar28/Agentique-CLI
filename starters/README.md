@@ -6,6 +6,8 @@ Each starter includes a `manifest.json` plus Markdown or JSON files that can be 
 
 Upload, platform scan, moderation, publication, distribution state, and readback are handled by `agentique.io`. Local starter validation only checks package shape and does not approve a resource for publication.
 
+Newer starters include contract examples for surfacing hints, permission and risk declarations, output shape boundaries, and bounded context bundles. These fields are descriptive package metadata so reviewers and integrators can see why a resource should be selected, what it can access, and how much context it is expected to consume.
+
 ## Starters
 
 - `agent-assistant` - agent profile and operating notes.

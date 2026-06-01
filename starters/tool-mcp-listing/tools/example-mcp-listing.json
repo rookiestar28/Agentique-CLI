@@ -2,6 +2,52 @@
   "name": "example-public-tool",
   "summary": "Describes a public lookup tool listing for review.",
   "capabilities": ["lookup", "summarize"],
+  "permissionRisk": {
+    "readOnly": true,
+    "destructive": false,
+    "idempotent": true,
+    "openWorld": true,
+    "externalNetwork": true,
+    "credentialed": false,
+    "approvalRequired": false,
+    "dataSensitivity": "public",
+    "capabilities": ["read-public-content", "external-network"],
+    "reviewNotes": "Public lookup metadata only; no credential use or state mutation is declared."
+  },
+  "outputContract": {
+    "inputSchema": {
+      "type": "object",
+      "required": ["query"],
+      "properties": {
+        "query": { "type": "string" },
+        "limit": { "type": "integer" }
+      }
+    },
+    "outputSchema": {
+      "type": "object",
+      "required": ["results"],
+      "properties": {
+        "results": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "structuredContent": true,
+    "unstructuredFallback": "summary",
+    "maxOutputBytes": 12000,
+    "timeoutMs": 30000,
+    "limitHints": {
+      "maxItems": 10,
+      "maxRequests": 1
+    },
+    "errorBehavior": "typed-error",
+    "redaction": {
+      "secrets": true,
+      "privateFields": true,
+      "notes": "Remove auth material and personal fields before returning results."
+    }
+  },
   "supportUrl": "https://example.com/support",
   "documentationUrl": "https://example.com/docs"
 }

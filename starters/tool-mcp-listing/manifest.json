@@ -10,12 +10,43 @@
     "mode": "metadata_view",
     "notes": "Prepared for platform listing review before publication."
   },
+  "surfacing": {
+    "taskIntents": ["tool-lookup", "mcp-listing"],
+    "audience": ["agent", "developer", "reviewer", "integrator"],
+    "priority": 0.8,
+    "recency": {
+      "lastReviewedAt": "2026-06-01T00:00:00Z",
+      "reviewCadenceDays": 60
+    },
+    "compatibility": {
+      "runtimeFamilies": ["mcp", "json"],
+      "protocols": ["https"]
+    },
+    "contextBudget": {
+      "maxTokens": 1400,
+      "maxBytes": 12288,
+      "preferredSummaryBytes": 1536
+    },
+    "notes": "Surface this listing when the task needs tool capabilities and output boundaries."
+  },
+  "permissionRisk": {
+    "readOnly": true,
+    "destructive": false,
+    "idempotent": true,
+    "openWorld": true,
+    "externalNetwork": true,
+    "credentialed": false,
+    "approvalRequired": false,
+    "dataSensitivity": "public",
+    "capabilities": ["read-public-content", "external-network"],
+    "reviewNotes": "Descriptive metadata for a public lookup endpoint; no credential use is declared."
+  },
   "package": {
     "formatVersion": "1.0",
     "files": ["README.md", "tools/example-mcp-listing.json"],
     "hashes": {
       "README.md": "sha256:289b694dcb5caec8120c6bceca1fbcb93dd11dc66320bc1535e792e1dd57c5a7",
-      "tools/example-mcp-listing.json": "sha256:e8f282b5a6921273efe24399d12eb5c0acb36bb05bbcad02e71bc597e10a0f0c"
+      "tools/example-mcp-listing.json": "sha256:27864b8837e732c462b8563336476677729b7d7b3be40756cce2c4326e33b2c6"
     }
   }
 }

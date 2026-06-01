@@ -10,6 +10,37 @@
     "mode": "package_download",
     "notes": "Prepared for platform upload review before publication."
   },
+  "surfacing": {
+    "taskIntents": ["evidence-review", "claim-grouping"],
+    "audience": ["agent", "human", "developer", "reviewer"],
+    "priority": 0.86,
+    "recency": {
+      "lastReviewedAt": "2026-06-01T00:00:00Z",
+      "reviewCadenceDays": 90
+    },
+    "compatibility": {
+      "runtimeFamilies": ["markdown", "workflow"],
+      "protocols": ["https"]
+    },
+    "contextBudget": {
+      "maxTokens": 2200,
+      "maxBytes": 16384,
+      "preferredSummaryBytes": 2048
+    },
+    "notes": "Surface this workflow when a user asks for a concise public evidence review."
+  },
+  "permissionRisk": {
+    "readOnly": true,
+    "destructive": false,
+    "idempotent": true,
+    "openWorld": false,
+    "externalNetwork": false,
+    "credentialed": false,
+    "approvalRequired": false,
+    "dataSensitivity": "public",
+    "capabilities": ["read-public-content"],
+    "reviewNotes": "Static workflow guidance; review inputs are public source links supplied by the user."
+  },
   "package": {
     "formatVersion": "1.0",
     "files": ["README.md", "workflows/evidence-review.md"],
@@ -34,6 +65,48 @@
         "id": "write-brief",
         "description": "Produce a concise brief with unresolved questions."
       }
-    ]
+    ],
+    "outputContract": {
+      "inputSchema": {
+        "type": "object",
+        "required": ["topic", "sources"],
+        "properties": {
+          "topic": { "type": "string" },
+          "sources": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": ["brief", "sourceMap", "openQuestions"],
+        "properties": {
+          "brief": { "type": "string" },
+          "sourceMap": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "openQuestions": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      },
+      "structuredContent": true,
+      "unstructuredFallback": "summary",
+      "maxOutputBytes": 16000,
+      "timeoutMs": 45000,
+      "limitHints": {
+        "maxItems": 20,
+        "maxRequests": 1
+      },
+      "errorBehavior": "partial-result",
+      "redaction": {
+        "secrets": true,
+        "privateFields": true,
+        "notes": "Drop auth material and personal fields from source notes."
+      }
+    }
   }
 }

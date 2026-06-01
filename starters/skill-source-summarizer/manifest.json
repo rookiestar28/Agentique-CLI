@@ -10,6 +10,37 @@
     "mode": "package_download",
     "notes": "Prepared for platform upload review before publication."
   },
+  "surfacing": {
+    "taskIntents": ["source-summary", "attribution-notes"],
+    "audience": ["agent", "human", "developer", "reviewer"],
+    "priority": 0.82,
+    "recency": {
+      "lastReviewedAt": "2026-06-01T00:00:00Z",
+      "reviewCadenceDays": 90
+    },
+    "compatibility": {
+      "runtimeFamilies": ["markdown", "skill"],
+      "protocols": ["https"]
+    },
+    "contextBudget": {
+      "maxTokens": 1600,
+      "maxBytes": 12288,
+      "preferredSummaryBytes": 1536
+    },
+    "notes": "Surface this skill when a task needs a bounded public-source summary with attribution."
+  },
+  "permissionRisk": {
+    "readOnly": true,
+    "destructive": false,
+    "idempotent": true,
+    "openWorld": false,
+    "externalNetwork": false,
+    "credentialed": false,
+    "approvalRequired": false,
+    "dataSensitivity": "public",
+    "capabilities": ["read-public-content"],
+    "reviewNotes": "Static skill guidance only; source links are supplied by the user."
+  },
   "package": {
     "formatVersion": "1.0",
     "files": ["README.md", "skills/source-summarizer.md"],
@@ -22,6 +53,49 @@
     "name": "source-summarizer",
     "summary": "Summarizes public source links with attribution and uncertainty notes.",
     "inputs": ["topic", "source list", "preferred tone"],
-    "outputs": ["summary", "source notes", "follow-up questions"]
+    "outputs": ["summary", "source notes", "follow-up questions"],
+    "outputContract": {
+      "inputSchema": {
+        "type": "object",
+        "required": ["topic", "sources"],
+        "properties": {
+          "topic": { "type": "string" },
+          "sources": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "preferredTone": { "type": "string" }
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": ["summary", "sourceNotes", "followUpQuestions"],
+        "properties": {
+          "summary": { "type": "string" },
+          "sourceNotes": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "followUpQuestions": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      },
+      "structuredContent": true,
+      "unstructuredFallback": "summary",
+      "maxOutputBytes": 12000,
+      "timeoutMs": 30000,
+      "limitHints": {
+        "maxItems": 12,
+        "maxRequests": 1
+      },
+      "errorBehavior": "typed-error",
+      "redaction": {
+        "secrets": true,
+        "privateFields": true,
+        "notes": "Remove auth material and personal fields from returned notes."
+      }
+    }
   }
 }
