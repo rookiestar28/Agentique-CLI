@@ -1,14 +1,16 @@
 #!/usr/bin/env node
+import { scanExternalIntake } from "./intake/scanner.mjs";
 import { defaultSchemasDir, validatePackage } from "./validator.mjs";
 
 const usage = `Usage:
   agentique-validator validate <package-dir> [--schemas-dir <dir>] [--json]
   agentique-validator upload-prep <package-dir> [--schemas-dir <dir>] [--json]
+  agentique-validator external-intake <repo-or-dir> [--json]
 `;
 
 async function main(argv) {
   const [command, packageDir, ...rest] = argv;
-  if (!["validate", "upload-prep"].includes(command) || !packageDir) {
+  if (!["validate", "upload-prep", "external-intake"].includes(command) || !packageDir) {
     process.stderr.write(usage);
     return 2;
   }
@@ -29,6 +31,25 @@ async function main(argv) {
   }
 
   try {
+    if (command === "external-intake") {
+      const report = await scanExternalIntake({
+        command,
+        sourceDir: packageDir
+      });
+
+      if (json) {
+        process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+      } else {
+        process.stdout.write(`${report.decision === "passed" ? "OK" : "FAILED"} ${report.command} ${report.source.label}\n`);
+        process.stdout.write(`- files: ${report.summary.files}\n`);
+        process.stdout.write(`- findings: ${report.summary.findings}\n`);
+        for (const item of report.findings) {
+          process.stdout.write(`- ${item.code} at ${item.path}: ${item.message}\n`);
+        }
+      }
+      return report.decision === "passed" ? 0 : 1;
+    }
+
     const report = await validatePackage({
       command,
       packageDir,
