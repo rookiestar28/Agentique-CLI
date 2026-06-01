@@ -271,19 +271,85 @@ test("external intake emits a v1 relative-path report without executing files", 
   await assert.rejects(() => fs.stat(markerPath), /ENOENT/);
 });
 
+test("external intake enforces file and byte thresholds", async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agentique-intake-limits-"));
+  await fs.writeFile(path.join(tempDir, "a.txt"), "alpha\n", "utf8");
+  await fs.writeFile(path.join(tempDir, "b.txt"), "bravo\n", "utf8");
+
+  const report = await scanExternalIntake({
+    sourceDir: tempDir,
+    maxFiles: 1,
+    maxBytes: 1
+  });
+
+  assert.equal(report.decision, "blocked");
+  assert.equal(report.summary.files, 2);
+  assert.equal(report.summary.bytes, 12);
+  assertFindings(report, ["repo.max-files", "repo.max-bytes"]);
+  assert.equal(JSON.stringify(report).includes(tempDir), false);
+});
+
+test("external intake blocks submodule and Git LFS metadata without fetching content", async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agentique-intake-metadata-"));
+  await fs.writeFile(
+    path.join(tempDir, ".gitmodules"),
+    '[submodule "vendor/example"]\n  path = vendor/example\n  url = https://example.com/repo.git\n',
+    "utf8"
+  );
+  await fs.writeFile(path.join(tempDir, ".gitattributes"), "*.bin filter=lfs diff=lfs merge=lfs -text\n", "utf8");
+  await fs.writeFile(
+    path.join(tempDir, "large.bin"),
+    `version https://git-lfs.github.com/spec/v1\noid sha256:${"a".repeat(64)}\nsize 123456\n`,
+    "utf8"
+  );
+
+  const report = await scanExternalIntake({ sourceDir: tempDir });
+
+  assert.equal(report.decision, "blocked");
+  assertFindings(report, ["repo.submodule-config", "repo.lfs-attributes", "repo.lfs-pointer"]);
+  assert.deepEqual(
+    report.findings.map((finding) => finding.path).sort(),
+    [".gitattributes", ".gitmodules", "large.bin"]
+  );
+  assert.equal(JSON.stringify(report).includes(tempDir), false);
+});
+
 test("external intake CLI supports json output and usage errors", async () => {
   const cliPath = path.join(repoDir, "src", "cli.mjs");
   const { stdout } = await execFileAsync(process.execPath, [
     cliPath,
     "external-intake",
     path.join(fixturesDir, "valid-package"),
-    "--json"
+    "--json",
+    "--max-files",
+    "100",
+    "--max-bytes",
+    "1000000"
   ]);
   const report = JSON.parse(stdout);
 
   assert.equal(report.schemaVersion, "agentique.externalIntake.v1");
   assert.equal(report.decision, "passed");
   assert.equal(JSON.stringify(report).includes(fixturesDir), false);
+
+  await assert.rejects(
+    () =>
+      execFileAsync(process.execPath, [
+        cliPath,
+        "external-intake",
+        path.join(fixturesDir, "valid-package"),
+        "--json",
+        "--max-files",
+        "1"
+      ]),
+    (error) => {
+      assert.equal(error.code, 1);
+      const failedReport = JSON.parse(error.stdout);
+      assert.equal(failedReport.decision, "blocked");
+      assertFindings(failedReport, ["repo.max-files"]);
+      return true;
+    }
+  );
 
   await assert.rejects(
     () => execFileAsync(process.execPath, [cliPath, "external-intake"]),
