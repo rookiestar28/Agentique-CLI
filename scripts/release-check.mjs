@@ -45,6 +45,7 @@ function main() {
 
   failures.push(...scanPublicContent(root, files));
   failures.push(...collectWorkflowPostureFindings(root));
+  failures.push(...runExternalIntakeSmoke(root));
   failures.push(
     ...collectStarterSourceUrlFindings({
       repoRoot: root,
@@ -129,6 +130,32 @@ function scanPublicContent(repoRoot, files) {
   }
 
   return failures;
+}
+
+function runExternalIntakeSmoke(repoRoot) {
+  const validatorScript = join(repoRoot, "packages", "validator", "src", "cli.mjs");
+  const fixtureDir = join(repoRoot, "scripts", "fixtures", "external-intake-safe");
+  try {
+    const output = execFileSync(process.execPath, [validatorScript, "external-intake", fixtureDir, "--json"], {
+      cwd: repoRoot,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    const report = JSON.parse(output);
+    if (report.schemaVersion !== "agentique.externalIntake.v1") {
+      return ["external-intake smoke check returned unexpected schema version"];
+    }
+    if (report.decision !== "passed") {
+      return ["external-intake smoke check did not pass"];
+    }
+    if (!Array.isArray(report.licenses) || !report.licenses.some((item) => item.normalized === "MIT")) {
+      return ["external-intake smoke check did not report the fixture license"];
+    }
+    return [];
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "unknown error";
+    return [`external-intake smoke check failed: ${message}`];
+  }
 }
 
 function readTextFileIfSafe(path) {

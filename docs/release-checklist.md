@@ -14,6 +14,8 @@ Use this checklist before any public release, package publish, or repository lin
 - Security reporting route still points to private disclosure channels for vulnerabilities.
 - No workflow uses privileged pull request triggers.
 - No workflow references repository secrets for validation-only checks.
+- External-intake smoke check passed against the safe local fixture.
+- Public docs describe external-intake output as advisory review evidence only.
 
 ## Package Evidence
 
@@ -24,3 +26,5 @@ Provenance and attestations help consumers trace where an artifact came from. Th
 ## Launch Boundary
 
 Passing this checklist means the repository is ready for owner review. It does not publish, advertise, or link the repository.
+
+External-intake output does not approve a candidate, certify safety, replace platform moderation, or provide legal clearance.

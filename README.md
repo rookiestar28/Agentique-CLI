@@ -62,6 +62,14 @@ Prepare upload-readiness output for one package:
 node packages/validator/src/cli.mjs upload-prep starters/agent-assistant --schemas-dir schemas --json
 ```
 
+Review a raw external candidate directory before adapting it into a package:
+
+```bash
+node packages/validator/src/cli.mjs external-intake <repo-or-dir> --json
+```
+
+The external intake scan is a local advisory preflight. It does not install dependencies, run lifecycle scripts, fetch submodules, download Git LFS objects, extract archives, or approve the candidate for publication.
+
 Run release-readiness checks locally:
 
 ```bash
@@ -132,6 +140,12 @@ Generate upload-preparation output:
 node packages/validator/src/cli.mjs upload-prep <package-dir> --schemas-dir schemas --json
 ```
 
+Run no-execution external intake preflight on a raw candidate directory:
+
+```bash
+node packages/validator/src/cli.mjs external-intake <repo-or-dir> --json
+```
+
 Exit codes:
 
 - `0` - package is locally valid.
@@ -146,6 +160,9 @@ Checks include:
 - Blocked executable extension rejection.
 - Secret-like value detection with redacted findings.
 - Forbidden public-content path and term checks.
+- External intake preflight for raw candidate directories, including repository metadata gates, payload classification, execution-surface inventory, dangerous capability patterns, redacted secret fingerprints, and license signals.
+
+External intake findings are review inputs only. Passing this local preflight does not publish, approve, certify, moderate, or legally clear a candidate.
 
 See [packages/validator/README.md](packages/validator/README.md).
 
