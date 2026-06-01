@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "agentique.surfacingFixtureMatrix.v1",
+  "publicOnly": true,
+  "description": "Synthetic public cases for release-time companion surfacing contract coverage.",
+  "cases": [
+    {
+      "id": "overlapping-tools",
+      "description": "Two public tool listings have similar summaries and capabilities.",
+      "signals": ["same-intent", "same-capability", "bounded-output"],
+      "expectedDisposition": "selection output must include a concise public reason and stable tie handling"
+    },
+    {
+      "id": "unsafe-relevant-candidate",
+      "description": "A semantically relevant candidate declares open-world or credentialed behavior.",
+      "signals": ["high-relevance", "permission-risk", "approval-required"],
+      "expectedDisposition": "public companion output must show declared risk without claiming platform clearance"
+    },
+    {
+      "id": "stale-resource",
+      "description": "A public resource has older review metadata than fresher alternatives.",
+      "signals": ["recency", "stale-metadata", "public-state"],
+      "expectedDisposition": "selection output must preserve stale or unavailable state instead of hiding it"
+    },
+    {
+      "id": "off-topic-resource",
+      "description": "A public resource is valid but does not match the current task intent.",
+      "signals": ["valid-contract", "intent-mismatch", "bounded-context"],
+      "expectedDisposition": "selection output must prefer relevant public candidates and keep unrelated context out"
+    },
+    {
+      "id": "invalid-output",
+      "description": "A candidate output does not match its declared public output contract.",
+      "signals": ["output-contract", "invalid-structured-output", "typed-error"],
+      "expectedDisposition": "local validation must fail closed or return a bounded public error shape"
+    },
+    {
+      "id": "context-budget-overflow",
+      "description": "A candidate context bundle exceeds public item, token, or byte limits.",
+      "signals": ["context-budget", "overflow", "deeper-fetch-required"],
+      "expectedDisposition": "public bundle output must stay bounded and use explicit deeper fetch links"
+    }
+  ]
+}

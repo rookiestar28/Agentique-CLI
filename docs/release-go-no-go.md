@@ -14,6 +14,8 @@ Current public-safe evidence is recorded in [release-evidence.md](release-eviden
 - Package dry-run check exists.
 - Public URL inventory exists and is blocked by default.
 - Package tests, starter validation, release check, and dependency audits pass locally.
+- Surfacing contract fixture matrix is covered by release checks.
+- Readback helper docs describe context bundle and selection projections as read-only public projections.
 
 ## Blocking Evidence
 
@@ -38,3 +40,5 @@ If a public release is later made and a blocking issue is found:
 7. Re-run release checks before restoring links.
 
 Local validation does not approve publication or certify safety.
+
+Public companion fixtures and helper outputs do not make final resource decisions. They are baseline local evidence for owner review; `agentique.io` remains authoritative.

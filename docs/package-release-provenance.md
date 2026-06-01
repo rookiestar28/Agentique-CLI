@@ -17,10 +17,13 @@ The companion packages are prepared for reviewed public release, but package pub
 - Release manifest and public-content checks pass.
 - Release notes are reviewed for private data, local paths, unsupported claims, and package scope accuracy.
 - Final public repository and package URLs are approved.
+- Public release notes mention surfacing contracts only as baseline companion metadata and read-only helper support.
 
 ## Provenance Posture
 
 Provenance helps consumers trace package source and build context. It does not mean a package is risk-free, platform-approved, or safety-certified.
+
+Public package provenance must not include platform scoring, quarantine criteria, internal review procedures, moderation disposition logic, or operational playbooks.
 
 ## Version And Tag Discipline
 

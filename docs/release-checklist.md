@@ -16,6 +16,8 @@ Use this checklist before any public release, package publish, or repository lin
 - No workflow references repository secrets for validation-only checks.
 - External-intake smoke check passed against the safe local fixture.
 - Public docs describe external-intake output as advisory review evidence only.
+- Surfacing contract fixture matrix exists and covers overlapping, risky, stale, off-topic, invalid-output, and budget-overflow cases.
+- Public docs describe context bundle and selection readback helpers as read-only baseline projections.
 
 ## Package Evidence
 
@@ -28,3 +30,5 @@ Provenance and attestations help consumers trace where an artifact came from. Th
 Passing this checklist means the repository is ready for owner review. It does not publish, advertise, or link the repository.
 
 External-intake output does not approve a candidate, certify safety, replace platform moderation, or provide legal clearance.
+
+Surfacing contract fixtures and readback helper output are release-review inputs only. They do not replace `agentique.io` review, moderation, publication state, distribution state, or public readback.

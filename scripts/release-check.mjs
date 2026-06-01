@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, resolve, sep } from "node:path";
 import { collectStarterSourceUrlFindings } from "./lib/starter-source-policy.mjs";
+import { collectSurfacingContractFixtureFindings } from "./lib/surfacing-contract-fixtures.mjs";
 import { collectWorkflowPostureFindings } from "./lib/workflow-posture.mjs";
 
 const root = resolve(process.argv[2] ?? process.cwd());
@@ -12,6 +13,8 @@ const requiredFiles = [
   "release-manifest.json",
   "scripts/release-check.mjs",
   "docs/release-checklist.md",
+  "docs/contract-evaluation-fixtures.md",
+  "scripts/fixtures/surfacing-contract-matrix/matrix.json",
   ".github/workflows/release-check.yml"
 ];
 
@@ -45,6 +48,7 @@ function main() {
 
   failures.push(...scanPublicContent(root, files));
   failures.push(...collectWorkflowPostureFindings(root));
+  failures.push(...collectSurfacingContractFixtureFindings(root));
   failures.push(...runExternalIntakeSmoke(root));
   failures.push(
     ...collectStarterSourceUrlFindings({

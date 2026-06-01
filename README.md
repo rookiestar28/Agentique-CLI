@@ -28,6 +28,7 @@ Local tools in this repository do not publish, approve, certify, edit, delete, o
 - [GitHub Action](#github-action)
 - [Readback SDK And Badges](#readback-sdk-and-badges)
 - [Schemas](#schemas)
+- [Contract Evaluation Fixtures](#contract-evaluation-fixtures)
 - [Release And Publication Gates](#release-and-publication-gates)
 - [Support And Security](#support-and-security)
 - [License](#license)
@@ -249,6 +250,18 @@ Schemas are stored in `schemas/` and can be used by local tooling or external va
 - `public-readback.schema.json`
 
 The validator CLI uses these schemas through `--schemas-dir schemas`.
+
+## Contract Evaluation Fixtures
+
+Release checks include a synthetic public fixture matrix for surfacing contracts:
+
+```bash
+scripts/fixtures/surfacing-contract-matrix/matrix.json
+```
+
+The matrix covers overlapping tools or resources, relevant candidates with declared risk, stale or off-topic resources, invalid outputs, and context budget overflow. It is baseline release evidence for companion docs, schemas, validators, and readback helpers. It is not a production review rule set and does not expose platform scoring, quarantine criteria, internal review procedures, moderation disposition logic, or operational playbooks.
+
+See [docs/contract-evaluation-fixtures.md](docs/contract-evaluation-fixtures.md).
 
 ## Release And Publication Gates
 
