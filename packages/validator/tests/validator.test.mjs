@@ -251,6 +251,7 @@ test("external intake emits a v1 relative-path report without executing files", 
   const markerPath = path.join(tempDir, "would-run.txt");
   await fs.mkdir(path.join(tempDir, "nested"), { recursive: true });
   await fs.writeFile(path.join(tempDir, "README.md"), "Public candidate notes.\n", "utf8");
+  await fs.writeFile(path.join(tempDir, "LICENSE"), "MIT License\n\nPermission is hereby granted.\n", "utf8");
   await fs.writeFile(
     path.join(tempDir, "nested", "run-if-executed.js"),
     `import { writeFileSync } from "node:fs"; writeFileSync(${JSON.stringify(markerPath)}, "executed");\n`,
@@ -265,8 +266,9 @@ test("external intake emits a v1 relative-path report without executing files", 
   assert.equal(report.decision, "passed");
   assert.deepEqual(
     report.inventory.map((item) => item.path),
-    ["README.md", "nested/run-if-executed.js"]
+    ["LICENSE", "README.md", "nested/run-if-executed.js"]
   );
+  assert.equal(report.licenses[0].normalized, "MIT");
   assert.equal(JSON.stringify(report).includes(tempDir), false);
   await assert.rejects(() => fs.stat(markerPath), /ENOENT/);
 });
@@ -308,7 +310,10 @@ test("external intake blocks submodule and Git LFS metadata without fetching con
   assert.equal(report.decision, "blocked");
   assertFindings(report, ["repo.submodule-config", "repo.lfs-attributes", "repo.lfs-pointer"]);
   assert.deepEqual(
-    report.findings.map((finding) => finding.path).sort(),
+    report.findings
+      .filter((finding) => ["repo.submodule-config", "repo.lfs-attributes", "repo.lfs-pointer"].includes(finding.code))
+      .map((finding) => finding.path)
+      .sort(),
     [".gitattributes", ".gitmodules", "large.bin"]
   );
   assert.equal(JSON.stringify(report).includes(tempDir), false);
@@ -475,11 +480,52 @@ test("external intake does not flag separated benign security vocabulary", async
     ].join("\n"),
     "utf8"
   );
+  await fs.writeFile(path.join(tempDir, "LICENSE"), "MIT License\n\nPermission is hereby granted.\n", "utf8");
 
   const report = await scanExternalIntake({ sourceDir: tempDir });
 
   assert.equal(report.decision, "passed");
   assert.equal(report.findings.some((finding) => finding.code === "dangerous.capability"), false);
+});
+
+test("external intake inventories recognized package metadata license", async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agentique-intake-license-package-"));
+  await fs.writeFile(path.join(tempDir, "package.json"), `${JSON.stringify({ license: "Apache-2.0" }, null, 2)}\n`, "utf8");
+
+  const report = await scanExternalIntake({ sourceDir: tempDir });
+
+  assert.equal(report.decision, "passed");
+  assert.deepEqual(report.licenses, [
+    {
+      path: "package.json",
+      source: "package-json",
+      expression: "Apache-2.0",
+      normalized: "Apache-2.0",
+      status: "recognized"
+    }
+  ]);
+  assertFindings(report, ["license.detected"]);
+});
+
+test("external intake blocks missing unknown and conflicting license signals", async () => {
+  const missingDir = await fs.mkdtemp(path.join(os.tmpdir(), "agentique-intake-license-missing-"));
+  await fs.writeFile(path.join(missingDir, "README.md"), "No license here.\n", "utf8");
+  const missingReport = await scanExternalIntake({ sourceDir: missingDir });
+  assert.equal(missingReport.decision, "blocked");
+  assertFindings(missingReport, ["license.missing"]);
+
+  const unknownDir = await fs.mkdtemp(path.join(os.tmpdir(), "agentique-intake-license-unknown-"));
+  await fs.writeFile(path.join(unknownDir, "LICENSE"), "Custom internal sharing terms.\n", "utf8");
+  const unknownReport = await scanExternalIntake({ sourceDir: unknownDir });
+  assert.equal(unknownReport.decision, "blocked");
+  assertFindings(unknownReport, ["license.unknown"]);
+
+  const conflictDir = await fs.mkdtemp(path.join(os.tmpdir(), "agentique-intake-license-conflict-"));
+  await fs.writeFile(path.join(conflictDir, "LICENSE"), "MIT License\n\nPermission is hereby granted.\n", "utf8");
+  await fs.writeFile(path.join(conflictDir, "package.json"), `${JSON.stringify({ license: "Apache-2.0" }, null, 2)}\n`, "utf8");
+  const conflictReport = await scanExternalIntake({ sourceDir: conflictDir });
+  assert.equal(conflictReport.decision, "blocked");
+  assertFindings(conflictReport, ["license.conflict"]);
 });
 
 test("external intake redacts secrets and emits stable fingerprints", async () => {
@@ -548,10 +594,12 @@ test("external intake redacts secrets and emits stable fingerprints", async () =
 
 test("external intake CLI supports json output and usage errors", async () => {
   const cliPath = path.join(repoDir, "src", "cli.mjs");
+  const packageWithLicense = await copyFixture("valid-package");
+  await fs.writeFile(path.join(packageWithLicense, "LICENSE"), "MIT License\n\nPermission is hereby granted.\n", "utf8");
   const { stdout } = await execFileAsync(process.execPath, [
     cliPath,
     "external-intake",
-    path.join(fixturesDir, "valid-package"),
+    packageWithLicense,
     "--json",
     "--max-files",
     "100",
@@ -569,7 +617,7 @@ test("external intake CLI supports json output and usage errors", async () => {
       execFileAsync(process.execPath, [
         cliPath,
         "external-intake",
-        path.join(fixturesDir, "valid-package"),
+        packageWithLicense,
         "--json",
         "--max-files",
         "1"
