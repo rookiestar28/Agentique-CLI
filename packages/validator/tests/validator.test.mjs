@@ -364,6 +364,53 @@ test("external intake blocks renamed binary payloads while allowing text files",
   assert.equal(JSON.stringify(report).includes(tempDir), false);
 });
 
+test("external intake inventories package scripts without executing lifecycle commands", async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agentique-intake-scripts-"));
+  const markerPath = path.join(tempDir, "lifecycle-marker.txt");
+  await fs.writeFile(
+    path.join(tempDir, "package.json"),
+    `${JSON.stringify(
+      {
+        scripts: {
+          build: ["echo api_", "key=placeholder-", "sensitive-value"].join(""),
+          postinstall: `node -e "require('fs').writeFileSync(${JSON.stringify(markerPath)}, 'executed')"`
+        }
+      },
+      null,
+      2
+    )}\n`,
+    "utf8"
+  );
+
+  const report = await scanExternalIntake({ sourceDir: tempDir });
+  const lifecycleFinding = report.findings.find((finding) => finding.code === "script.lifecycle");
+  const packageFinding = report.findings.find((finding) => finding.code === "script.package-script");
+
+  assert.equal(report.decision, "blocked");
+  assert.equal(lifecycleFinding?.details.name, "postinstall");
+  assert.equal(packageFinding?.details.name, "build");
+  assert.equal(JSON.stringify(report).includes("placeholder-sensitive-value"), false);
+  await assert.rejects(() => fs.stat(markerPath), /ENOENT/);
+});
+
+test("external intake reports workflow, action, and executable file surfaces", async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agentique-intake-workflows-"));
+  await fs.mkdir(path.join(tempDir, ".github", "workflows"), { recursive: true });
+  await fs.writeFile(path.join(tempDir, ".github", "workflows", "ci.yml"), "name: ci\njobs:\n  test:\n    steps:\n      - run: npm test\n", "utf8");
+  await fs.writeFile(path.join(tempDir, "action.yml"), "runs:\n  using: composite\n  steps:\n    - run: echo hi\n", "utf8");
+  await fs.writeFile(path.join(tempDir, "Dockerfile"), "FROM scratch\n", "utf8");
+  await fs.writeFile(path.join(tempDir, "Makefile"), "build:\n\techo build\n", "utf8");
+  await fs.writeFile(path.join(tempDir, "setup.ps1"), "Write-Output setup\n", "utf8");
+  await fs.writeFile(path.join(tempDir, "script.sh"), "echo setup\n", "utf8");
+
+  const report = await scanExternalIntake({ sourceDir: tempDir });
+
+  assert.equal(report.decision, "blocked");
+  assertFindings(report, ["script.workflow-run", "script.composite-action", "script.executable-surface"]);
+  assert.equal(report.findings.filter((finding) => finding.code === "script.executable-surface").length, 4);
+  assert.equal(JSON.stringify(report).includes(tempDir), false);
+});
+
 test("external intake CLI supports json output and usage errors", async () => {
   const cliPath = path.join(repoDir, "src", "cli.mjs");
   const { stdout } = await execFileAsync(process.execPath, [

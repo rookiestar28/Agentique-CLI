@@ -12,6 +12,7 @@ const GITATTRIBUTES_READ_LIMIT_BYTES = 64 * 1024;
 const LFS_POINTER_READ_LIMIT_BYTES = 2048;
 const LFS_POINTER_HEADER = "version https://git-lfs.github.com/spec/v1";
 const PAYLOAD_PREFIX_READ_LIMIT_BYTES = 4096;
+const SCRIPT_TEXT_READ_LIMIT_BYTES = 32 * 1024;
 const ARCHIVE_EXTENSIONS = new Set([".7z", ".gz", ".rar", ".tar", ".tar.gz", ".tgz", ".zip"]);
 const EXECUTABLE_EXTENSIONS = new Set([
   ".bat",
@@ -28,6 +29,8 @@ const EXECUTABLE_EXTENSIONS = new Set([
   ".so",
   ".wasm"
 ]);
+const PACKAGE_LIFECYCLE_SCRIPTS = new Set(["preinstall", "install", "postinstall", "prepare", "prepublish", "prepublishonly", "prepack", "postpack"]);
+const EXECUTABLE_SURFACE_EXTENSIONS = new Set([".bash", ".ps1", ".sh", ".zsh"]);
 
 export async function scanExternalIntake(options) {
   const command = options.command ?? "external-intake";
@@ -125,6 +128,7 @@ async function walkDirectory({ root, current, inventory, findings }) {
       });
       await applyRepositoryMetadataGates({ filePath: absolutePath, rel, stat, findings });
       await applyPayloadClassifier({ filePath: absolutePath, rel, findings });
+      await applyScriptWorkflowInventory({ filePath: absolutePath, rel, findings });
     } catch (error) {
       findings.push(
         createFinding({
@@ -138,6 +142,189 @@ async function walkDirectory({ root, current, inventory, findings }) {
       );
     }
   }
+}
+
+async function applyScriptWorkflowInventory({ filePath, rel, findings }) {
+  const lowerPath = rel.toLowerCase();
+  const basename = path.posix.basename(lowerPath);
+
+  if (basename === "package.json") {
+    await inspectPackageScripts({ filePath, rel, findings });
+  }
+
+  if (/^\.github\/workflows\/[^/]+\.ya?ml$/i.test(rel)) {
+    await inspectWorkflowFile({ filePath, rel, findings });
+  }
+
+  if (basename === "action.yml" || basename === "action.yaml") {
+    await inspectCompositeAction({ filePath, rel, findings });
+  }
+
+  if (isExecutableSurfacePath(lowerPath)) {
+    const content = await readTextPrefix({
+      filePath,
+      rel,
+      maxBytes: SCRIPT_TEXT_READ_LIMIT_BYTES,
+      findings,
+      purpose: "script-inventory"
+    });
+    findings.push(
+      createFinding({
+        code: "script.executable-surface",
+        severity: "high",
+        message: "Executable file surface is present in external intake.",
+        path: rel,
+        blocking: true,
+        details: {
+          surface: executableSurfaceKind(lowerPath),
+          snippet: redactSnippet(content)
+        }
+      })
+    );
+  }
+}
+
+async function inspectPackageScripts({ filePath, rel, findings }) {
+  const content = await readTextPrefix({
+    filePath,
+    rel,
+    maxBytes: SCRIPT_TEXT_READ_LIMIT_BYTES,
+    findings,
+    purpose: "script-package-json"
+  });
+
+  let manifest;
+  try {
+    manifest = JSON.parse(content);
+  } catch {
+    findings.push(
+      createFinding({
+        code: "script.package-json-parse",
+        severity: "high",
+        message: "Unable to parse package.json for script inventory.",
+        path: rel,
+        blocking: true
+      })
+    );
+    return;
+  }
+
+  if (!manifest || typeof manifest !== "object" || !manifest.scripts || typeof manifest.scripts !== "object") {
+    return;
+  }
+
+  for (const [name, command] of Object.entries(manifest.scripts).sort(([left], [right]) => left.localeCompare(right))) {
+    if (typeof command !== "string") {
+      continue;
+    }
+    const lifecycle = PACKAGE_LIFECYCLE_SCRIPTS.has(name.toLowerCase());
+    findings.push(
+      createFinding({
+        code: lifecycle ? "script.lifecycle" : "script.package-script",
+        severity: lifecycle ? "high" : "medium",
+        message: lifecycle ? "Package lifecycle script is present in external intake." : "Package script is present in external intake inventory.",
+        path: rel,
+        blocking: lifecycle,
+        details: {
+          name,
+          snippet: redactSnippet(command)
+        }
+      })
+    );
+  }
+}
+
+async function inspectWorkflowFile({ filePath, rel, findings }) {
+  const content = await readTextPrefix({
+    filePath,
+    rel,
+    maxBytes: SCRIPT_TEXT_READ_LIMIT_BYTES,
+    findings,
+    purpose: "script-workflow"
+  });
+  const runLine = content.split(/\r?\n/).find((line) => /^\s*(?:-\s*)?run\s*:/.test(line));
+  if (!runLine) {
+    return;
+  }
+
+  findings.push(
+    createFinding({
+      code: "script.workflow-run",
+      severity: "high",
+      message: "GitHub workflow run step is present in external intake.",
+      path: rel,
+      blocking: true,
+      details: {
+        snippet: redactSnippet(runLine)
+      }
+    })
+  );
+}
+
+async function inspectCompositeAction({ filePath, rel, findings }) {
+  const content = await readTextPrefix({
+    filePath,
+    rel,
+    maxBytes: SCRIPT_TEXT_READ_LIMIT_BYTES,
+    findings,
+    purpose: "script-composite-action"
+  });
+  if (!/runs\s*:[\s\S]*using\s*:\s*['"]?composite['"]?/i.test(content)) {
+    return;
+  }
+
+  findings.push(
+    createFinding({
+      code: "script.composite-action",
+      severity: "high",
+      message: "Composite action entrypoint is present in external intake.",
+      path: rel,
+      blocking: true,
+      details: {
+        snippet: redactSnippet(content)
+      }
+    })
+  );
+}
+
+function isExecutableSurfacePath(lowerPath) {
+  const basename = path.posix.basename(lowerPath);
+  if (basename === "dockerfile" || lowerPath.endsWith(".dockerfile")) {
+    return true;
+  }
+  if (basename === "makefile" || basename === "gnumakefile") {
+    return true;
+  }
+  for (const extension of EXECUTABLE_SURFACE_EXTENSIONS) {
+    if (lowerPath.endsWith(extension)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function executableSurfaceKind(lowerPath) {
+  const basename = path.posix.basename(lowerPath);
+  if (basename === "dockerfile" || lowerPath.endsWith(".dockerfile")) {
+    return "dockerfile";
+  }
+  if (basename === "makefile" || basename === "gnumakefile") {
+    return "makefile";
+  }
+  if (lowerPath.endsWith(".ps1")) {
+    return "powershell";
+  }
+  return "shell";
+}
+
+function redactSnippet(value) {
+  return String(value)
+    .replace(/(bearer\s+)[A-Za-z0-9._-]{8,}/gi, "$1[redacted-token]")
+    .replace(/\b(sk-[A-Za-z0-9_-]{8,}|gh[pousr]_[A-Za-z0-9_]{8,}|AKIA[0-9A-Z]{12,})\b/g, "[redacted-token]")
+    .replace(/\b(token|secret|password|api[_-]?key)\s*[:=]\s*["']?[^"',\s]+/gi, "$1=[redacted]")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 160);
 }
 
 async function applyPayloadClassifier({ filePath, rel, findings }) {
@@ -388,11 +575,16 @@ async function readBufferPrefix({ filePath, rel, maxBytes, findings, purpose }) 
     return buffer.subarray(0, result.bytesRead);
   } catch (error) {
     const isPayloadRead = purpose === "payload-classifier";
+    const isScriptRead = purpose.startsWith("script-");
     findings.push(
       createFinding({
-        code: isPayloadRead ? "payload.read-file" : "repo.metadata-read",
+        code: isPayloadRead ? "payload.read-file" : isScriptRead ? "script.read-file" : "repo.metadata-read",
         severity: "high",
-        message: isPayloadRead ? "Unable to read file prefix for payload classification." : "Unable to read repository metadata.",
+        message: isPayloadRead
+          ? "Unable to read file prefix for payload classification."
+          : isScriptRead
+            ? "Unable to read file prefix for script inventory."
+            : "Unable to read repository metadata.",
         path: rel,
         blocking: true,
         details: {
