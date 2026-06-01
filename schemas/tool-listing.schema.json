@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.agentique.io/tool-listing.schema.json",
+  "title": "Agentique Public Tool Listing",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["name", "summary", "capabilities", "permissionRisk", "outputContract", "documentationUrl"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{1,63}$"
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 12,
+      "maxLength": 240
+    },
+    "capabilities": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 48,
+        "pattern": "^[a-z0-9][a-z0-9-]*$"
+      }
+    },
+    "permissionRisk": {
+      "$ref": "https://schemas.agentique.io/permission-risk.schema.json"
+    },
+    "outputContract": {
+      "$ref": "https://schemas.agentique.io/output-contract.schema.json"
+    },
+    "supportUrl": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://"
+    },
+    "documentationUrl": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://"
+    }
+  }
+}

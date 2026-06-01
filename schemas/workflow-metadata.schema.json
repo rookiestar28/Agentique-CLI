@@ -35,6 +35,9 @@
           }
         }
       }
+    },
+    "outputContract": {
+      "$ref": "https://schemas.agentique.io/output-contract.schema.json"
     }
   }
 }

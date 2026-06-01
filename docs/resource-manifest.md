@@ -82,6 +82,12 @@ Example:
 
 For resources that can mutate state, use credentials, touch sensitive data, or operate in an open-world environment, set `approvalRequired` to `true`. These declarations are not trusted by default and may be overridden by platform review.
 
+## Output Contracts
+
+Skill, workflow, and tool-listing metadata can use output contracts to describe expected input shape, output shape, maximum output size, timeout hints, error behavior, and redaction expectations.
+
+Output contracts are for static review and local validation. They do not execute a tool, prove runtime behavior, approve publication, or certify safety.
+
 ## Scan Readback
 
 Scan readback is the public status that `agentique.io` exposes after platform processing. Local validation is not platform approval. Local validation is not safety certification.

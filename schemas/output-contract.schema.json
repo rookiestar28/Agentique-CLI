@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.agentique.io/output-contract.schema.json",
+  "title": "Agentique Public Output Contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["inputSchema", "outputSchema", "maxOutputBytes", "timeoutMs", "errorBehavior", "redaction"],
+  "properties": {
+    "inputSchema": {
+      "$ref": "#/$defs/jsonSchemaObject"
+    },
+    "outputSchema": {
+      "$ref": "#/$defs/jsonSchemaObject"
+    },
+    "structuredContent": {
+      "type": "boolean"
+    },
+    "unstructuredFallback": {
+      "type": "string",
+      "enum": ["none", "summary", "public-text"]
+    },
+    "maxOutputBytes": {
+      "type": "integer",
+      "minimum": 256,
+      "maximum": 262144
+    },
+    "timeoutMs": {
+      "type": "integer",
+      "minimum": 100,
+      "maximum": 300000
+    },
+    "limitHints": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "maxItems": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "maxRequests": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        }
+      }
+    },
+    "errorBehavior": {
+      "type": "string",
+      "enum": ["typed-error", "empty-result", "partial-result"]
+    },
+    "redaction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["secrets", "privateFields"],
+      "properties": {
+        "secrets": {
+          "type": "boolean",
+          "const": true
+        },
+        "privateFields": {
+          "type": "boolean",
+          "const": true
+        },
+        "notes": {
+          "type": "string",
+          "minLength": 12,
+          "maxLength": 240
+        }
+      }
+    }
+  },
+  "$defs": {
+    "jsonSchemaObject": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["object", "array", "string", "number", "integer", "boolean"]
+        }
+      }
+    }
+  }
+}

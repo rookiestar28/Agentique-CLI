@@ -15,6 +15,79 @@
       }
     }
   },
+  "output-contract.schema.json": {
+    "valid": {
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string"
+          }
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "summary": {
+            "type": "string"
+          }
+        }
+      },
+      "structuredContent": true,
+      "unstructuredFallback": "summary",
+      "maxOutputBytes": 65536,
+      "timeoutMs": 30000,
+      "limitHints": {
+        "maxItems": 20,
+        "maxRequests": 5
+      },
+      "errorBehavior": "typed-error",
+      "redaction": {
+        "secrets": true,
+        "privateFields": true,
+        "notes": "Redact secrets and private projection fields."
+      }
+    },
+    "invalid": {
+      "missing-required": {
+        "inputSchema": {
+          "type": "object"
+        }
+      },
+      "extra-property": {
+        "inputSchema": {
+          "type": "object"
+        },
+        "outputSchema": {
+          "type": "object"
+        },
+        "maxOutputBytes": 65536,
+        "timeoutMs": 30000,
+        "errorBehavior": "typed-error",
+        "redaction": {
+          "secrets": true,
+          "privateFields": true
+        },
+        "certifiedSafe": true
+      },
+      "boundary": {
+        "inputSchema": {
+          "type": "object"
+        },
+        "outputSchema": {
+          "type": "object"
+        },
+        "unstructuredFallback": "anything",
+        "maxOutputBytes": 999999999,
+        "timeoutMs": 999999999,
+        "errorBehavior": "guaranteed-success",
+        "redaction": {
+          "secrets": false,
+          "privateFields": true
+        }
+      }
+    }
+  },
   "package-manifest.schema.json": {
     "valid": {
       "formatVersion": "1.0",
@@ -264,6 +337,108 @@
           "maxTokens": 64,
           "maxBytes": 128
         }
+      }
+    }
+  },
+  "tool-listing.schema.json": {
+    "valid": {
+      "name": "example-public-tool",
+      "summary": "Describes a public lookup tool listing for review.",
+      "capabilities": ["lookup", "summarize"],
+      "permissionRisk": {
+        "readOnly": true,
+        "destructive": false,
+        "idempotent": true,
+        "openWorld": true,
+        "externalNetwork": true,
+        "credentialed": false,
+        "approvalRequired": false,
+        "dataSensitivity": "public",
+        "capabilities": ["read-public-content", "external-network"],
+        "reviewNotes": "Reads public web content without credentials."
+      },
+      "outputContract": {
+        "inputSchema": {
+          "type": "object"
+        },
+        "outputSchema": {
+          "type": "object"
+        },
+        "structuredContent": true,
+        "unstructuredFallback": "summary",
+        "maxOutputBytes": 65536,
+        "timeoutMs": 30000,
+        "errorBehavior": "typed-error",
+        "redaction": {
+          "secrets": true,
+          "privateFields": true
+        }
+      },
+      "supportUrl": "https://example.com/support",
+      "documentationUrl": "https://example.com/docs"
+    },
+    "invalid": {
+      "missing-required": {
+        "name": "example-public-tool",
+        "summary": "Describes a public lookup tool listing for review.",
+        "capabilities": ["lookup"]
+      },
+      "extra-property": {
+        "name": "example-public-tool",
+        "summary": "Describes a public lookup tool listing for review.",
+        "capabilities": ["lookup"],
+        "permissionRisk": {
+          "readOnly": true,
+          "destructive": false,
+          "openWorld": false,
+          "approvalRequired": false,
+          "dataSensitivity": "public"
+        },
+        "outputContract": {
+          "inputSchema": {
+            "type": "object"
+          },
+          "outputSchema": {
+            "type": "object"
+          },
+          "maxOutputBytes": 65536,
+          "timeoutMs": 30000,
+          "errorBehavior": "typed-error",
+          "redaction": {
+            "secrets": true,
+            "privateFields": true
+          }
+        },
+        "documentationUrl": "https://example.com/docs",
+        "approved": true
+      },
+      "boundary": {
+        "name": "x",
+        "summary": "too short",
+        "capabilities": [],
+        "permissionRisk": {
+          "readOnly": false,
+          "destructive": true,
+          "openWorld": true,
+          "approvalRequired": false,
+          "dataSensitivity": "sensitive"
+        },
+        "outputContract": {
+          "inputSchema": {
+            "type": "object"
+          },
+          "outputSchema": {
+            "type": "object"
+          },
+          "maxOutputBytes": 1,
+          "timeoutMs": 1,
+          "errorBehavior": "approved",
+          "redaction": {
+            "secrets": false,
+            "privateFields": false
+          }
+        },
+        "documentationUrl": "http://example.com/docs"
       }
     }
   },

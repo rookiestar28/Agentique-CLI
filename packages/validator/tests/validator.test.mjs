@@ -18,12 +18,14 @@ const schemasDir = path.resolve(packageDir, "schemas");
 const execFileAsync = promisify(execFile);
 const schemaFiles = [
   "distribution-mode.schema.json",
+  "output-contract.schema.json",
   "package-manifest.schema.json",
   "permission-risk.schema.json",
   "public-readback.schema.json",
   "resource-manifest.schema.json",
   "skill-metadata.schema.json",
   "surfacing-metadata.schema.json",
+  "tool-listing.schema.json",
   "workflow-metadata.schema.json"
 ];
 
