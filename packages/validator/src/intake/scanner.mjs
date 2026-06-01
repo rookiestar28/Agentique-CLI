@@ -16,6 +16,7 @@ const PAYLOAD_PREFIX_READ_LIMIT_BYTES = 4096;
 const SCRIPT_TEXT_READ_LIMIT_BYTES = 32 * 1024;
 const DANGEROUS_TEXT_READ_LIMIT_BYTES = 32 * 1024;
 const SECRET_TEXT_READ_LIMIT_BYTES = 64 * 1024;
+const LICENSE_TEXT_READ_LIMIT_BYTES = 64 * 1024;
 const ARCHIVE_EXTENSIONS = new Set([".7z", ".gz", ".rar", ".tar", ".tar.gz", ".tgz", ".zip"]);
 const EXECUTABLE_EXTENSIONS = new Set([
   ".bat",
@@ -84,6 +85,7 @@ export async function scanExternalIntake(options) {
   const policy = normalizePolicy(options);
   const findings = [];
   const inventory = [];
+  const licenses = [];
 
   let stat;
   try {
@@ -96,9 +98,11 @@ export async function scanExternalIntake(options) {
     throw new Error("Source must be a directory.");
   }
 
-  await walkDirectory({ root: sourceDir, current: sourceDir, inventory, findings });
+  await walkDirectory({ root: sourceDir, current: sourceDir, inventory, findings, licenses });
   inventory.sort((left, right) => (left.path < right.path ? -1 : left.path > right.path ? 1 : 0));
+  licenses.sort((left, right) => left.path.localeCompare(right.path) || left.source.localeCompare(right.source));
   applyRepositoryLimitGates({ inventory, findings, policy });
+  applyLicenseGates({ licenses, findings });
 
   const blockingFindings = findings.filter((finding) => finding.blocking);
   const bytes = inventory.reduce((total, item) => total + item.bytes, 0);
@@ -117,11 +121,12 @@ export async function scanExternalIntake(options) {
     },
     decision: blockingFindings.length > 0 ? "blocked" : "passed",
     inventory,
+    licenses,
     findings
   });
 }
 
-async function walkDirectory({ root, current, inventory, findings }) {
+async function walkDirectory({ root, current, inventory, findings, licenses }) {
   let entries;
   try {
     entries = await fs.readdir(current, { withFileTypes: true });
@@ -149,7 +154,7 @@ async function walkDirectory({ root, current, inventory, findings }) {
       if (DEFAULT_SKIP_DIRS.has(entry.name)) {
         continue;
       }
-      await walkDirectory({ root, current: absolutePath, inventory, findings });
+      await walkDirectory({ root, current: absolutePath, inventory, findings, licenses });
       continue;
     }
 
@@ -177,6 +182,7 @@ async function walkDirectory({ root, current, inventory, findings }) {
       await applyScriptWorkflowInventory({ filePath: absolutePath, rel, findings });
       await applyDangerousCapabilityClassifier({ filePath: absolutePath, rel, findings });
       await applySecretScanner({ filePath: absolutePath, rel, findings });
+      await applyLicenseInventory({ filePath: absolutePath, rel, findings, licenses });
     } catch (error) {
       findings.push(
         createFinding({
@@ -189,6 +195,169 @@ async function walkDirectory({ root, current, inventory, findings }) {
         })
       );
     }
+  }
+}
+
+async function applyLicenseInventory({ filePath, rel, findings, licenses }) {
+  const basename = path.posix.basename(rel).toLowerCase();
+  if (basename === "package.json") {
+    await collectPackageLicense({ filePath, rel, findings, licenses });
+  }
+
+  if (!isLicenseFileName(basename)) {
+    return;
+  }
+
+  const content = await readTextPrefix({
+    filePath,
+    rel,
+    maxBytes: LICENSE_TEXT_READ_LIMIT_BYTES,
+    findings,
+    purpose: "license-inventory"
+  });
+  const normalized = normalizeLicenseText(content);
+  licenses.push(
+    Object.freeze({
+      path: rel,
+      source: "license-file",
+      expression: null,
+      normalized,
+      status: normalized ? "recognized" : "unknown"
+    })
+  );
+}
+
+async function collectPackageLicense({ filePath, rel, findings, licenses }) {
+  const content = await readTextPrefix({
+    filePath,
+    rel,
+    maxBytes: LICENSE_TEXT_READ_LIMIT_BYTES,
+    findings,
+    purpose: "license-package-json"
+  });
+
+  let manifest;
+  try {
+    manifest = JSON.parse(content);
+  } catch {
+    return;
+  }
+
+  const expression = packageLicenseExpression(manifest?.license);
+  if (!expression) {
+    return;
+  }
+
+  const normalized = normalizeLicenseExpression(expression);
+  licenses.push(
+    Object.freeze({
+      path: rel,
+      source: "package-json",
+      expression,
+      normalized,
+      status: normalized ? "recognized" : "unknown"
+    })
+  );
+}
+
+function packageLicenseExpression(value) {
+  if (typeof value === "string") {
+    return value.trim() || null;
+  }
+  if (value && typeof value === "object" && typeof value.type === "string") {
+    return value.type.trim() || null;
+  }
+  return null;
+}
+
+function isLicenseFileName(basename) {
+  return basename === "license" || basename === "licence" || basename.startsWith("license.") || basename.startsWith("licence.") || basename === "copying";
+}
+
+function normalizeLicenseExpression(expression) {
+  const normalized = expression.trim().replace(/[()]/g, "").toUpperCase();
+  const map = new Map([
+    ["MIT", "MIT"],
+    ["APACHE-2.0", "Apache-2.0"],
+    ["GPL-2.0", "GPL-2.0"],
+    ["GPL-2.0-ONLY", "GPL-2.0"],
+    ["GPL-3.0", "GPL-3.0"],
+    ["GPL-3.0-ONLY", "GPL-3.0"],
+    ["BSD-3-CLAUSE", "BSD-3-Clause"],
+    ["ISC", "ISC"],
+    ["MPL-2.0", "MPL-2.0"]
+  ]);
+  return map.get(normalized) ?? null;
+}
+
+function normalizeLicenseText(content) {
+  if (/MIT License/i.test(content)) {
+    return "MIT";
+  }
+  if (/Apache License[\s\S]{0,400}Version 2\.0/i.test(content)) {
+    return "Apache-2.0";
+  }
+  if (/GNU GENERAL PUBLIC LICENSE[\s\S]{0,800}Version 3/i.test(content)) {
+    return "GPL-3.0";
+  }
+  if (/GNU GENERAL PUBLIC LICENSE[\s\S]{0,800}Version 2/i.test(content)) {
+    return "GPL-2.0";
+  }
+  if (/Redistribution and use in source and binary forms/i.test(content) && /Neither the name/i.test(content)) {
+    return "BSD-3-Clause";
+  }
+  if (/ISC License/i.test(content)) {
+    return "ISC";
+  }
+  if (/Mozilla Public License Version 2\.0/i.test(content)) {
+    return "MPL-2.0";
+  }
+  return null;
+}
+
+function applyLicenseGates({ licenses, findings }) {
+  if (licenses.length === 0) {
+    findings.push(
+      createFinding({
+        code: "license.missing",
+        severity: "high",
+        message: "No license signal was found in external intake.",
+        blocking: true
+      })
+    );
+    return;
+  }
+
+  for (const item of licenses) {
+    findings.push(
+      createFinding({
+        code: item.status === "recognized" ? "license.detected" : "license.unknown",
+        severity: item.status === "recognized" ? "low" : "high",
+        message: item.status === "recognized" ? "License signal was detected." : "Unknown license signal requires manual review.",
+        path: item.path,
+        blocking: item.status !== "recognized",
+        details: {
+          source: item.source,
+          expression: item.expression ?? undefined,
+          normalized: item.normalized ?? undefined
+        }
+      })
+    );
+  }
+
+  const normalizedLicenses = [...new Set(licenses.map((item) => item.normalized).filter(Boolean))].sort();
+  if (normalizedLicenses.length > 1) {
+    findings.push(
+      createFinding({
+        code: "license.conflict",
+        severity: "high",
+        message: "Conflicting license signals require manual review.",
+        blocking: true,
+        details: {
+          normalized: normalizedLicenses
+        }
+      })
+    );
   }
 }
 
@@ -727,6 +896,7 @@ async function readBufferPrefix({ filePath, rel, maxBytes, findings, purpose }) 
     const isScriptRead = purpose.startsWith("script-");
     const isDangerousRead = purpose === "dangerous-capability";
     const isSecretRead = purpose === "secret-scan";
+    const isLicenseRead = purpose.startsWith("license-");
     findings.push(
       createFinding({
         code: isPayloadRead
@@ -737,7 +907,9 @@ async function readBufferPrefix({ filePath, rel, maxBytes, findings, purpose }) 
               ? "dangerous.read-file"
               : isSecretRead
                 ? "secret.read-file"
-                : "repo.metadata-read",
+                : isLicenseRead
+                  ? "license.read-file"
+                  : "repo.metadata-read",
         severity: "high",
         message: isPayloadRead
           ? "Unable to read file prefix for payload classification."
@@ -747,7 +919,9 @@ async function readBufferPrefix({ filePath, rel, maxBytes, findings, purpose }) 
               ? "Unable to read file prefix for dangerous capability classification."
               : isSecretRead
                 ? "Unable to read file prefix for secret scanning."
-                : "Unable to read repository metadata.",
+                : isLicenseRead
+                  ? "Unable to read file prefix for license inventory."
+                  : "Unable to read repository metadata.",
         path: rel,
         blocking: true,
         details: {
@@ -825,6 +999,7 @@ function freezeReport(report) {
     source: Object.freeze({ ...report.source }),
     summary: Object.freeze({ ...report.summary }),
     inventory: Object.freeze(report.inventory.map((item) => Object.freeze({ ...item }))),
+    licenses: Object.freeze((report.licenses ?? []).map((item) => Object.freeze({ ...item }))),
     findings: Object.freeze(report.findings.map((item) => freezeFinding(item)))
   });
 }
