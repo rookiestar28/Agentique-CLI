@@ -1,8 +1,10 @@
 # Release Go/No-Go
 
-Current downstream release decision: **No-Go**.
+Current source repository and platform-link publication decision: **Go**.
 
-The source repository is public. Package publishing, badge advertising, marketplace/action publication, and platform promotion remain blocked until hosted CI for the latest release candidate, final public URLs, package registry URLs, owner approval, and platform launch evidence are recorded.
+The source repository is public. The public repository URL, public documentation URL, schema URL base, `agentique.io` public URL, hosted CI evidence, branch protection evidence, and owner go/no-go approval are recorded.
+
+Package publishing, badge advertising, and marketplace/action publication remain deferred until those downstream channels are published and smoke tested.
 
 Current public-safe evidence is recorded in [release-evidence.md](release-evidence.md).
 
@@ -17,15 +19,17 @@ Current public-safe evidence is recorded in [release-evidence.md](release-eviden
 - Surfacing contract fixture matrix is covered by release checks.
 - Readback helper docs describe context bundle and selection projections as read-only public projections.
 - Hosted Release Check evidence is recorded for the latest pushed public release candidate.
+- Public `main` branch protection is enabled.
+- Final public URLs are approved.
+- `agentique.io` public links are approved.
+- Platform launch evidence required for public links is recorded.
+- Owner go/no-go approval is recorded.
 
-## Blocking Evidence
+## Deferred Downstream Evidence
 
-- Public `main` branch protection is currently not enabled.
-- Final public URLs are not approved.
-- Package registry URLs are not approved.
-- `agentique.io` public links are not approved.
-- Platform launch evidence required for public links is not recorded.
-- Owner go/no-go approval is not recorded.
+- Package registry URLs are not advertised because the npm packages are not published yet.
+- Badge examples are not advertised until a public package or badge target is published.
+- Marketplace/action publication is deferred until the action channel is published and smoke tested.
 
 ## Rollback And Unpublish Procedure
 

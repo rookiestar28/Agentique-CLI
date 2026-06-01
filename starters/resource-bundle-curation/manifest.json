@@ -4,7 +4,7 @@
   "summary": "A static starter for bundling public package guidance with a manifest.",
   "source": {
     "type": "git",
-    "url": "https://github.com/agentique-examples/resource-bundle-curation"
+    "url": "https://github.com/rookiestar28/Agentique/tree/main/starters/resource-bundle-curation"
   },
   "distribution": {
     "mode": "package_download",

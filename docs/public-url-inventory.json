@@ -1,6 +1,6 @@
 {
-  "releaseBlocked": true,
-  "reason": "Downstream package, documentation, badge, and platform launch evidence are pending.",
+  "releaseBlocked": false,
+  "reason": "Source repository and agentique.io public links are approved for advertising. Package registry, badge, and marketplace/action channels remain deferred until they are published and smoke tested.",
   "entries": [
     {
       "id": "public-repository",
@@ -40,16 +40,16 @@
     {
       "id": "schema-url-base",
       "label": "Public schema URL base",
-      "url": null,
-      "status": "pending_owner_approval",
-      "advertise": false
+      "url": "https://github.com/rookiestar28/Agentique/tree/main/schemas",
+      "status": "approved",
+      "advertise": true
     },
     {
       "id": "docs-url",
       "label": "Public documentation URL",
-      "url": null,
-      "status": "pending_owner_approval",
-      "advertise": false
+      "url": "https://github.com/rookiestar28/Agentique#readme",
+      "status": "approved",
+      "advertise": true
     },
     {
       "id": "badge-example",
@@ -61,16 +61,16 @@
     {
       "id": "platform-companion-link",
       "label": "agentique.io companion link",
-      "url": null,
-      "status": "pending_platform_launch_evidence",
-      "advertise": false
+      "url": "https://www.agentique.io/",
+      "status": "approved",
+      "advertise": true
     },
     {
       "id": "platform-readback-endpoint",
       "label": "agentique.io public readback endpoint",
-      "url": null,
-      "status": "pending_platform_launch_evidence",
-      "advertise": false
+      "url": "https://www.agentique.io/api/public/v1/resources?limit=1",
+      "status": "approved",
+      "advertise": true
     }
   ]
 }

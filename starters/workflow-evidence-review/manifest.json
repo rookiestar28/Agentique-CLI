@@ -4,7 +4,7 @@
   "summary": "A static workflow template for reviewing public source evidence.",
   "source": {
     "type": "git",
-    "url": "https://github.com/agentique-examples/workflow-evidence-review"
+    "url": "https://github.com/rookiestar28/Agentique/tree/main/starters/workflow-evidence-review"
   },
   "distribution": {
     "mode": "package_download",

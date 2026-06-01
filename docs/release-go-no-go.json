@@ -1,6 +1,6 @@
 {
-  "decision": "no_go",
-  "releaseBlocked": true,
+  "decision": "go",
+  "releaseBlocked": false,
   "localChecks": {
     "cleanBaseline": true,
     "governanceReviewRouting": true,
@@ -14,19 +14,12 @@
   },
   "externalEvidence": {
     "hostedCiRun": true,
-    "repositoryProtection": false,
-    "finalPublicUrls": false,
-    "packageRegistryUrls": false,
-    "platformLinks": false,
-    "platformLaunchEvidence": false,
-    "ownerApproval": false
+    "repositoryProtection": true,
+    "finalPublicUrls": true,
+    "packagePublicationDeferred": true,
+    "platformLinks": true,
+    "platformLaunchEvidence": true,
+    "ownerApproval": true
   },
-  "blockers": [
-    "public main branch protection is currently not enabled",
-    "final public URLs are not approved",
-    "package registry URLs are not approved",
-    "platform public links are not approved",
-    "platform launch evidence is not recorded",
-    "owner go/no-go approval is not recorded"
-  ]
+  "blockers": []
 }
