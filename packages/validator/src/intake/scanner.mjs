@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 
@@ -14,6 +15,7 @@ const LFS_POINTER_HEADER = "version https://git-lfs.github.com/spec/v1";
 const PAYLOAD_PREFIX_READ_LIMIT_BYTES = 4096;
 const SCRIPT_TEXT_READ_LIMIT_BYTES = 32 * 1024;
 const DANGEROUS_TEXT_READ_LIMIT_BYTES = 32 * 1024;
+const SECRET_TEXT_READ_LIMIT_BYTES = 64 * 1024;
 const ARCHIVE_EXTENSIONS = new Set([".7z", ".gz", ".rar", ".tar", ".tar.gz", ".tgz", ".zip"]);
 const EXECUTABLE_EXTENSIONS = new Set([
   ".bat",
@@ -61,6 +63,19 @@ const DANGEROUS_CAPABILITY_RULES = Object.freeze([
     category: "self-hosted-runner",
     pattern: /\bruns-on\s*:\s*\[?[^\n]*self-hosted\b/i
   })
+]);
+const SECRET_RULES = Object.freeze([
+  Object.freeze({ id: "private-key", pattern: /-----BEGIN [A-Z ]*PRIVATE KEY-----/gi }),
+  Object.freeze({ id: "openai-key", pattern: /\bsk-[A-Za-z0-9_-]{16,}\b/g }),
+  Object.freeze({ id: "github-token", pattern: /\bgh[pousr]_[A-Za-z0-9_]{20,}\b/g }),
+  Object.freeze({ id: "aws-access-key", pattern: /\bAKIA[0-9A-Z]{16}\b/g }),
+  Object.freeze({ id: "npm-token", pattern: /\bnpm_[A-Za-z0-9]{20,}\b/g }),
+  Object.freeze({ id: "pypi-token", pattern: /\bpypi-[A-Za-z0-9_-]{20,}\b/g }),
+  Object.freeze({ id: "jwt-token", pattern: /\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/g }),
+  Object.freeze({ id: "bearer-token", pattern: /\bAuthorization\s*:\s*Bearer\s+[A-Za-z0-9._-]{16,}\b/gi }),
+  Object.freeze({ id: "database-url", pattern: /\b(?:postgres|postgresql|mysql|mongodb):\/\/[^:\s/]+:[^@\s]+@[^\s]+/gi }),
+  Object.freeze({ id: "credential-url", pattern: /\bhttps?:\/\/[^:\s/]+:[^@\s]+@[^\s]+/gi }),
+  Object.freeze({ id: "assignment-secret", pattern: /\b(?:api[_-]?key|api[_-]?token|secret|password|token)\s*[:=]\s*["'][^"'\s]{8,}["']/gi })
 ]);
 
 export async function scanExternalIntake(options) {
@@ -161,6 +176,7 @@ async function walkDirectory({ root, current, inventory, findings }) {
       await applyPayloadClassifier({ filePath: absolutePath, rel, findings });
       await applyScriptWorkflowInventory({ filePath: absolutePath, rel, findings });
       await applyDangerousCapabilityClassifier({ filePath: absolutePath, rel, findings });
+      await applySecretScanner({ filePath: absolutePath, rel, findings });
     } catch (error) {
       findings.push(
         createFinding({
@@ -174,6 +190,63 @@ async function walkDirectory({ root, current, inventory, findings }) {
       );
     }
   }
+}
+
+async function applySecretScanner({ filePath, rel, findings }) {
+  const content = await readTextPrefix({
+    filePath,
+    rel,
+    maxBytes: SECRET_TEXT_READ_LIMIT_BYTES,
+    findings,
+    purpose: "secret-scan"
+  });
+  if (!content) {
+    return;
+  }
+
+  const seen = new Set();
+  for (const rule of SECRET_RULES) {
+    rule.pattern.lastIndex = 0;
+    for (const match of content.matchAll(rule.pattern)) {
+      const matchText = match[0];
+      const index = match.index ?? 0;
+      const line = lineNumberAt(content, index);
+      const dedupeKey = `${rule.id}\0${line}\0${index}`;
+      if (seen.has(dedupeKey)) {
+        continue;
+      }
+      seen.add(dedupeKey);
+      findings.push(
+        createFinding({
+          code: "secret.detected",
+          severity: "critical",
+          message: "Potential secret is present in external intake.",
+          path: rel,
+          blocking: true,
+          details: {
+            rule: rule.id,
+            line,
+            redacted: `[redacted:${rule.id}]`,
+            fingerprint: fingerprintSecret({ rel, ruleId: rule.id, line, matchText })
+          }
+        })
+      );
+    }
+  }
+}
+
+function lineNumberAt(content, index) {
+  let line = 1;
+  for (let offset = 0; offset < index; offset += 1) {
+    if (content.charCodeAt(offset) === 10) {
+      line += 1;
+    }
+  }
+  return line;
+}
+
+function fingerprintSecret({ rel, ruleId, line, matchText }) {
+  return `sha256:${createHash("sha256").update(`${rel}\0${ruleId}\0${line}\0${matchText}`).digest("hex")}`;
 }
 
 async function applyDangerousCapabilityClassifier({ filePath, rel, findings }) {
@@ -653,9 +726,18 @@ async function readBufferPrefix({ filePath, rel, maxBytes, findings, purpose }) 
     const isPayloadRead = purpose === "payload-classifier";
     const isScriptRead = purpose.startsWith("script-");
     const isDangerousRead = purpose === "dangerous-capability";
+    const isSecretRead = purpose === "secret-scan";
     findings.push(
       createFinding({
-        code: isPayloadRead ? "payload.read-file" : isScriptRead ? "script.read-file" : isDangerousRead ? "dangerous.read-file" : "repo.metadata-read",
+        code: isPayloadRead
+          ? "payload.read-file"
+          : isScriptRead
+            ? "script.read-file"
+            : isDangerousRead
+              ? "dangerous.read-file"
+              : isSecretRead
+                ? "secret.read-file"
+                : "repo.metadata-read",
         severity: "high",
         message: isPayloadRead
           ? "Unable to read file prefix for payload classification."
@@ -663,7 +745,9 @@ async function readBufferPrefix({ filePath, rel, maxBytes, findings, purpose }) 
             ? "Unable to read file prefix for script inventory."
             : isDangerousRead
               ? "Unable to read file prefix for dangerous capability classification."
-              : "Unable to read repository metadata.",
+              : isSecretRead
+                ? "Unable to read file prefix for secret scanning."
+                : "Unable to read repository metadata.",
         path: rel,
         blocking: true,
         details: {

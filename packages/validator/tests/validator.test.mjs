@@ -482,6 +482,70 @@ test("external intake does not flag separated benign security vocabulary", async
   assert.equal(report.findings.some((finding) => finding.code === "dangerous.capability"), false);
 });
 
+test("external intake redacts secrets and emits stable fingerprints", async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agentique-intake-secrets-"));
+  const rawValues = [
+    ["-----BEGIN ", "PRIVATE KEY-----\nabc\n-----END ", "PRIVATE KEY-----"].join(""),
+    ["sk-", "a".repeat(24)].join(""),
+    ["ghp_", "b".repeat(36)].join(""),
+    ["AKIA", "C".repeat(16)].join(""),
+    ["npm_", "d".repeat(24)].join(""),
+    ["pypi-", "e".repeat(24)].join(""),
+    `eyJ${"a".repeat(12)}.${"b".repeat(12)}.${"c".repeat(12)}`,
+    `Authorization: Bearer ${"f".repeat(24)}`,
+    `postgres://user:${"dbpass".repeat(3)}@example.com/app`,
+    `https://user:${"urlpass".repeat(3)}@example.com/private`,
+    `api_key="${"z".repeat(16)}"`
+  ];
+  await fs.writeFile(path.join(tempDir, "secrets.txt"), rawValues.join("\n"), "utf8");
+
+  const firstReport = await scanExternalIntake({ sourceDir: tempDir });
+  const secondReport = await scanExternalIntake({ sourceDir: tempDir });
+  const secretFindings = firstReport.findings.filter((finding) => finding.code === "secret.detected");
+  const rules = new Set(secretFindings.map((finding) => finding.details.rule));
+
+  assert.equal(firstReport.decision, "blocked");
+  assert.deepEqual([...rules].sort(), [
+    "assignment-secret",
+    "aws-access-key",
+    "bearer-token",
+    "credential-url",
+    "database-url",
+    "github-token",
+    "jwt-token",
+    "npm-token",
+    "openai-key",
+    "private-key",
+    "pypi-token"
+  ]);
+  assert.deepEqual(
+    secretFindings.map((finding) => finding.details.fingerprint),
+    secondReport.findings.filter((finding) => finding.code === "secret.detected").map((finding) => finding.details.fingerprint)
+  );
+  for (const finding of secretFindings) {
+    assert.match(finding.details.fingerprint, /^sha256:[a-f0-9]{64}$/);
+    assert.match(finding.details.redacted, /^\[redacted:[a-z0-9-]+\]$/);
+    assert.equal(typeof finding.details.line, "number");
+  }
+  const serialized = JSON.stringify(firstReport);
+  for (const rawValue of rawValues) {
+    assert.equal(serialized.includes(rawValue), false);
+  }
+
+  const cliPath = path.join(repoDir, "src", "cli.mjs");
+  await assert.rejects(
+    () => execFileAsync(process.execPath, [cliPath, "external-intake", tempDir, "--json"]),
+    (error) => {
+      assert.equal(error.code, 1);
+      const output = `${error.stdout}\n${error.stderr}`;
+      for (const rawValue of rawValues) {
+        assert.equal(output.includes(rawValue), false);
+      }
+      return true;
+    }
+  );
+});
+
 test("external intake CLI supports json output and usage errors", async () => {
   const cliPath = path.join(repoDir, "src", "cli.mjs");
   const { stdout } = await execFileAsync(process.execPath, [
