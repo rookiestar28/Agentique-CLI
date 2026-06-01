@@ -86,28 +86,29 @@ npm run urls:check
 npm run release:go-no-go
 ```
 
-The source repository is public. Downstream package publishing, badge advertising, marketplace/action publication, and platform promotion remain **No-Go** until the release gates in [Current Release Status](#current-release-status) are complete.
+The source repository and `agentique.io` public links are **Go**. Package publishing, badge advertising, and marketplace/action publication remain deferred until those downstream channels are published and smoke tested.
 
 ## Current Release Status
 
-Current downstream release decision: **No-Go**.
+Current source repository and platform-link publication decision: **Go**.
 
 Public-safe evidence currently recorded:
 
 - The public repository is available at [github.com/rookiestar28/Agentique](https://github.com/rookiestar28/Agentique).
 - Local package tests, starter validation, release checks, workflow posture checks, package dry-runs, dependency audits, and secret scans pass.
 - Hosted Release Check evidence is recorded for the latest pushed public release candidate.
-- The `agentique.io` companion route and public readback endpoint respond successfully to command-line smoke checks.
+- Public `main` branch protection is enabled.
+- Final public URLs are approved.
+- The `agentique.io` public URL and public readback endpoint respond successfully to command-line smoke checks.
+- Owner go/no-go approval is recorded.
 
-Remaining blockers before downstream release channels are advertised:
+Deferred downstream channels:
 
-- Public `main` branch protection is currently not enabled.
-- Final public URLs for package pages, schema hosting, docs, action usage, badge examples, and platform links must be approved.
-- Package registry ownership, registry provenance, and publish permission must be verified.
 - Package registry URLs are not available because the npm packages are not published yet.
-- Owner go/no-go approval must be recorded.
+- Badge examples are not advertised until a public package or badge target is published.
+- Marketplace/action publication remains deferred until the action channel is published and smoke tested.
 
-Release evidence and blockers are tracked in [docs/release-evidence.md](docs/release-evidence.md), [docs/release-go-no-go.md](docs/release-go-no-go.md), and [docs/public-url-inventory.json](docs/public-url-inventory.json).
+Release evidence and deferred downstream channels are tracked in [docs/release-evidence.md](docs/release-evidence.md), [docs/release-go-no-go.md](docs/release-go-no-go.md), and [docs/public-url-inventory.json](docs/public-url-inventory.json).
 
 ## Repository Contents
 

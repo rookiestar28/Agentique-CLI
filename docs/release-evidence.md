@@ -24,16 +24,16 @@ This file records public-safe release evidence for the companion repository. Do 
 | Release allowlist and public-content check | Pass | `npm run release:check` passed. |
 | Workflow posture | Pass | `npm run workflow:check` passed. |
 | Package dry run | Pass | `npm run pack:dry-run` passed schemas, validator, action, and readback package checks. |
-| URL inventory check | Pass with advertising blocked | `npm run urls:check` passed while public advertising remains blocked. |
-| Go/no-go check | Pass as No-Go | `npm run release:go-no-go` passed with explicit blockers. |
+| URL inventory check | Pass | `npm run urls:check` passed. |
+| Go/no-go check | Pass as Go | `npm run release:go-no-go` passed with recorded external evidence. |
 | Root production dependency audit | Pass | `npm audit --omit=dev` found 0 vulnerabilities. |
 | Validator production dependency audit | Pass | `npm --prefix packages/validator audit --omit=dev` found 0 vulnerabilities. |
 | Action production dependency audit | Pass | `npm --prefix packages/action audit --omit=dev` found 0 vulnerabilities. |
 | Readback production dependency audit | Pass | `npm --prefix packages/readback audit --omit=dev` found 0 vulnerabilities. |
 
-## Release-Ready URL Mode
+## Deferred Downstream URL Mode
 
-The stricter public URL mode was intentionally blocked:
+The stricter all-channel public URL mode remains deferred for package, action, and badge channels:
 
 ```powershell
 $env:AGENTIQUE_REQUIRE_PUBLIC_URLS = "1"
@@ -41,21 +41,15 @@ npm run urls:check
 npm run release:check
 ```
 
-Observed blockers:
+Observed deferred entries:
 
-- URL inventory still has `releaseBlocked: true`.
-- Package registry pages are not approved and advertised.
-- Action usage reference is not approved and advertised.
-- Public schema URL base is not approved and advertised.
-- Public documentation URL is not approved and advertised.
-- Badge example URL is not approved and advertised.
-- Agentique.io companion link is not approved and advertised.
-- Agentique.io public readback endpoint is not approved and advertised.
-- Starter source URLs still use placeholder source URLs while release blocking remains enabled.
+- Package registry pages are not advertised because packages are not published yet.
+- Action usage reference is not advertised until action publication is complete.
+- Badge example URL is not advertised until a public badge target is published.
 
 ## Hosted Repository Evidence
 
-Hosted repository evidence is partially recorded from command-line checks on 2026-06-02.
+Hosted repository evidence is recorded from command-line checks on 2026-06-02.
 
 Current command-line finding:
 
@@ -64,15 +58,18 @@ Current command-line finding:
 - Hosted Release Check evidence is recorded for the latest pushed public release candidate.
 - Each later push requires a fresh hosted run before downstream release claims.
 - Hosted Release Check matrix jobs passed for Node 20, Node 22, and Node 24.
-- Public `main` branch protection is currently not enabled.
-- Repository rulesets are not configured.
+- Public `main` branch protection is enabled.
+- Required checks are `release-check (20)`, `release-check (22)`, and `release-check (24)`.
+- Pull request review and CODEOWNERS review are required.
+- Force pushes and branch deletion are disabled.
+- Repository rulesets are not configured; branch protection is the active protection mechanism.
 - Repository Actions are enabled. The release workflow itself declares `permissions: contents: read`.
 
-Required follow-up before downstream release channels are advertised:
+Required follow-up for later pushes:
 
 1. Keep the latest pushed release candidate's hosted CI run passing.
 2. Record the latest hosted CI run status before changing downstream release status.
-3. If branch protection is re-enabled, keep required status-check names aligned with the active workflow matrix.
+3. Keep required status-check names aligned with the active workflow matrix.
 
 ## Package Registry Evidence
 
@@ -101,11 +98,11 @@ Command-line public link smoke checks were run on 2026-06-02.
 | URL | Result |
 |---|---|
 | `https://github.com/rookiestar28/Agentique` | HTTP 200 |
-| `https://www.agentique.io/developers/companion` | HTTP 200 |
+| `https://www.agentique.io/` | HTTP 200 |
 | `https://www.agentique.io/api/public/v1/resources?limit=1` | HTTP 200 JSON with `pageInfo.page = 1`, `pageInfo.pageSize = 1`, `pageInfo.total = 60`, and `pageInfo.hasNextPage = true` |
 
-These smoke checks do not approve advertising. The public URL inventory remains blocked until owner-approved package, schema, docs, badge, action, and platform entries are recorded.
+These smoke checks approve source repository, schema, documentation, and `agentique.io` public links for advertising. Package registry, badge, and marketplace/action channels remain deferred until those downstream targets are published and smoke tested.
 
 ## Current Decision
 
-The source repository is public. Downstream package publishing, badge advertising, marketplace/action publication, and platform links remain No-Go until final public URLs, package registry URLs, platform link evidence, platform launch evidence, owner approval, and any required branch-protection disposition are recorded.
+The source repository and `agentique.io` public links are Go. Package publishing, badge advertising, and marketplace/action publication remain deferred until those downstream channels are published and smoke tested.

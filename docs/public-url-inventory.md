@@ -2,18 +2,19 @@
 
 This inventory tracks public links that must exist before the companion repository, packages, action, schemas, docs, badges, or platform links are advertised.
 
-Current status: the public repository URL is approved. Downstream package, action, schema, documentation, badge, and platform link advertising remains blocked until final URLs, owner approval, and platform launch evidence are recorded.
+Current status: source repository, schema, documentation, and `agentique.io` public links are approved for advertising. Package registry, badge, and marketplace/action channels remain deferred until those downstream targets are published and smoke tested.
 
 ## Required URL Classes
 
 - Public repository URL
-- Package registry pages
-- Action usage reference
-- Public schema URL base
-- Public documentation URL
-- Badge example URL
-- `agentique.io` companion landing link
-- `agentique.io` read-only public readback endpoint
+- Public repository URL: approved.
+- Public schema URL base: approved.
+- Public documentation URL: approved.
+- `agentique.io` companion landing link: approved.
+- `agentique.io` read-only public readback endpoint: approved.
+- Package registry pages: deferred until packages are published.
+- Action usage reference: deferred until action publication is complete.
+- Badge example URL: deferred until a public badge target is published.
 
 ## Release Rule
 
@@ -31,4 +32,4 @@ Local validation is preparation only. It does not approve publication or certify
 
 Starter manifests may keep placeholder source URLs only while this inventory keeps public release blocked. Placeholder source URLs include `example.com` hosts and placeholder GitHub owners such as `agentique-examples`.
 
-When public URLs are required or release blocking is removed, release checks must fail until every starter source URL is a final owner-approved HTTPS URL.
+When downstream package, action, or badge URLs are advertised, release checks must fail until every advertised URL is a final owner-approved HTTPS URL.

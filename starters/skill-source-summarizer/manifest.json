@@ -4,7 +4,7 @@
   "summary": "A static starter for documenting a reusable public summarization skill.",
   "source": {
     "type": "git",
-    "url": "https://github.com/agentique-examples/skill-source-summarizer"
+    "url": "https://github.com/rookiestar28/Agentique/tree/main/starters/skill-source-summarizer"
   },
   "distribution": {
     "mode": "package_download",

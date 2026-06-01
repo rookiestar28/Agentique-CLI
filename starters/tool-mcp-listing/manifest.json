@@ -4,7 +4,7 @@
   "summary": "A static starter for describing a public tool or MCP-style listing.",
   "source": {
     "type": "website",
-    "url": "https://example.com/agentique-tool-listing"
+    "url": "https://github.com/rookiestar28/Agentique/tree/main/starters/tool-mcp-listing"
   },
   "distribution": {
     "mode": "metadata_view",

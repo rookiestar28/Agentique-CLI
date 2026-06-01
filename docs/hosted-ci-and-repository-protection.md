@@ -39,7 +39,10 @@ Local workflow checks are necessary but not sufficient. Hosted CI must pass for 
 
 ## Current Public Evidence State
 
-- Public `main` branch protection is currently not enabled.
+- Public `main` branch protection is enabled.
+- Required checks are `release-check (20)`, `release-check (22)`, and `release-check (24)`.
+- Pull request review and CODEOWNERS review are required.
+- Force pushes and branch deletion are disabled.
 - Hosted Release Check evidence is recorded for the latest pushed public release candidate.
 - A fresh hosted CI run is required after each later release-candidate push.
-- If branch protection is re-enabled, it should require the Release Check status checks, pull request review, code-owner review, and disabled force pushes/deletion.
+- Branch protection should remain aligned with the active Release Check workflow matrix.
