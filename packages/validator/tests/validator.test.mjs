@@ -19,6 +19,7 @@ const execFileAsync = promisify(execFile);
 const schemaFiles = [
   "distribution-mode.schema.json",
   "package-manifest.schema.json",
+  "permission-risk.schema.json",
   "public-readback.schema.json",
   "resource-manifest.schema.json",
   "skill-metadata.schema.json",
@@ -68,6 +69,69 @@ test("validates schema fixture catalog for every public schema", async () => {
       assert.equal(validate(value), false, `${schemaFile} ${caseName} fixture should fail`);
     }
   }
+});
+
+test("permission risk schema covers read-only open-world destructive and credentialed cases", async () => {
+  const ajv = new Ajv({ allErrors: true, strict: true });
+  addFormats(ajv);
+
+  for (const schemaFile of schemaFiles) {
+    const schema = JSON.parse(await fs.readFile(path.join(schemasDir, schemaFile), "utf8"));
+    ajv.addSchema(schema);
+  }
+
+  const validate = ajv.getSchema("https://schemas.agentique.io/permission-risk.schema.json");
+  const cases = [
+    {
+      readOnly: true,
+      destructive: false,
+      openWorld: false,
+      approvalRequired: false,
+      dataSensitivity: "public",
+      capabilities: ["read-public-content"]
+    },
+    {
+      readOnly: false,
+      destructive: false,
+      openWorld: true,
+      externalNetwork: true,
+      approvalRequired: false,
+      dataSensitivity: "public",
+      capabilities: ["external-network"]
+    },
+    {
+      readOnly: false,
+      destructive: true,
+      openWorld: false,
+      approvalRequired: true,
+      dataSensitivity: "user-provided",
+      capabilities: ["state-mutation", "human-approval"]
+    },
+    {
+      readOnly: false,
+      destructive: false,
+      openWorld: true,
+      credentialed: true,
+      approvalRequired: true,
+      dataSensitivity: "sensitive",
+      capabilities: ["credential-use", "external-network"]
+    }
+  ];
+
+  for (const value of cases) {
+    assert.equal(validate(value), true, JSON.stringify(validate.errors));
+  }
+
+  assert.equal(
+    validate({
+      readOnly: false,
+      destructive: true,
+      openWorld: false,
+      approvalRequired: false,
+      dataSensitivity: "public"
+    }),
+    false
+  );
 });
 
 test("rejects traversal and local path entries", async () => {

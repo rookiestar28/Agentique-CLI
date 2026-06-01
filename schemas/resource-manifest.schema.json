@@ -49,6 +49,9 @@
     },
     "surfacing": {
       "$ref": "https://schemas.agentique.io/surfacing-metadata.schema.json"
+    },
+    "permissionRisk": {
+      "$ref": "https://schemas.agentique.io/permission-risk.schema.json"
     }
   }
 }

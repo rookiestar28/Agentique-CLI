@@ -57,6 +57,31 @@ Example:
 
 Surfacing metadata is not a ranking promise, review outcome, platform approval, or safety guarantee. The platform remains authoritative for upload review, scanning, moderation, publication state, and final public readback.
 
+## Permission And Risk Declarations
+
+Resource manifests may include optional `permissionRisk` metadata. These declarations describe expected behavior from the creator or integrator's perspective.
+
+Example:
+
+```json
+{
+  "permissionRisk": {
+    "readOnly": true,
+    "destructive": false,
+    "idempotent": true,
+    "openWorld": false,
+    "externalNetwork": false,
+    "credentialed": false,
+    "approvalRequired": false,
+    "dataSensitivity": "public",
+    "capabilities": ["read-public-content"],
+    "reviewNotes": "Reads public package content without credential access."
+  }
+}
+```
+
+For resources that can mutate state, use credentials, touch sensitive data, or operate in an open-world environment, set `approvalRequired` to `true`. These declarations are not trusted by default and may be overridden by platform review.
+
 ## Scan Readback
 
 Scan readback is the public status that `agentique.io` exposes after platform processing. Local validation is not platform approval. Local validation is not safety certification.

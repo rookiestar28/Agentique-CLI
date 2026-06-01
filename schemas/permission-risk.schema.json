@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.agentique.io/permission-risk.schema.json",
+  "title": "Agentique Public Permission And Risk Declaration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["readOnly", "destructive", "openWorld", "approvalRequired", "dataSensitivity"],
+  "properties": {
+    "readOnly": {
+      "type": "boolean"
+    },
+    "destructive": {
+      "type": "boolean"
+    },
+    "idempotent": {
+      "type": "boolean"
+    },
+    "openWorld": {
+      "type": "boolean"
+    },
+    "externalNetwork": {
+      "type": "boolean"
+    },
+    "credentialed": {
+      "type": "boolean"
+    },
+    "approvalRequired": {
+      "type": "boolean"
+    },
+    "dataSensitivity": {
+      "type": "string",
+      "enum": ["public", "user-provided", "sensitive", "unknown"]
+    },
+    "capabilities": {
+      "type": "array",
+      "maxItems": 12,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "read-public-content",
+          "read-user-provided-content",
+          "external-network",
+          "credential-use",
+          "upload",
+          "download",
+          "filesystem-read",
+          "filesystem-write",
+          "state-mutation",
+          "human-approval"
+        ]
+      }
+    },
+    "reviewNotes": {
+      "type": "string",
+      "minLength": 12,
+      "maxLength": 400
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "destructive": {
+            "const": true
+          }
+        },
+        "required": ["destructive"]
+      },
+      "then": {
+        "properties": {
+          "approvalRequired": {
+            "const": true
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "anyOf": [
+          {
+            "properties": {
+              "credentialed": {
+                "const": true
+              }
+            },
+            "required": ["credentialed"]
+          },
+          {
+            "properties": {
+              "dataSensitivity": {
+                "enum": ["sensitive", "unknown"]
+              }
+            },
+            "required": ["dataSensitivity"]
+          }
+        ]
+      },
+      "then": {
+        "properties": {
+          "approvalRequired": {
+            "const": true
+          }
+        }
+      }
+    }
+  ]
+}

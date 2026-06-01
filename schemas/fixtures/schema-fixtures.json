@@ -44,6 +44,42 @@
       }
     }
   },
+  "permission-risk.schema.json": {
+    "valid": {
+      "readOnly": true,
+      "destructive": false,
+      "idempotent": true,
+      "openWorld": false,
+      "externalNetwork": false,
+      "credentialed": false,
+      "approvalRequired": false,
+      "dataSensitivity": "public",
+      "capabilities": ["read-public-content"],
+      "reviewNotes": "Reads public package content without credential access."
+    },
+    "invalid": {
+      "missing-required": {
+        "readOnly": true
+      },
+      "extra-property": {
+        "readOnly": true,
+        "destructive": false,
+        "openWorld": false,
+        "approvalRequired": false,
+        "dataSensitivity": "public",
+        "safe": true
+      },
+      "boundary": {
+        "readOnly": true,
+        "destructive": true,
+        "openWorld": true,
+        "credentialed": true,
+        "approvalRequired": false,
+        "dataSensitivity": "sensitive",
+        "capabilities": ["credential-use"]
+      }
+    }
+  },
   "public-readback.schema.json": {
     "valid": {
       "resourceId": "example-resource",
@@ -108,6 +144,18 @@
           "preferredSummaryBytes": 4096
         },
         "notes": "Public creator-provided hints for resource selection."
+      },
+      "permissionRisk": {
+        "readOnly": true,
+        "destructive": false,
+        "idempotent": true,
+        "openWorld": false,
+        "externalNetwork": false,
+        "credentialed": false,
+        "approvalRequired": false,
+        "dataSensitivity": "public",
+        "capabilities": ["read-public-content"],
+        "reviewNotes": "Reads public package content without credential access."
       }
     },
     "invalid": {
