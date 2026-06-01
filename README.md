@@ -202,7 +202,7 @@ See [packages/action/README.md](packages/action/README.md) and [docs/hosted-ci-a
 
 ## Readback SDK And Badges
 
-The readback package is read-only. It targets versioned public resource paths under `/api/public/v1/resources` for public status, public resource lists, resource detail, download metadata, and readback projections when those `agentique.io` endpoints are available.
+The readback package is read-only. It targets versioned public resource paths under `/api/public/v1/resources` for public status, public resource lists, resource detail, download metadata, readback projections, context bundles, and selection readback projections when those `agentique.io` endpoints are available.
 
 Example:
 
@@ -223,6 +223,8 @@ Read-only methods:
 - `getResource(resourceId)`
 - `getDownloadMetadata(resourceId)`
 - `getReadback(resourceId)`
+- `getContextBundle(resourceId, params)`
+- `getSelectionReadback(resourceId, params)`
 
 Badge states:
 

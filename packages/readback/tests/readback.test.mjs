@@ -53,7 +53,9 @@ describe("read-only client", () => {
       "listResources",
       "getResource",
       "getDownloadMetadata",
-      "getReadback"
+      "getReadback",
+      "getContextBundle",
+      "getSelectionReadback"
     ]);
   });
 
@@ -88,18 +90,59 @@ describe("read-only client", () => {
     await client.getResource("agent 1");
     await client.getDownloadMetadata("agent 1");
     await client.getReadback("agent 1");
+    await client.getContextBundle("agent 1");
+    await client.getSelectionReadback("agent 1");
 
     assert.deepEqual(calls, [
       "https://agentique.example/base/api/public/v1/resources/agent%201/status",
       "https://agentique.example/base/api/public/v1/resources",
       "https://agentique.example/base/api/public/v1/resources/agent%201",
       "https://agentique.example/base/api/public/v1/resources/agent%201/download",
-      "https://agentique.example/base/api/public/v1/resources/agent%201/readback"
+      "https://agentique.example/base/api/public/v1/resources/agent%201/readback",
+      "https://agentique.example/base/api/public/v1/resources/agent%201/context-bundle",
+      "https://agentique.example/base/api/public/v1/resources/agent%201/selection-readback"
     ]);
 
     for (const url of calls) {
       assert.doesNotMatch(url, /\/api\/public\/resources(?:\/|\?|$)/);
     }
+  });
+
+  it("uses GET requests and query allowlists for context and selection helpers", async () => {
+    const calls = [];
+    const client = createReadbackClient({
+      baseUrl: "https://agentique.example/base/",
+      fetchImpl: async (url, options) => {
+        calls.push({ url: String(url), options });
+        return jsonResponse({ items: [] });
+      }
+    });
+
+    await client.getContextBundle("agent-1", {
+      intent: "research",
+      audience: "agent",
+      limit: 2,
+      token: "ignored",
+      scannerThreshold: "ignored"
+    });
+    await client.getSelectionReadback("agent-1", {
+      intent: "research",
+      audience: "agent",
+      limit: 2,
+      cursor: "next",
+      token: "ignored"
+    });
+
+    assert.equal(calls[0].options.method, "GET");
+    assert.equal(calls[1].options.method, "GET");
+    assert.equal(
+      calls[0].url,
+      "https://agentique.example/base/api/public/v1/resources/agent-1/context-bundle?intent=research&audience=agent&limit=2"
+    );
+    assert.equal(
+      calls[1].url,
+      "https://agentique.example/base/api/public/v1/resources/agent-1/selection-readback?intent=research&audience=agent&limit=2&cursor=next"
+    );
   });
 
   it("normalizes public readback and filters private projection fields", async () => {
@@ -122,6 +165,51 @@ describe("read-only client", () => {
     assert.deepEqual(payload, {
       id: "agent-1",
       status: "published",
+      nested: {
+        title: "Visible"
+      }
+    });
+  });
+
+  it("normalizes context bundle and selection readback projections", async () => {
+    const client = createReadbackClient({
+      baseUrl: "https://agentique.example",
+      fetchImpl: async (url) => {
+        if (String(url).endsWith("/context-bundle")) {
+          return jsonResponse({
+            bundleId: "bundle-1",
+            items: [
+              {
+                title: "Visible",
+                privateReviewNotes: "hidden"
+              }
+            ],
+            rawScanResults: "hidden"
+          });
+        }
+        return jsonResponse({
+          resourceId: "agent-1",
+          selectionReason: "Visible public reason.",
+          ["secret" + "Value"]: "hidden",
+          nested: {
+            credential: "hidden",
+            title: "Visible"
+          }
+        });
+      }
+    });
+
+    assert.deepEqual(await client.getContextBundle("agent-1"), {
+      bundleId: "bundle-1",
+      items: [
+        {
+          title: "Visible"
+        }
+      ]
+    });
+    assert.deepEqual(await client.getSelectionReadback("agent-1"), {
+      resourceId: "agent-1",
+      selectionReason: "Visible public reason.",
       nested: {
         title: "Visible"
       }

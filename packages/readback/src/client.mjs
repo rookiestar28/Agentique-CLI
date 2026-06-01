@@ -125,6 +125,15 @@ export function createReadbackClient(options = {}) {
     },
     getReadback(resourceId) {
       return requestJson(`${PUBLIC_RESOURCE_API_PREFIX}/${encodeSegment(resourceId)}/readback`);
+    },
+    getContextBundle(resourceId, params = {}) {
+      return requestJson(`${PUBLIC_RESOURCE_API_PREFIX}/${encodeSegment(resourceId)}/context-bundle`, pickContextBundleParams(params));
+    },
+    getSelectionReadback(resourceId, params = {}) {
+      return requestJson(
+        `${PUBLIC_RESOURCE_API_PREFIX}/${encodeSegment(resourceId)}/selection-readback`,
+        pickSelectionReadbackParams(params)
+      );
     }
   });
 }
@@ -216,6 +225,26 @@ function buildUrl(baseUrl, path, params = {}) {
 
 function pickListParams(params) {
   const allowed = ["q", "type", "cursor", "limit", "status"];
+  const picked = {};
+
+  for (const key of allowed) {
+    if (Object.hasOwn(params, key)) {
+      picked[key] = params[key];
+    }
+  }
+
+  return picked;
+}
+
+function pickContextBundleParams(params) {
+  return pickAllowedParams(params, ["intent", "audience", "limit"]);
+}
+
+function pickSelectionReadbackParams(params) {
+  return pickAllowedParams(params, ["intent", "audience", "limit", "cursor"]);
+}
+
+function pickAllowedParams(params, allowed) {
   const picked = {};
 
   for (const key of allowed) {
