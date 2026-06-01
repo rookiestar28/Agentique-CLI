@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.agentique.io/context-bundle.schema.json",
+  "title": "Agentique Public Minimal Context Bundle",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["bundleId", "summary", "budget", "items", "deeperFetch"],
+  "properties": {
+    "bundleId": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{1,63}$"
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 12,
+      "maxLength": 360
+    },
+    "budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["maxItems", "maxTokens", "maxBytes"],
+      "properties": {
+        "maxItems": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20
+        },
+        "maxTokens": {
+          "type": "integer",
+          "minimum": 128,
+          "maximum": 32000
+        },
+        "maxBytes": {
+          "type": "integer",
+          "minimum": 1024,
+          "maximum": 262144
+        }
+      }
+    },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["resourceId", "title", "summary", "resourceUrl", "selectedContent", "deeperFetch"],
+        "properties": {
+          "resourceId": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]{1,63}$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 120
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 12,
+            "maxLength": 600
+          },
+          "resourceUrl": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https://"
+          },
+          "selectedContent": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 5,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["kind", "text", "maxBytes"],
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": ["summary", "example", "contract"]
+                },
+                "text": {
+                  "type": "string",
+                  "minLength": 8,
+                  "maxLength": 1200
+                },
+                "maxBytes": {
+                  "type": "integer",
+                  "minimum": 128,
+                  "maximum": 8192
+                }
+              }
+            }
+          },
+          "surfacing": {
+            "$ref": "https://schemas.agentique.io/surfacing-metadata.schema.json"
+          },
+          "permissionRisk": {
+            "$ref": "https://schemas.agentique.io/permission-risk.schema.json"
+          },
+          "outputContract": {
+            "$ref": "https://schemas.agentique.io/output-contract.schema.json"
+          },
+          "deeperFetch": {
+            "$ref": "#/$defs/deeperFetch"
+          }
+        }
+      }
+    },
+    "deeperFetch": {
+      "$ref": "#/$defs/deeperFetch"
+    }
+  },
+  "$defs": {
+    "deeperFetch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resourceUrl", "readbackUrl"],
+      "properties": {
+        "resourceUrl": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://"
+        },
+        "readbackUrl": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://"
+        }
+      }
+    }
+  }
+}

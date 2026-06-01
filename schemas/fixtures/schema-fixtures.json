@@ -1,4 +1,114 @@
 {
+  "context-bundle.schema.json": {
+    "valid": {
+      "bundleId": "example-context-bundle",
+      "summary": "A small public context bundle with selected public content.",
+      "budget": {
+        "maxItems": 3,
+        "maxTokens": 4000,
+        "maxBytes": 65536
+      },
+      "items": [
+        {
+          "resourceId": "example-resource",
+          "title": "Example Resource",
+          "summary": "A selected public resource summary for local review.",
+          "resourceUrl": "https://agentique.io/resources/example-resource",
+          "selectedContent": [
+            {
+              "kind": "summary",
+              "text": "Public summary text selected for a bounded context bundle.",
+              "maxBytes": 2048
+            }
+          ],
+          "permissionRisk": {
+            "readOnly": true,
+            "destructive": false,
+            "openWorld": false,
+            "approvalRequired": false,
+            "dataSensitivity": "public"
+          },
+          "deeperFetch": {
+            "resourceUrl": "https://agentique.io/resources/example-resource",
+            "readbackUrl": "https://agentique.io/api/public/v1/resources/example-resource/readback"
+          }
+        }
+      ],
+      "deeperFetch": {
+        "resourceUrl": "https://agentique.io/resources",
+        "readbackUrl": "https://agentique.io/api/public/v1/resources"
+      }
+    },
+    "invalid": {
+      "missing-required": {
+        "bundleId": "example-context-bundle",
+        "summary": "A small public context bundle with selected public content.",
+        "budget": {
+          "maxItems": 3,
+          "maxTokens": 4000,
+          "maxBytes": 65536
+        },
+        "items": []
+      },
+      "extra-property": {
+        "bundleId": "example-context-bundle",
+        "summary": "A small public context bundle with selected public content.",
+        "budget": {
+          "maxItems": 3,
+          "maxTokens": 4000,
+          "maxBytes": 65536
+        },
+        "items": [
+          {
+            "resourceId": "example-resource",
+            "title": "Example Resource",
+            "summary": "A selected public resource summary for local review.",
+            "resourceUrl": "https://agentique.io/resources/example-resource",
+            "selectedContent": [
+              {
+                "kind": "summary",
+                "text": "Public summary text selected for a bounded context bundle.",
+                "maxBytes": 2048
+              }
+            ],
+            "deeperFetch": {
+              "resourceUrl": "https://agentique.io/resources/example-resource",
+              "readbackUrl": "https://agentique.io/api/public/v1/resources/example-resource/readback"
+            },
+            "privateManifest": true
+          }
+        ],
+        "deeperFetch": {
+          "resourceUrl": "https://agentique.io/resources",
+          "readbackUrl": "https://agentique.io/api/public/v1/resources"
+        }
+      },
+      "boundary": {
+        "bundleId": "x",
+        "summary": "too short",
+        "budget": {
+          "maxItems": 999,
+          "maxTokens": 64,
+          "maxBytes": 128
+        },
+        "items": [
+          {
+            "resourceId": "example-resource",
+            "title": "Example Resource",
+            "summary": "A selected public resource summary for local review.",
+            "resourceUrl": "http://agentique.io/resources/example-resource",
+            "selectedContent": [],
+            "deeperFetch": {
+              "resourceUrl": "https://agentique.io/resources/example-resource"
+            }
+          }
+        ],
+        "deeperFetch": {
+          "resourceUrl": "https://agentique.io/resources"
+        }
+      }
+    }
+  },
   "distribution-mode.schema.json": {
     "valid": {
       "mode": "package_download",

@@ -6,6 +6,7 @@ import addFormats from "ajv-formats";
 
 const schemaFiles = [
   "distribution-mode.schema.json",
+  "context-bundle.schema.json",
   "output-contract.schema.json",
   "package-manifest.schema.json",
   "permission-risk.schema.json",

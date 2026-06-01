@@ -88,6 +88,12 @@ Skill, workflow, and tool-listing metadata can use output contracts to describe 
 
 Output contracts are for static review and local validation. They do not execute a tool, prove runtime behavior, approve publication, or certify safety.
 
+## Minimal Context Bundles
+
+A minimal context bundle is a public projection for selected resource context. It should contain only bounded summaries, selected examples, public links, selected contract metadata, and deeper-fetch URLs for clients that need more public detail.
+
+Context bundles should not embed private manifests, all-catalog payloads, account data, moderation notes, or unbounded resource content. Treat bundle content as advisory public context; `agentique.io` remains authoritative for final readback state and public resource availability.
+
 ## Scan Readback
 
 Scan readback is the public status that `agentique.io` exposes after platform processing. Local validation is not platform approval. Local validation is not safety certification.

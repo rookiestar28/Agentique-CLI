@@ -18,6 +18,7 @@ const schemasDir = path.resolve(packageDir, "schemas");
 const execFileAsync = promisify(execFile);
 const schemaFiles = [
   "distribution-mode.schema.json",
+  "context-bundle.schema.json",
   "output-contract.schema.json",
   "package-manifest.schema.json",
   "permission-risk.schema.json",
