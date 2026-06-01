@@ -11,6 +11,23 @@ const DEFAULT_INTAKE_POLICY = Object.freeze({
 const GITATTRIBUTES_READ_LIMIT_BYTES = 64 * 1024;
 const LFS_POINTER_READ_LIMIT_BYTES = 2048;
 const LFS_POINTER_HEADER = "version https://git-lfs.github.com/spec/v1";
+const PAYLOAD_PREFIX_READ_LIMIT_BYTES = 4096;
+const ARCHIVE_EXTENSIONS = new Set([".7z", ".gz", ".rar", ".tar", ".tar.gz", ".tgz", ".zip"]);
+const EXECUTABLE_EXTENSIONS = new Set([
+  ".bat",
+  ".cmd",
+  ".com",
+  ".dll",
+  ".dylib",
+  ".exe",
+  ".jar",
+  ".msi",
+  ".node",
+  ".ps1",
+  ".sh",
+  ".so",
+  ".wasm"
+]);
 
 export async function scanExternalIntake(options) {
   const command = options.command ?? "external-intake";
@@ -107,6 +124,7 @@ async function walkDirectory({ root, current, inventory, findings }) {
         bytes: stat.size
       });
       await applyRepositoryMetadataGates({ filePath: absolutePath, rel, stat, findings });
+      await applyPayloadClassifier({ filePath: absolutePath, rel, findings });
     } catch (error) {
       findings.push(
         createFinding({
@@ -120,6 +138,136 @@ async function walkDirectory({ root, current, inventory, findings }) {
       );
     }
   }
+}
+
+async function applyPayloadClassifier({ filePath, rel, findings }) {
+  const lowerPath = rel.toLowerCase();
+  const extensionSignals = [];
+  if (hasCompoundExtension(lowerPath, ARCHIVE_EXTENSIONS)) {
+    extensionSignals.push("archive-extension");
+  }
+  if (hasCompoundExtension(lowerPath, EXECUTABLE_EXTENSIONS)) {
+    extensionSignals.push("executable-extension");
+  }
+
+  const prefix = await readBufferPrefix({
+    filePath,
+    rel,
+    maxBytes: PAYLOAD_PREFIX_READ_LIMIT_BYTES,
+    findings,
+    purpose: "payload-classifier"
+  });
+  if (!prefix) {
+    return;
+  }
+
+  const magicSignals = detectMagicSignals(prefix);
+  const signals = [...extensionSignals, ...magicSignals];
+  if (isBinaryLike(prefix) && !signals.includes("binary-heuristic")) {
+    signals.push("binary-heuristic");
+  }
+
+  const category = classifyPayloadSignals(signals);
+  if (!category) {
+    return;
+  }
+
+  findings.push(
+    createFinding({
+      code: `payload.${category}`,
+      severity: "high",
+      message: `External intake does not allow ${category} payloads.`,
+      path: rel,
+      blocking: true,
+      details: {
+        category,
+        signals: stableUnique(signals)
+      }
+    })
+  );
+}
+
+function hasCompoundExtension(lowerPath, extensionSet) {
+  for (const extension of extensionSet) {
+    if (lowerPath.endsWith(extension)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function detectMagicSignals(buffer) {
+  const signals = [];
+  if (hasBytes(buffer, [0x50, 0x4b, 0x03, 0x04]) || hasBytes(buffer, [0x50, 0x4b, 0x05, 0x06]) || hasBytes(buffer, [0x50, 0x4b, 0x07, 0x08])) {
+    signals.push("zip-magic");
+  }
+  if (hasBytes(buffer, [0x1f, 0x8b])) {
+    signals.push("gzip-magic");
+  }
+  if (hasBytes(buffer, [0x4d, 0x5a])) {
+    signals.push("pe-magic");
+  }
+  if (hasBytes(buffer, [0x7f, 0x45, 0x4c, 0x46])) {
+    signals.push("elf-magic");
+  }
+  if (
+    hasBytes(buffer, [0xfe, 0xed, 0xfa, 0xce]) ||
+    hasBytes(buffer, [0xfe, 0xed, 0xfa, 0xcf]) ||
+    hasBytes(buffer, [0xce, 0xfa, 0xed, 0xfe]) ||
+    hasBytes(buffer, [0xcf, 0xfa, 0xed, 0xfe]) ||
+    hasBytes(buffer, [0xca, 0xfe, 0xba, 0xbe])
+  ) {
+    signals.push("macho-magic");
+  }
+  if (hasBytes(buffer, [0x25, 0x50, 0x44, 0x46, 0x2d])) {
+    signals.push("pdf-magic");
+  }
+  if (buffer.subarray(0, 16).toString("ascii") === "SQLite format 3\0") {
+    signals.push("sqlite-magic");
+  }
+  return signals;
+}
+
+function hasBytes(buffer, bytes) {
+  if (buffer.length < bytes.length) {
+    return false;
+  }
+  return bytes.every((byte, index) => buffer[index] === byte);
+}
+
+function isBinaryLike(buffer) {
+  if (buffer.length === 0) {
+    return false;
+  }
+
+  let controlBytes = 0;
+  for (const byte of buffer) {
+    if (byte === 0) {
+      return true;
+    }
+    if ((byte < 0x09 || (byte > 0x0d && byte < 0x20)) && byte !== 0x1b) {
+      controlBytes += 1;
+    }
+  }
+
+  return controlBytes / buffer.length > 0.1;
+}
+
+function classifyPayloadSignals(signals) {
+  if (signals.some((signal) => signal === "archive-extension" || signal === "zip-magic" || signal === "gzip-magic")) {
+    return "archive";
+  }
+  if (signals.some((signal) => signal === "executable-extension" || signal === "pe-magic" || signal === "elf-magic" || signal === "macho-magic")) {
+    return "executable";
+  }
+  if (signals.some((signal) => signal === "binary-heuristic" || signal === "pdf-magic" || signal === "sqlite-magic")) {
+    return "binary";
+  }
+  return null;
+}
+
+function stableUnique(values) {
+  return [...new Set(values)].sort();
 }
 
 function normalizePolicy(options) {
@@ -227,18 +375,24 @@ async function inspectLfsPointer({ filePath, rel, stat, findings }) {
 }
 
 async function readTextPrefix({ filePath, rel, maxBytes, findings, purpose }) {
+  const buffer = await readBufferPrefix({ filePath, rel, maxBytes, findings, purpose });
+  return buffer ? buffer.toString("utf8") : "";
+}
+
+async function readBufferPrefix({ filePath, rel, maxBytes, findings, purpose }) {
   let handle;
   try {
     handle = await fs.open(filePath, "r");
     const buffer = Buffer.alloc(maxBytes);
     const result = await handle.read(buffer, 0, maxBytes, 0);
-    return buffer.subarray(0, result.bytesRead).toString("utf8");
+    return buffer.subarray(0, result.bytesRead);
   } catch (error) {
+    const isPayloadRead = purpose === "payload-classifier";
     findings.push(
       createFinding({
-        code: "repo.metadata-read",
+        code: isPayloadRead ? "payload.read-file" : "repo.metadata-read",
         severity: "high",
-        message: "Unable to read repository metadata.",
+        message: isPayloadRead ? "Unable to read file prefix for payload classification." : "Unable to read repository metadata.",
         path: rel,
         blocking: true,
         details: {
@@ -247,7 +401,7 @@ async function readTextPrefix({ filePath, rel, maxBytes, findings, purpose }) {
         }
       })
     );
-    return "";
+    return null;
   } finally {
     await handle?.close();
   }

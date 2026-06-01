@@ -314,6 +314,56 @@ test("external intake blocks submodule and Git LFS metadata without fetching con
   assert.equal(JSON.stringify(report).includes(tempDir), false);
 });
 
+test("external intake blocks archive payloads without extraction", async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agentique-intake-archive-"));
+  await fs.writeFile(path.join(tempDir, "archive.zip"), Buffer.from([0x50, 0x4b, 0x03, 0x04, 0x00]));
+  await fs.writeFile(path.join(tempDir, "bundle.tar.gz"), Buffer.from([0x1f, 0x8b, 0x08, 0x00]));
+
+  const report = await scanExternalIntake({ sourceDir: tempDir });
+  const archiveFindings = report.findings.filter((finding) => finding.code === "payload.archive");
+
+  assert.equal(report.decision, "blocked");
+  assert.equal(archiveFindings.length, 2);
+  assert.deepEqual(
+    archiveFindings.map((finding) => finding.path).sort(),
+    ["archive.zip", "bundle.tar.gz"]
+  );
+  assert.equal(JSON.stringify(report).includes(tempDir), false);
+});
+
+test("external intake blocks executable magic headers behind benign names", async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agentique-intake-executable-"));
+  await fs.writeFile(path.join(tempDir, "renamed-pe.txt"), Buffer.from([0x4d, 0x5a, 0x00, 0x01]));
+  await fs.writeFile(path.join(tempDir, "renamed-elf.txt"), Buffer.from([0x7f, 0x45, 0x4c, 0x46, 0x02]));
+  await fs.writeFile(path.join(tempDir, "renamed-macho.txt"), Buffer.from([0xfe, 0xed, 0xfa, 0xcf, 0x00]));
+
+  const report = await scanExternalIntake({ sourceDir: tempDir });
+  const executableFindings = report.findings.filter((finding) => finding.code === "payload.executable");
+
+  assert.equal(report.decision, "blocked");
+  assert.equal(executableFindings.length, 3);
+  assert.deepEqual(
+    executableFindings.map((finding) => finding.path).sort(),
+    ["renamed-elf.txt", "renamed-macho.txt", "renamed-pe.txt"]
+  );
+  assert.equal(JSON.stringify(report).includes(tempDir), false);
+});
+
+test("external intake blocks renamed binary payloads while allowing text files", async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agentique-intake-binary-"));
+  await fs.writeFile(path.join(tempDir, "README.md"), "Candidate documentation.\n", "utf8");
+  await fs.writeFile(path.join(tempDir, "opaque.txt"), Buffer.from([0x41, 0x00, 0x42, 0x43]));
+
+  const report = await scanExternalIntake({ sourceDir: tempDir });
+  const binaryFindings = report.findings.filter((finding) => finding.code === "payload.binary");
+
+  assert.equal(report.decision, "blocked");
+  assert.equal(binaryFindings.length, 1);
+  assert.equal(binaryFindings[0].path, "opaque.txt");
+  assert.equal(JSON.stringify(report).includes("Candidate documentation"), false);
+  assert.equal(JSON.stringify(report).includes(tempDir), false);
+});
+
 test("external intake CLI supports json output and usage errors", async () => {
   const cliPath = path.join(repoDir, "src", "cli.mjs");
   const { stdout } = await execFileAsync(process.execPath, [
