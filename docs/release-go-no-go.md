@@ -2,7 +2,7 @@
 
 Current downstream release decision: **No-Go**.
 
-The source repository may be opened for review before every downstream release channel is live. Package publishing, badge advertising, marketplace/action publication, and platform links remain blocked until hosted repository evidence, final public URLs, owner approval, and platform launch evidence are recorded.
+The source repository is public. Package publishing, badge advertising, marketplace/action publication, and platform promotion remain blocked until hosted CI for the latest release candidate, final public URLs, package registry URLs, owner approval, and platform launch evidence are recorded.
 
 Current public-safe evidence is recorded in [release-evidence.md](release-evidence.md).
 
@@ -16,11 +16,11 @@ Current public-safe evidence is recorded in [release-evidence.md](release-eviden
 - Package tests, starter validation, release check, and dependency audits pass locally.
 - Surfacing contract fixture matrix is covered by release checks.
 - Readback helper docs describe context bundle and selection projections as read-only public projections.
+- Hosted Release Check evidence is recorded for the latest pushed public release candidate.
 
 ## Blocking Evidence
 
-- Hosted CI run evidence is not recorded.
-- Public repository protection evidence is not recorded.
+- Public `main` branch protection is currently not enabled.
 - Final public URLs are not approved.
 - Package registry URLs are not approved.
 - `agentique.io` public links are not approved.

@@ -1,13 +1,15 @@
 # Repository Policy
 
-This repository contains public-facing documentation only.
+This repository is the public companion monorepo for Agentique documentation, schemas, starters, local validation tooling, workflow validation, and read-only readback helpers.
 
-Release is blocked until:
+Downstream release channels remain blocked until:
 
 - Owner approval exists.
 - Public-content review passes.
 - Secret scanning passes.
 - Support and security routes are reviewed.
-- Links from `agentique.io` are approved.
+- Hosted CI for the latest pushed release candidate passes.
+- Branch protection is re-enabled before long-lived public release maintenance, or the temporary unprotected state is explicitly accepted by the owner.
+- Final package, action, docs, badge, and `agentique.io` links are approved.
 
-Intermediate local git history may be replaced before public launch. The final public history must start from reviewed public-safe content only.
+Public history must remain public-safe. Do not add private planning material, private platform evidence, local workspace paths, generated archives, dependency folders, credentials, or unpublished operational procedures.

@@ -1,4 +1,8 @@
-<img src="assets/logo_full.png" alt="Agentique logo" width="96" align="left">
+<p align="center">
+  <img src="assets/agentique.png" alt="Agentique: Discover AI agent resources" width="760">
+</p>
+
+<img src="assets/logo_full.png" alt="Agentique logo" width="72" align="left">
 
 # Agentique
 
@@ -21,6 +25,7 @@ Local tools in this repository do not publish, approve, certify, edit, delete, o
 ## Table Of Contents
 
 - [Quick Start From Source](#quick-start-from-source)
+- [Current Release Status](#current-release-status)
 - [Repository Contents](#repository-contents)
 - [Resource Package Workflow](#resource-package-workflow)
 - [Starters](#starters)
@@ -81,7 +86,28 @@ npm run urls:check
 npm run release:go-no-go
 ```
 
-Source publication can happen before every downstream release channel is live. Package publishing, badge advertising, marketplace/action publication, and platform links remain **No-Go** until hosted CI, repository protection, final public URLs, package registry URLs, platform launch evidence, and owner approval are available.
+The source repository is public. Downstream package publishing, badge advertising, marketplace/action publication, and platform promotion remain **No-Go** until the release gates in [Current Release Status](#current-release-status) are complete.
+
+## Current Release Status
+
+Current downstream release decision: **No-Go**.
+
+Public-safe evidence currently recorded:
+
+- The public repository is available at [github.com/rookiestar28/Agentique](https://github.com/rookiestar28/Agentique).
+- Local package tests, starter validation, release checks, workflow posture checks, package dry-runs, dependency audits, and secret scans pass.
+- Hosted Release Check evidence is recorded for the latest pushed public release candidate.
+- The `agentique.io` companion route and public readback endpoint respond successfully to command-line smoke checks.
+
+Remaining blockers before downstream release channels are advertised:
+
+- Public `main` branch protection is currently not enabled.
+- Final public URLs for package pages, schema hosting, docs, action usage, badge examples, and platform links must be approved.
+- Package registry ownership, registry provenance, and publish permission must be verified.
+- Package registry URLs are not available because the npm packages are not published yet.
+- Owner go/no-go approval must be recorded.
+
+Release evidence and blockers are tracked in [docs/release-evidence.md](docs/release-evidence.md), [docs/release-go-no-go.md](docs/release-go-no-go.md), and [docs/public-url-inventory.json](docs/public-url-inventory.json).
 
 ## Repository Contents
 
@@ -248,6 +274,11 @@ Schemas are stored in `schemas/` and can be used by local tooling or external va
 - `workflow-metadata.schema.json`
 - `distribution-mode.schema.json`
 - `public-readback.schema.json`
+- `surfacing-metadata.schema.json`
+- `permission-risk.schema.json`
+- `output-contract.schema.json`
+- `tool-listing.schema.json`
+- `context-bundle.schema.json`
 
 The validator CLI uses these schemas through `--schemas-dir schemas`.
 

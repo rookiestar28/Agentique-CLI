@@ -1,19 +1,20 @@
-# Companion Repositories
+# Companion Monorepo
 
-Agentique companion repositories are separate public-facing workspaces for docs, schemas, starter kits, local validation, workflow validation, and readback helpers.
+Agentique's public companion work is consolidated in this repository. The monorepo contains public-facing docs, schemas, starter kits, local validation, workflow validation, and readback helpers.
 
-## Repository Roles
+## Monorepo Areas
 
-- `agentique-docs`: public usage and safety-boundary documentation.
-- `agentique-schemas`: public manifest and readback schemas.
-- `agentique-starters`: starter kits and canonical examples.
-- `agentique-validator`: local static validation and upload preparation.
-- `agentique-action`: least-privilege workflow wrapper for local validation.
-- `agentique-readback`: read-only SDK and badge helpers.
+- `docs/`: public usage, release, governance, support, and safety-boundary documentation.
+- `schemas/`: public JSON Schema contracts, public projections, and schema fixtures.
+- `starters/`: benign starter kits and canonical examples for public resource preparation.
+- `packages/validator`: static no-execution local checks for package validation and upload preparation.
+- `packages/action`: least-privilege workflow wrapper around local validation.
+- `packages/readback`: read-only SDK and badge helpers for public status and readback projections.
+- `scripts/`: repository release checks, starter validation, workflow posture checks, URL inventory checks, and package dry-runs.
 
 ## Link Readiness
 
-Repositories are not linked from the platform until:
+Downstream links are not advertised until:
 
 - Release gates pass.
 - Owner approval exists for the exact public target.

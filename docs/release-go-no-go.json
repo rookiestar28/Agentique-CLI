@@ -13,7 +13,7 @@
     "dependencyAudits": true
   },
   "externalEvidence": {
-    "hostedCiRun": false,
+    "hostedCiRun": true,
     "repositoryProtection": false,
     "finalPublicUrls": false,
     "packageRegistryUrls": false,
@@ -22,8 +22,7 @@
     "ownerApproval": false
   },
   "blockers": [
-    "hosted CI run evidence is not recorded",
-    "public repository protection evidence is not recorded",
+    "public main branch protection is currently not enabled",
     "final public URLs are not approved",
     "package registry URLs are not approved",
     "platform public links are not approved",

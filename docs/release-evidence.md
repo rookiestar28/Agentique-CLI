@@ -4,14 +4,14 @@ This file records public-safe release evidence for the companion repository. Do 
 
 ## Evidence Snapshot
 
-- Date: 2026-05-31
+- Date: 2026-06-02
 - Environment: Windows PowerShell
 - Node.js: v24.13.1
 - npm: 11.8.0
 - Git: 2.53.0.windows.1
-- GitHub CLI: 2.89.0
 - Branch: main
-- Commit evidence: use the latest pushed `main` commit and matching GitHub Actions run for the current release candidate.
+- Public repository: `https://github.com/rookiestar28/Agentique`
+- Commit evidence: hosted CI is tracked through GitHub Actions for the latest pushed public release candidate. Later pushes require a fresh hosted run before downstream release claims.
 
 ## Local Checks
 
@@ -55,24 +55,57 @@ Observed blockers:
 
 ## Hosted Repository Evidence
 
-Hosted repository evidence is partially recorded from the command line.
+Hosted repository evidence is partially recorded from command-line checks on 2026-06-02.
 
 Current command-line finding:
 
-- GitHub CLI is installed and an active account is available.
 - Public repository URL is approved: `https://github.com/rookiestar28/Agentique`.
-- Hosted CI runs can be queried after each push.
-- Branch protection is not enabled on `main` yet.
-- Repository rulesets are not configured yet.
+- Public repository visibility is `PUBLIC`.
+- Hosted Release Check evidence is recorded for the latest pushed public release candidate.
+- Each later push requires a fresh hosted run before downstream release claims.
+- Hosted Release Check matrix jobs passed for Node 20, Node 22, and Node 24.
+- Public `main` branch protection is currently not enabled.
+- Repository rulesets are not configured.
+- Repository Actions are enabled. The release workflow itself declares `permissions: contents: read`.
 
 Required follow-up before downstream release channels are advertised:
 
-1. Record the latest hosted CI run URL and final passed status.
-2. Enable and record the release branch protection or ruleset summary.
-3. Record required status-check names.
-4. Record review and code-owner review settings.
-5. Record force-push and branch deletion protections.
+1. Keep the latest pushed release candidate's hosted CI run passing.
+2. Record the latest hosted CI run status before changing downstream release status.
+3. If branch protection is re-enabled, keep required status-check names aligned with the active workflow matrix.
+
+## Package Registry Evidence
+
+Command-line package registry checks were run on 2026-06-02.
+
+Current command-line finding:
+
+- npm registry connectivity passed.
+- `@agentique/schemas` is not currently published.
+- `@agentique/validator` is not currently published.
+- `@agentique/action` is not currently published.
+- `@agentique/readback` is not currently published.
+- Package manifests include public access and provenance publish configuration.
+- Package dry-run passed for schemas, validator, action, and readback packages.
+
+Required follow-up before package URLs are advertised:
+
+1. Owner npm login, package scope ownership, registry provenance, and publish permission must be verified.
+2. Owner go/no-go must be recorded before publication.
+3. Published package pages must be added to the public URL inventory only after publication and smoke testing.
+
+## Public Link Smoke Evidence
+
+Command-line public link smoke checks were run on 2026-06-02.
+
+| URL | Result |
+|---|---|
+| `https://github.com/rookiestar28/Agentique` | HTTP 200 |
+| `https://www.agentique.io/developers/companion` | HTTP 200 |
+| `https://www.agentique.io/api/public/v1/resources?limit=1` | HTTP 200 JSON with `pageInfo.page = 1`, `pageInfo.pageSize = 1`, `pageInfo.total = 60`, and `pageInfo.hasNextPage = true` |
+
+These smoke checks do not approve advertising. The public URL inventory remains blocked until owner-approved package, schema, docs, badge, action, and platform entries are recorded.
 
 ## Current Decision
 
-Source publication can proceed independently from downstream release channels. Downstream package publishing, badge advertising, marketplace/action publication, and platform links remain No-Go until the missing repository protection, final URL, package registry, platform link, platform launch, and owner approval evidence is recorded.
+The source repository is public. Downstream package publishing, badge advertising, marketplace/action publication, and platform links remain No-Go until final public URLs, package registry URLs, platform link evidence, platform launch evidence, owner approval, and any required branch-protection disposition are recorded.

@@ -35,4 +35,11 @@ Do not record tokens, cookies, private account data, or sensitive repository set
 
 ## Release Boundary
 
-Local workflow checks are necessary but not sufficient. Public release remains blocked until the hosted CI run and repository protection evidence are recorded.
+Local workflow checks are necessary but not sufficient. Hosted CI must pass for the latest pushed release candidate before downstream release claims.
+
+## Current Public Evidence State
+
+- Public `main` branch protection is currently not enabled.
+- Hosted Release Check evidence is recorded for the latest pushed public release candidate.
+- A fresh hosted CI run is required after each later release-candidate push.
+- If branch protection is re-enabled, it should require the Release Check status checks, pull request review, code-owner review, and disabled force pushes/deletion.
