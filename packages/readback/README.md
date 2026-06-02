@@ -9,13 +9,13 @@ This package helps integrators consume public Agentique resource status from `ag
 ## Install
 
 ```bash
-npm install @agentique/readback
+npm install @agentique.io/readback
 ```
 
 ## Usage
 
 ```js
-import { createBadgeState, createReadbackClient } from "@agentique/readback";
+import { createBadgeState, createReadbackClient } from "@agentique.io/readback";
 
 const client = createReadbackClient();
 const readback = await client.getReadback("resource-id");

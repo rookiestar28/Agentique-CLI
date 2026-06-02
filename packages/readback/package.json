@@ -1,5 +1,5 @@
 {
-  "name": "@agentique/readback",
+  "name": "@agentique.io/readback",
   "version": "0.1.0",
   "description": "Read-only public readback helpers for Agentique resources.",
   "type": "module",
