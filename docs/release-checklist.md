@@ -11,6 +11,7 @@ Use this checklist before any public release, package publish, repository link c
 - Release manifest allowlist check passed.
 - Generated artifacts were reviewed against the release manifest.
 - Release notes were reviewed for private project language, local paths, credentials, and unsupported launch claims.
+- Known issues status was reconciled so public docs do not contain stale open defect claims for repository-side fixes.
 - Security reporting route still points to private disclosure channels for vulnerabilities.
 - No workflow uses privileged pull request triggers.
 - No workflow references repository secrets for validation-only checks.

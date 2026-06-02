@@ -51,13 +51,18 @@ jobs:
           python -m pip install --requirement .github/requirements-ci.txt
           python -m detect_secrets scan --all-files --exclude-files '(\.git/|\.git\\|node_modules/|node_modules\\)'
 
-      - name: Publish packages with trusted publishing
-        run: |
-          cd schemas
-          npm publish --access public
-          cd ../packages/validator
-          npm publish --access public
-          cd ../action
-          npm publish --access public
-          cd ../readback
-          npm publish --access public
+      - name: Publish schemas package
+        working-directory: schemas
+        run: npm publish --access public --provenance
+
+      - name: Publish validator package
+        working-directory: packages/validator
+        run: npm publish --access public --provenance
+
+      - name: Publish action package
+        working-directory: packages/action
+        run: npm publish --access public --provenance
+
+      - name: Publish readback package
+        working-directory: packages/readback
+        run: npm publish --access public --provenance

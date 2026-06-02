@@ -46,7 +46,11 @@ const DANGEROUS_CAPABILITY_RULES = Object.freeze([
   }),
   Object.freeze({
     category: "credential-environment-access",
-    pattern: /\b(?:process\.env|os\.environ|getenv\(|GITHUB_TOKEN|AWS_SECRET_ACCESS_KEY|npm_token|pypi_token|\.env)\b/i
+    pattern: /\b(?:process\.env|os\.environ|getenv\(|GITHUB_TOKEN|AWS_SECRET_ACCESS_KEY|npm_token|pypi_token)\b/i
+  }),
+  Object.freeze({
+    category: "dotenv-file-reference",
+    pattern: /(?:^|[\s"'=:\/\\])\.env(?:\.[A-Za-z0-9_-]+)?(?:\b|$)/i
   }),
   Object.freeze({
     category: "encoded-payload",
@@ -222,7 +226,8 @@ async function applyLicenseInventory({ filePath, rel, findings, licenses }) {
       source: "license-file",
       expression: null,
       normalized,
-      status: normalized ? "recognized" : "unknown"
+      status: normalized ? "recognized" : "unknown",
+      policy: licensePolicyForExpression(normalized)
     })
   );
 }
@@ -255,7 +260,8 @@ async function collectPackageLicense({ filePath, rel, findings, licenses }) {
       source: "package-json",
       expression,
       normalized,
-      status: normalized ? "recognized" : "unknown"
+      status: normalized ? "recognized" : "unknown",
+      policy: licensePolicyForExpression(normalized)
     })
   );
 }
@@ -274,20 +280,123 @@ function isLicenseFileName(basename) {
   return basename === "license" || basename === "licence" || basename.startsWith("license.") || basename.startsWith("licence.") || basename === "copying";
 }
 
+const LICENSE_ID_NORMALIZATION = new Map([
+  ["0BSD", "0BSD"],
+  ["AGPL-3.0", "AGPL-3.0-only"],
+  ["AGPL-3.0-ONLY", "AGPL-3.0-only"],
+  ["AGPL-3.0-OR-LATER", "AGPL-3.0-or-later"],
+  ["APACHE-2.0", "Apache-2.0"],
+  ["ARTISTIC-2.0", "Artistic-2.0"],
+  ["BSD-2-CLAUSE", "BSD-2-Clause"],
+  ["BSD-3-CLAUSE", "BSD-3-Clause"],
+  ["BSL-1.1", "BSL-1.1"],
+  ["CC-BY-4.0", "CC-BY-4.0"],
+  ["CC0-1.0", "CC0-1.0"],
+  ["GPL-2.0", "GPL-2.0-only"],
+  ["GPL-2.0-ONLY", "GPL-2.0-only"],
+  ["GPL-2.0-OR-LATER", "GPL-2.0-or-later"],
+  ["GPL-3.0", "GPL-3.0-only"],
+  ["GPL-3.0-ONLY", "GPL-3.0-only"],
+  ["GPL-3.0-OR-LATER", "GPL-3.0-or-later"],
+  ["ISC", "ISC"],
+  ["LGPL-2.1", "LGPL-2.1-only"],
+  ["LGPL-2.1-ONLY", "LGPL-2.1-only"],
+  ["LGPL-2.1-OR-LATER", "LGPL-2.1-or-later"],
+  ["LGPL-3.0", "LGPL-3.0-only"],
+  ["LGPL-3.0-ONLY", "LGPL-3.0-only"],
+  ["LGPL-3.0-OR-LATER", "LGPL-3.0-or-later"],
+  ["MIT", "MIT"],
+  ["MPL-2.0", "MPL-2.0"],
+  ["UNLICENSE", "Unlicense"]
+]);
+
+const LICENSE_POLICY = new Map([
+  ["0BSD", "allowed"],
+  ["AGPL-3.0-only", "blocked"],
+  ["AGPL-3.0-or-later", "blocked"],
+  ["Apache-2.0", "allowed"],
+  ["Artistic-2.0", "needs-review"],
+  ["BSD-2-Clause", "allowed"],
+  ["BSD-3-Clause", "allowed"],
+  ["BSL-1.1", "allowed"],
+  ["CC-BY-4.0", "needs-review"],
+  ["CC0-1.0", "allowed"],
+  ["GPL-2.0-only", "needs-review"],
+  ["GPL-2.0-or-later", "needs-review"],
+  ["GPL-3.0-only", "needs-review"],
+  ["GPL-3.0-or-later", "needs-review"],
+  ["ISC", "allowed"],
+  ["LGPL-2.1-only", "needs-review"],
+  ["LGPL-2.1-or-later", "needs-review"],
+  ["LGPL-3.0-only", "needs-review"],
+  ["LGPL-3.0-or-later", "needs-review"],
+  ["MIT", "allowed"],
+  ["MPL-2.0", "allowed"],
+  ["Unlicense", "allowed"]
+]);
+
 function normalizeLicenseExpression(expression) {
-  const normalized = expression.trim().replace(/[()]/g, "").toUpperCase();
-  const map = new Map([
-    ["MIT", "MIT"],
-    ["APACHE-2.0", "Apache-2.0"],
-    ["GPL-2.0", "GPL-2.0"],
-    ["GPL-2.0-ONLY", "GPL-2.0"],
-    ["GPL-3.0", "GPL-3.0"],
-    ["GPL-3.0-ONLY", "GPL-3.0"],
-    ["BSD-3-CLAUSE", "BSD-3-Clause"],
-    ["ISC", "ISC"],
-    ["MPL-2.0", "MPL-2.0"]
-  ]);
-  return map.get(normalized) ?? null;
+  const trimmed = expression.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  const single = normalizeLicenseIdentifier(trimmed);
+  if (single) {
+    return single;
+  }
+
+  const tokens = trimmed.replace(/[()]/g, " ").trim().split(/\s+(AND|OR)\s+/i);
+  if (tokens.length < 3 || tokens.length % 2 === 0) {
+    return null;
+  }
+
+  const normalizedTokens = [];
+  for (const [index, token] of tokens.entries()) {
+    const value = token.trim();
+    if (!value) {
+      return null;
+    }
+
+    if (index % 2 === 1) {
+      const operator = value.toUpperCase();
+      if (operator !== "AND" && operator !== "OR") {
+        return null;
+      }
+      normalizedTokens.push(operator);
+      continue;
+    }
+
+    const normalized = normalizeLicenseIdentifier(value);
+    if (!normalized) {
+      return null;
+    }
+    normalizedTokens.push(normalized);
+  }
+
+  return normalizedTokens.join(" ");
+}
+
+function normalizeLicenseIdentifier(value) {
+  return LICENSE_ID_NORMALIZATION.get(value.trim().toUpperCase()) ?? null;
+}
+
+function licensePolicyForExpression(normalized) {
+  if (!normalized) {
+    return "unknown";
+  }
+
+  const identifiers = normalized.split(/\s+(?:AND|OR)\s+/).map((value) => value.trim()).filter(Boolean);
+  if (identifiers.some((identifier) => LICENSE_POLICY.get(identifier) === "blocked")) {
+    return "blocked";
+  }
+  if (identifiers.some((identifier) => LICENSE_POLICY.get(identifier) === "needs-review")) {
+    return "needs-review";
+  }
+  if (identifiers.every((identifier) => LICENSE_POLICY.get(identifier) === "allowed")) {
+    return "allowed";
+  }
+  return "unknown";
 }
 
 function normalizeLicenseText(content) {
@@ -298,19 +407,40 @@ function normalizeLicenseText(content) {
     return "Apache-2.0";
   }
   if (/GNU GENERAL PUBLIC LICENSE[\s\S]{0,800}Version 3/i.test(content)) {
-    return "GPL-3.0";
+    return "GPL-3.0-only";
   }
   if (/GNU GENERAL PUBLIC LICENSE[\s\S]{0,800}Version 2/i.test(content)) {
-    return "GPL-2.0";
+    return "GPL-2.0-only";
+  }
+  if (/GNU LESSER GENERAL PUBLIC LICENSE[\s\S]{0,800}Version 3/i.test(content)) {
+    return "LGPL-3.0-only";
+  }
+  if (/GNU LESSER GENERAL PUBLIC LICENSE[\s\S]{0,800}Version 2\.1/i.test(content)) {
+    return "LGPL-2.1-only";
+  }
+  if (/GNU AFFERO GENERAL PUBLIC LICENSE[\s\S]{0,800}Version 3/i.test(content)) {
+    return "AGPL-3.0-only";
   }
   if (/Redistribution and use in source and binary forms/i.test(content) && /Neither the name/i.test(content)) {
     return "BSD-3-Clause";
+  }
+  if (/Redistribution and use in source and binary forms/i.test(content)) {
+    return "BSD-2-Clause";
   }
   if (/ISC License/i.test(content)) {
     return "ISC";
   }
   if (/Mozilla Public License Version 2\.0/i.test(content)) {
     return "MPL-2.0";
+  }
+  if (/This is free and unencumbered software released into the public domain/i.test(content)) {
+    return "Unlicense";
+  }
+  if (/Creative Commons CC0 1\.0 Universal/i.test(content)) {
+    return "CC0-1.0";
+  }
+  if (/Boost Software License[\s\S]{0,200}Version 1\.1/i.test(content)) {
+    return "BSL-1.1";
   }
   return null;
 }
@@ -329,17 +459,26 @@ function applyLicenseGates({ licenses, findings }) {
   }
 
   for (const item of licenses) {
+    const policy = item.policy ?? "unknown";
+    const known = item.status === "recognized" && policy !== "unknown";
     findings.push(
       createFinding({
-        code: item.status === "recognized" ? "license.detected" : "license.unknown",
-        severity: item.status === "recognized" ? "low" : "high",
-        message: item.status === "recognized" ? "License signal was detected." : "Unknown license signal requires manual review.",
+        code: known ? `license.${policy}` : "license.unknown",
+        severity: policy === "allowed" ? "low" : "high",
+        message: known
+          ? policy === "allowed"
+            ? "License signal is recognized and allowed by public intake policy."
+            : policy === "needs-review"
+              ? "License signal is recognized but requires review by public intake policy."
+              : "License signal is recognized but blocked by public intake policy."
+          : "Unknown license signal requires manual review.",
         path: item.path,
-        blocking: item.status !== "recognized",
+        blocking: policy !== "allowed",
         details: {
           source: item.source,
           expression: item.expression ?? undefined,
-          normalized: item.normalized ?? undefined
+          normalized: item.normalized ?? undefined,
+          policy
         }
       })
     );
@@ -884,9 +1023,54 @@ async function readTextPrefix({ filePath, rel, maxBytes, findings, purpose }) {
   return buffer ? buffer.toString("utf8") : "";
 }
 
+function truncationFindingForPurpose(purpose) {
+  if (purpose === "secret-scan") {
+    return {
+      code: "secret.truncated",
+      severity: "critical",
+      message: "Secret scan input exceeded inspected prefix."
+    };
+  }
+  if (purpose === "dangerous-capability") {
+    return {
+      code: "dangerous.truncated",
+      severity: "high",
+      message: "Dangerous capability input exceeded inspected prefix."
+    };
+  }
+  if (purpose.startsWith("script-")) {
+    return {
+      code: "script.truncated",
+      severity: "high",
+      message: "Script or workflow input exceeded inspected prefix."
+    };
+  }
+  return null;
+}
+
 async function readBufferPrefix({ filePath, rel, maxBytes, findings, purpose }) {
   let handle;
   try {
+    const stat = await fs.stat(filePath);
+    const truncationFinding = truncationFindingForPurpose(purpose);
+    // IMPORTANT: high-risk external intake reads must fail closed when bounded prefix inspection is incomplete.
+    if (truncationFinding && stat.size > maxBytes) {
+      findings.push(
+        createFinding({
+          code: truncationFinding.code,
+          severity: truncationFinding.severity,
+          message: truncationFinding.message,
+          path: rel,
+          blocking: true,
+          details: {
+            purpose,
+            bytes: stat.size,
+            maxBytes
+          }
+        })
+      );
+    }
+
     handle = await fs.open(filePath, "r");
     const buffer = Buffer.alloc(maxBytes);
     const result = await handle.read(buffer, 0, maxBytes, 0);

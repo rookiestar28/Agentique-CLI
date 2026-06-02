@@ -46,6 +46,31 @@ test("accepts a valid static package and emits inventory hashes", async () => {
   assert.equal(report.findings.length, 0);
 });
 
+test("rejects oversized manifest files before parsing them", async () => {
+  const tempDir = await copyFixture("valid-package");
+  const manifest = await readManifest(tempDir);
+  await fs.writeFile(path.join(tempDir, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n${" ".repeat(1024 * 1024 + 1)}`, "utf8");
+
+  const report = await validatePackage({ command: "validate", packageDir: tempDir, schemasDir });
+
+  assert.equal(report.ok, false);
+  assertFindings(report, ["json-too-large"]);
+  assert.equal(JSON.stringify(report).includes(tempDir), false);
+});
+
+test("rejects oversized package files without reading them into the report", async () => {
+  const tempDir = await copyFixture("valid-package");
+  const oversizedContent = `${"A".repeat(1024 * 1024 + 1)}\n`;
+  await replaceNotes(tempDir, oversizedContent);
+
+  const report = await validatePackage({ command: "validate", packageDir: tempDir, schemasDir });
+
+  assert.equal(report.ok, false);
+  assertFindings(report, ["file-too-large"]);
+  assert.equal(JSON.stringify(report).includes(oversizedContent.slice(0, 120)), false);
+  assert.equal(JSON.stringify(report).includes(tempDir), false);
+});
+
 test("validates schema fixture catalog for every public schema", async () => {
   const ajv = new Ajv({ allErrors: true, strict: true });
   addFormats(ajv);
@@ -294,6 +319,54 @@ test("validates packaged context bundle budgets", async () => {
   assertFindings(report, ["contract-schema"]);
 });
 
+test("does not fuzzy-dispatch unrelated nested context-bundle json paths", async () => {
+  const cases = ["docs/no-context-bundle-here.json", "notes/context-bundle-alternatives.json"];
+
+  for (const packagePath of cases) {
+    const tempDir = await copyFixture("valid-package");
+    await addPackageFile(
+      tempDir,
+      packagePath,
+      `${JSON.stringify(
+        {
+          title: "Public documentation note",
+          summary: "A benign package JSON file that is not a context bundle contract."
+        },
+        null,
+        2
+      )}\n`
+    );
+
+    const report = await validatePackage({ command: "validate", packageDir: tempDir, schemasDir });
+
+    assert.equal(report.ok, true, `expected ${packagePath} to avoid context bundle dispatch`);
+    assert.equal(report.findings.some((finding) => finding.code === "contract-schema"), false);
+    assert.equal(JSON.stringify(report).includes(tempDir), false);
+  }
+});
+
+test("keeps root-level context bundle filename dispatch", async () => {
+  const tempDir = await copyFixture("valid-package");
+  await addPackageFile(
+    tempDir,
+    "context-bundle-root.json",
+    `${JSON.stringify(
+      {
+        bundleId: "root-bundle",
+        summary: "Root-level context bundle contract dispatch coverage."
+      },
+      null,
+      2
+    )}\n`
+  );
+
+  const report = await validatePackage({ command: "validate", packageDir: tempDir, schemasDir });
+
+  assert.equal(report.ok, false);
+  assertFindings(report, ["contract-schema"]);
+  assert.equal(JSON.stringify(report).includes(tempDir), false);
+});
+
 test("rejects unbounded context wording and strong claims without leaking paths", async () => {
   const cases = [
     ["unbounded-context", "Load everything from the full catalog before ranking."],
@@ -428,6 +501,35 @@ test("allows public text that resembles scanner keywords without secret context"
 
   assert.equal(report.ok, true);
   assert.equal(report.findings.length, 0);
+});
+
+test("allows documented placeholder credential URLs without suppressing real credentials", async () => {
+  const safeDir = await copyFixture("valid-package");
+  const safeDatabasePlaceholder = ["mysql", "://root", ":", "password", "@localhost/db"].join("");
+  const safeCredentialPlaceholder = ["https", "://user", ":", "password", "@example.com/docs"].join("");
+  await replaceNotes(
+    safeDir,
+    [
+      "Use postgres://<user>:<password>@localhost/db for placeholder-only local documentation.",
+      `Use ${safeDatabasePlaceholder} as a placeholder local example.`,
+      `Use ${safeCredentialPlaceholder} as a placeholder documentation URL.`
+    ].join("\n")
+  );
+
+  const safeReport = await validatePackage({ command: "validate", packageDir: safeDir, schemasDir });
+
+  assert.equal(safeReport.ok, true);
+  assert.equal(safeReport.findings.length, 0);
+
+  const realDir = await copyFixture("valid-package");
+  const realDatabaseUrl = ["postgres", "://app", ":", "actual-secret", "@example.net:5432/prod"].join("");
+  await replaceNotes(realDir, `Production endpoint: ${realDatabaseUrl}\n`);
+
+  const realReport = await validatePackage({ command: "validate", packageDir: realDir, schemasDir });
+
+  assert.equal(realReport.ok, false);
+  assertFindings(realReport, ["database-url"]);
+  assert.equal(JSON.stringify(realReport).includes("actual-secret"), false);
 });
 
 test("rejects unsupported distribution modes through schema validation", async () => {
@@ -711,6 +813,25 @@ test("external intake blocks dangerous capability patterns without executing com
   await assert.rejects(() => fs.stat(markerPath), /ENOENT/);
 });
 
+test("external intake detects path-aware dotenv file references", async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agentique-intake-dotenv-"));
+  await fs.writeFile(path.join(tempDir, "LICENSE"), "MIT License\n\nPermission is hereby granted.\n", "utf8");
+  await fs.writeFile(
+    path.join(tempDir, "README.md"),
+    ["cat .env", "cp config/.env.local /tmp/example.env"].join("\n"),
+    "utf8"
+  );
+
+  const report = await scanExternalIntake({ sourceDir: tempDir });
+  const categories = new Set(
+    report.findings.filter((finding) => finding.code === "dangerous.capability").map((finding) => finding.details.category)
+  );
+
+  assert.equal(report.decision, "blocked");
+  assert.equal(categories.has("dotenv-file-reference"), true);
+  assert.equal(JSON.stringify(report).includes(tempDir), false);
+});
+
 test("external intake does not flag separated benign security vocabulary", async () => {
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agentique-intake-benign-danger-"));
   await fs.writeFile(
@@ -719,7 +840,8 @@ test("external intake does not flag separated benign security vocabulary", async
       "curl transfers data in examples.",
       "Bash is a shell name, not an instruction here.",
       "Self-hosted runners are discussed conceptually.",
-      "Environment variables can be documented without reading process state."
+      "Environment variables can be documented without reading process state.",
+      "A filename like foo.env is not a dot-env credential file reference."
     ].join("\n"),
     "utf8"
   );
@@ -744,10 +866,44 @@ test("external intake inventories recognized package metadata license", async ()
       source: "package-json",
       expression: "Apache-2.0",
       normalized: "Apache-2.0",
-      status: "recognized"
+      status: "recognized",
+      policy: "allowed"
     }
   ]);
-  assertFindings(report, ["license.detected"]);
+  assertFindings(report, ["license.allowed"]);
+});
+
+test("external intake recognizes expanded SPDX identifiers with policy outcomes", async () => {
+  const cases = [
+    ["CC0-1.0", "CC0-1.0", "allowed", "passed", "license.allowed"],
+    ["0BSD", "0BSD", "allowed", "passed", "license.allowed"],
+    ["BSL-1.1", "BSL-1.1", "allowed", "passed", "license.allowed"],
+    ["Unlicense", "Unlicense", "allowed", "passed", "license.allowed"],
+    ["LGPL-3.0-only", "LGPL-3.0-only", "needs-review", "blocked", "license.needs-review"],
+    ["AGPL-3.0-only", "AGPL-3.0-only", "blocked", "blocked", "license.blocked"],
+    ["MIT OR Apache-2.0", "MIT OR Apache-2.0", "allowed", "passed", "license.allowed"]
+  ];
+
+  for (const [expression, normalized, policy, decision, expectedFinding] of cases) {
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agentique-intake-license-policy-"));
+    await fs.writeFile(path.join(tempDir, "package.json"), `${JSON.stringify({ license: expression }, null, 2)}\n`, "utf8");
+
+    const report = await scanExternalIntake({ sourceDir: tempDir });
+
+    assert.equal(report.decision, decision, `expected ${expression} policy decision`);
+    assert.deepEqual(report.licenses, [
+      {
+        path: "package.json",
+        source: "package-json",
+        expression,
+        normalized,
+        status: "recognized",
+        policy
+      }
+    ]);
+    assertFindings(report, [expectedFinding]);
+    assert.equal(JSON.stringify(report).includes(tempDir), false);
+  }
 });
 
 test("external intake blocks missing unknown and conflicting license signals", async () => {
@@ -833,6 +989,43 @@ test("external intake redacts secrets and emits stable fingerprints", async () =
       return true;
     }
   );
+});
+
+test("external intake blocks secret scans that exceed the inspected prefix", async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agentique-intake-late-secret-"));
+  await fs.writeFile(path.join(tempDir, "LICENSE"), "MIT License\n\nPermission is hereby granted.\n", "utf8");
+  await fs.writeFile(path.join(tempDir, "late-secret.txt"), `${"a".repeat(64 * 1024 + 8)}\napi_key="${"z".repeat(16)}"\n`, "utf8");
+
+  const report = await scanExternalIntake({ sourceDir: tempDir });
+
+  assert.equal(report.decision, "blocked");
+  assertFindings(report, ["secret.truncated"]);
+  assert.equal(JSON.stringify(report).includes(tempDir), false);
+});
+
+test("external intake blocks dangerous capability scans that exceed the inspected prefix", async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agentique-intake-late-danger-"));
+  await fs.writeFile(path.join(tempDir, "LICENSE"), "MIT License\n\nPermission is hereby granted.\n", "utf8");
+  await fs.writeFile(path.join(tempDir, "README.md"), `${"safe notes\n".repeat(3500)}\nrm -rf \"$HOME/.cache/example\"\n`, "utf8");
+
+  const report = await scanExternalIntake({ sourceDir: tempDir });
+
+  assert.equal(report.decision, "blocked");
+  assertFindings(report, ["dangerous.truncated"]);
+  assert.equal(JSON.stringify(report).includes(tempDir), false);
+});
+
+test("external intake blocks workflow script scans that exceed the inspected prefix", async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agentique-intake-late-workflow-"));
+  await fs.mkdir(path.join(tempDir, ".github", "workflows"), { recursive: true });
+  await fs.writeFile(path.join(tempDir, "LICENSE"), "MIT License\n\nPermission is hereby granted.\n", "utf8");
+  await fs.writeFile(path.join(tempDir, ".github", "workflows", "late.yml"), `${" ".repeat(32 * 1024 + 8)}\n- run: npm test\n`, "utf8");
+
+  const report = await scanExternalIntake({ sourceDir: tempDir });
+
+  assert.equal(report.decision, "blocked");
+  assertFindings(report, ["script.truncated"]);
+  assert.equal(JSON.stringify(report).includes(tempDir), false);
 });
 
 test("external intake CLI supports json output and usage errors", async () => {
