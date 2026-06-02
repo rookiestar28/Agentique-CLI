@@ -1,6 +1,6 @@
 # Package Release Provenance
 
-The companion packages are prepared for reviewed public release, but package publishing remains blocked until owner approval.
+The companion packages are published for reviewed public release under the `@agentique.io` npm scope.
 
 ## Publishable Packages
 

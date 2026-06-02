@@ -59,4 +59,4 @@ Badge output is a public readback summary, not a safety guarantee.
 
 ## Status
 
-Local implementation exists for review. The package has not been published yet.
+Published as `@agentique.io/readback`. Badge output is a public readback summary, not a platform approval or safety guarantee.

@@ -1,10 +1,10 @@
 # Release Go/No-Go
 
-Current source repository and platform-link publication decision: **Go**.
+Current source repository, package registry, action usage, badge/readback documentation, and platform-link publication decision: **Go**.
 
 The source repository is public. The public repository URL, public documentation URL, schema URL base, `agentique.io` public URL, hosted CI evidence, branch protection evidence, and owner go/no-go approval are recorded.
 
-Package publishing, badge advertising, and marketplace/action publication remain deferred until those downstream channels are published and smoke tested.
+Package registry pages, badge/readback documentation, and action usage documentation are approved after publication and smoke testing. GitHub Marketplace-style promotion remains a separate future channel.
 
 Current public-safe evidence is recorded in [release-evidence.md](release-evidence.md).
 
@@ -14,6 +14,7 @@ Current public-safe evidence is recorded in [release-evidence.md](release-eviden
 - Governance and review routing exist.
 - Workflow posture check exists.
 - Package dry-run check exists.
+- Package registry publication and post-publish smoke evidence are recorded.
 - Public URL inventory exists and is blocked by default.
 - Package tests, starter validation, release check, and dependency audits pass locally.
 - Surfacing contract fixture matrix is covered by release checks.
@@ -25,11 +26,12 @@ Current public-safe evidence is recorded in [release-evidence.md](release-eviden
 - Platform launch evidence required for public links is recorded.
 - Owner go/no-go approval is recorded.
 
-## Deferred Downstream Evidence
+## Downstream Evidence
 
-- Package registry URLs are not advertised because the npm packages are not published yet.
-- Badge examples are not advertised until a public package or badge target is published.
-- Marketplace/action publication is deferred until the action channel is published and smoke tested.
+- Package registry URLs are advertised after publish and smoke testing.
+- Badge/readback documentation is advertised after readback package install/import smoke testing.
+- Action usage documentation is advertised after repository workflow and package publication evidence.
+- GitHub Marketplace-style promotion remains separate from this source/package release.
 
 ## Rollback And Unpublish Procedure
 

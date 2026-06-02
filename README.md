@@ -86,7 +86,7 @@ npm run urls:check
 npm run release:go-no-go
 ```
 
-The source repository and `agentique.io` public links are **Go**. Package publishing, badge advertising, and marketplace/action publication remain deferred until those downstream channels are published and smoke tested.
+The source repository, npm packages, action usage reference, badge/readback documentation, and `agentique.io` public links are **Go** after publication and smoke testing. GitHub Marketplace-style promotion remains a separate future channel.
 
 ## Current Release Status
 
@@ -104,9 +104,9 @@ Public-safe evidence currently recorded:
 
 Deferred downstream channels:
 
-- Package registry URLs are not available because the npm packages are not published yet.
-- Badge examples are not advertised until a public package or badge target is published.
-- Marketplace/action publication remains deferred until the action channel is published and smoke tested.
+- Package registry URLs are approved after publication and install smoke testing.
+- Badge/readback documentation is approved through the published readback package.
+- GitHub Marketplace-style promotion remains separate from this source/package release.
 
 Release evidence and deferred downstream channels are tracked in [docs/release-evidence.md](docs/release-evidence.md), [docs/release-go-no-go.md](docs/release-go-no-go.md), and [docs/public-url-inventory.json](docs/public-url-inventory.json).
 

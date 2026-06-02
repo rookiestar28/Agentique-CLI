@@ -53,4 +53,4 @@ External intake output is advisory review evidence. It is not publication approv
 
 ## Status
 
-Local monorepo implementation exists for review. Package publishing remains blocked until release review passes.
+Published as `@agentique.io/validator`. Local validation output is not platform approval and is not safety certification.

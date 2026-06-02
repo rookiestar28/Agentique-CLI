@@ -25,4 +25,4 @@ The action writes a JSON report to `agentique-validation.json` by default.
 
 ## Status
 
-Local monorepo implementation exists for review. Marketplace publication remains blocked until release review passes.
+Published in this repository for direct workflow usage. GitHub Marketplace-style promotion remains a separate future channel.

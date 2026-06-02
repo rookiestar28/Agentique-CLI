@@ -31,9 +31,9 @@ This file records public-safe release evidence for the companion repository. Do 
 | Action production dependency audit | Pass | `npm --prefix packages/action audit --omit=dev` found 0 vulnerabilities. |
 | Readback production dependency audit | Pass | `npm --prefix packages/readback audit --omit=dev` found 0 vulnerabilities. |
 
-## Deferred Downstream URL Mode
+## All-Channel Public URL Mode
 
-The stricter all-channel public URL mode remains deferred for package, action, and badge channels:
+The stricter all-channel public URL mode now passes for source, package, action usage, badge/readback documentation, schema, docs, and platform links:
 
 ```powershell
 $env:AGENTIQUE_REQUIRE_PUBLIC_URLS = "1"
@@ -41,11 +41,7 @@ npm run urls:check
 npm run release:check
 ```
 
-Observed deferred entries:
-
-- Package registry pages are not advertised because packages are not published yet.
-- Action usage reference is not advertised until action publication is complete.
-- Badge example URL is not advertised until a public badge target is published.
+Observed result: all inventory entries are approved and advertised.
 
 ## Hosted Repository Evidence
 
@@ -78,18 +74,18 @@ Command-line package registry checks were run on 2026-06-02.
 Current command-line finding:
 
 - npm registry connectivity passed.
-- `@agentique.io/schemas` is not currently published.
-- `@agentique.io/validator` is not currently published.
-- `@agentique.io/action` is not currently published.
-- `@agentique.io/readback` is not currently published.
+- `@agentique.io/schemas` is published at version `0.1.0`.
+- `@agentique.io/validator` is published at version `0.1.0`.
+- `@agentique.io/action` is published at version `0.1.0`.
+- `@agentique.io/readback` is published at version `0.1.0`.
 - Package manifests include public access and provenance publish configuration.
 - Package dry-run passed for schemas, validator, action, and readback packages.
+- npm `11.14.1` registry readback and install smoke passed for the dotted `@agentique.io` scope.
+- npm `11.8.0` returned `E404` for dotted-scope `npm view`; use current npm 11.14+ for registry readback/install validation.
 
-Required follow-up before package URLs are advertised:
+Publication note:
 
-1. Owner npm login, package scope ownership, registry provenance, and publish permission must be verified.
-2. Owner go/no-go must be recorded before publication.
-3. Published package pages must be added to the public URL inventory only after publication and smoke testing.
+- The first package release used an owner-approved maintainer-approved publication path after validation.
 
 ## Public Link Smoke Evidence
 
@@ -101,8 +97,8 @@ Command-line public link smoke checks were run on 2026-06-02.
 | `https://www.agentique.io/` | HTTP 200 |
 | `https://www.agentique.io/api/public/v1/resources?limit=1` | HTTP 200 JSON with `pageInfo.page = 1`, `pageInfo.pageSize = 1`, `pageInfo.total = 60`, and `pageInfo.hasNextPage = true` |
 
-These smoke checks approve source repository, schema, documentation, and `agentique.io` public links for advertising. Package registry, badge, and marketplace/action channels remain deferred until those downstream targets are published and smoke tested.
+These smoke checks approve source repository, package registry, action usage, badge/readback documentation, schema, documentation, and `agentique.io` public links for advertising. GitHub Marketplace-style promotion remains a separate future channel.
 
 ## Current Decision
 
-The source repository and `agentique.io` public links are Go. Package publishing, badge advertising, and marketplace/action publication remain deferred until those downstream channels are published and smoke tested.
+The source repository, npm packages, action usage reference, badge/readback documentation, and `agentique.io` public links are Go. GitHub Marketplace-style promotion remains separate from this source/package release.

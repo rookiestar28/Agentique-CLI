@@ -2,7 +2,7 @@
 
 This inventory tracks public links that must exist before the companion repository, packages, action, schemas, docs, badges, or platform links are advertised.
 
-Current status: source repository, schema, documentation, and `agentique.io` public links are approved for advertising. Package registry, badge, and marketplace/action channels remain deferred until those downstream targets are published and smoke tested.
+Current status: source repository, schema, documentation, package registry pages, action usage reference, badge/readback documentation, and `agentique.io` public links are approved for advertising after publication and smoke testing.
 
 ## Required URL Classes
 
@@ -12,9 +12,9 @@ Current status: source repository, schema, documentation, and `agentique.io` pub
 - Public documentation URL: approved.
 - `agentique.io` companion landing link: approved.
 - `agentique.io` read-only public readback endpoint: approved.
-- Package registry pages: deferred until packages are published.
-- Action usage reference: deferred until action publication is complete.
-- Badge example URL: deferred until a public badge target is published.
+- Package registry pages: approved.
+- Action usage reference: approved.
+- Badge example URL: approved.
 
 ## Release Rule
 

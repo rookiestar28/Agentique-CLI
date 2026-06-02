@@ -1,6 +1,6 @@
 {
   "releaseBlocked": false,
-  "reason": "Source repository and agentique.io public links are approved for advertising. Package registry, badge, and marketplace/action channels remain deferred until they are published and smoke tested.",
+  "reason": "Source repository, package registry pages, action usage reference, badge/readback documentation, and agentique.io public links are approved for advertising after publication and smoke testing.",
   "entries": [
     {
       "id": "public-repository",
@@ -12,30 +12,30 @@
     {
       "id": "schemas-package",
       "label": "Schemas package page",
-      "url": null,
-      "status": "pending_owner_approval",
-      "advertise": false
+      "url": "https://www.npmjs.com/package/@agentique.io/schemas",
+      "status": "approved",
+      "advertise": true
     },
     {
       "id": "validator-package",
       "label": "Validator package page",
-      "url": null,
-      "status": "pending_owner_approval",
-      "advertise": false
+      "url": "https://www.npmjs.com/package/@agentique.io/validator",
+      "status": "approved",
+      "advertise": true
     },
     {
       "id": "action-usage",
       "label": "Action usage reference",
-      "url": null,
-      "status": "pending_owner_approval",
-      "advertise": false
+      "url": "https://github.com/rookiestar28/Agentique/tree/main/packages/action#usage",
+      "status": "approved",
+      "advertise": true
     },
     {
       "id": "readback-package",
       "label": "Readback package page",
-      "url": null,
-      "status": "pending_owner_approval",
-      "advertise": false
+      "url": "https://www.npmjs.com/package/@agentique.io/readback",
+      "status": "approved",
+      "advertise": true
     },
     {
       "id": "schema-url-base",
@@ -54,9 +54,9 @@
     {
       "id": "badge-example",
       "label": "Badge example URL",
-      "url": null,
-      "status": "pending_owner_approval",
-      "advertise": false
+      "url": "https://github.com/rookiestar28/Agentique/tree/main/packages/readback#badge-states",
+      "status": "approved",
+      "advertise": true
     },
     {
       "id": "platform-companion-link",
