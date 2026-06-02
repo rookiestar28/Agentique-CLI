@@ -1,5 +1,5 @@
 {
-  "name": "@agentique/action",
+  "name": "@agentique.io/action",
   "version": "0.1.0",
   "description": "Least-privilege GitHub Action wrapper for Agentique local validation.",
   "license": "Apache-2.0",

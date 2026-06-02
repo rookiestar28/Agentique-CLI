@@ -1,5 +1,5 @@
 {
-  "name": "@agentique/validator",
+  "name": "@agentique.io/validator",
   "version": "0.1.0",
   "description": "Static local upload-preparation validator for Agentique resource packages.",
   "license": "Apache-2.0",
@@ -9,7 +9,7 @@
     "provenance": true
   },
   "bin": {
-    "agentique-validator": "./src/cli.mjs"
+    "agentique-validator": "src/cli.mjs"
   },
   "files": [
     "src",

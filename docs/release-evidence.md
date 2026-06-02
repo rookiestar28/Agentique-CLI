@@ -78,10 +78,10 @@ Command-line package registry checks were run on 2026-06-02.
 Current command-line finding:
 
 - npm registry connectivity passed.
-- `@agentique/schemas` is not currently published.
-- `@agentique/validator` is not currently published.
-- `@agentique/action` is not currently published.
-- `@agentique/readback` is not currently published.
+- `@agentique.io/schemas` is not currently published.
+- `@agentique.io/validator` is not currently published.
+- `@agentique.io/action` is not currently published.
+- `@agentique.io/readback` is not currently published.
 - Package manifests include public access and provenance publish configuration.
 - Package dry-run passed for schemas, validator, action, and readback packages.
 

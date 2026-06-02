@@ -235,7 +235,7 @@ The readback package is read-only. It targets versioned public resource paths un
 Example:
 
 ```js
-import { createBadgeState, createReadbackClient } from "@agentique/readback";
+import { createBadgeState, createReadbackClient } from "@agentique.io/readback";
 
 const client = createReadbackClient();
 const readback = await client.getReadback("resource-id");

@@ -4,10 +4,10 @@ The companion packages are prepared for reviewed public release, but package pub
 
 ## Publishable Packages
 
-- `@agentique/schemas`
-- `@agentique/validator`
-- `@agentique/action`
-- `@agentique/readback`
+- `@agentique.io/schemas`
+- `@agentique.io/validator`
+- `@agentique.io/action`
+- `@agentique.io/readback`
 
 ## Required Pre-Publish Checks
 
