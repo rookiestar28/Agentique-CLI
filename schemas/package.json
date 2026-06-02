@@ -4,6 +4,11 @@
   "description": "Public JSON Schema contracts for Agentique resource preparation.",
   "license": "Apache-2.0",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rookiestar28/Agentique.git",
+    "directory": "schemas"
+  },
   "publishConfig": {
     "access": "public",
     "provenance": true

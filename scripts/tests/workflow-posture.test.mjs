@@ -5,6 +5,7 @@ import path from "node:path";
 import { test } from "node:test";
 import {
   collectWorkflowPostureFindings,
+  hasOidcWritePermission,
   hasReadOnlyContentsPermission,
   listWorkflowFiles,
   stripYamlComments
@@ -57,6 +58,28 @@ test("rejects active publish, secrets, privileged trigger, and missing permissio
   assert.match(findings, /repository secrets/);
   assert.match(findings, /publishes packages/);
   assert.match(findings, /read-only contents permission/);
+});
+
+test("accepts only the trusted manual OIDC publish workflow", async () => {
+  const repoRoot = await createWorkflowRepo({
+    "publish-packages.yml": trustedPublishWorkflow()
+  });
+
+  assert.deepEqual(collectWorkflowPostureFindings(repoRoot), []);
+});
+
+test("rejects trusted publish workflows with automatic triggers or disabled provenance", async () => {
+  const repoRoot = await createWorkflowRepo({
+    "publish-packages.yml": trustedPublishWorkflow()
+      .replace("  workflow_dispatch:", "  workflow_dispatch:\n  push:")
+      .replace("npm publish --access public", "NPM_CONFIG_PROVENANCE=false npm publish --access public")
+  });
+
+  const findings = collectWorkflowPostureFindings(repoRoot).join("\n");
+
+  assert.match(findings, /trusted publish workflow must be manual-only/);
+  assert.match(findings, /trusted publish workflow must not disable provenance/);
+  assert.match(findings, /publishes packages/);
 });
 
 test("rejects lifecycle-enabled npm installs in pull request workflows", async () => {
@@ -143,6 +166,8 @@ test("permission helper accepts only contents read posture", () => {
   assert.equal(hasReadOnlyContentsPermission(safeWorkflow()), true);
   assert.equal(hasReadOnlyContentsPermission("permissions:\n  contents: write\n"), false);
   assert.equal(hasReadOnlyContentsPermission("jobs:\n  test:\n    runs-on: ubuntu-latest\n"), false);
+  assert.equal(hasOidcWritePermission("permissions:\n  contents: read\n  id-token: write\n"), true);
+  assert.equal(hasOidcWritePermission("permissions:\n  contents: read\n  id-token: read\n"), false);
 });
 
 function safeWorkflow() {
@@ -172,6 +197,24 @@ function pinnedSecretScanInstallWorkflow() {
     "    runs-on: ubuntu-latest",
     "    steps:",
     "      - run: python -m pip install --requirement .github/requirements-ci.txt"
+  ].join("\n");
+}
+
+function trustedPublishWorkflow() {
+  return [
+    "name: Publish Packages",
+    "on:",
+    "  workflow_dispatch:",
+    "permissions:",
+    "  contents: read",
+    "  id-token: write",
+    "jobs:",
+    "  publish:",
+    "    if: ${{ github.ref == 'refs/heads/main' }}",
+    "    runs-on: ubuntu-latest",
+    "    steps:",
+    "      - run: npm ci --ignore-scripts",
+    "      - run: npm publish --access public"
   ].join("\n");
 }
 

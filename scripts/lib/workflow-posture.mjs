@@ -15,8 +15,11 @@ export function collectWorkflowPostureFindings(repoRoot) {
     if (/secrets\./i.test(content)) {
       failures.push(`workflow references repository secrets: ${relativePath}`);
     }
-    if (/\bnpm\s+publish\b/i.test(content)) {
+    if (/\bnpm\s+publish\b/i.test(content) && !isTrustedPublishWorkflow(relativePath, content)) {
       failures.push(`workflow publishes packages during release check: ${relativePath}`);
+    }
+    if (relativePath === "github/workflows/publish-packages.yml" || relativePath === ".github/workflows/publish-packages.yml") {
+      failures.push(...collectTrustedPublishWorkflowFindings(content, relativePath));
     }
     failures.push(...collectNpmInstallPostureFindings(content, relativePath));
     failures.push(...collectSecretScannerInstallFindings(repoRoot, content, relativePath));
@@ -71,6 +74,62 @@ export function hasReadOnlyContentsPermission(content) {
   }
 
   return false;
+}
+
+export function hasOidcWritePermission(content) {
+  const lines = content.split(/\r?\n/);
+  const permissionsIndex = lines.findIndex((line) => /^permissions:\s*$/.test(line));
+  if (permissionsIndex === -1) {
+    return false;
+  }
+
+  for (let index = permissionsIndex + 1; index < lines.length; index += 1) {
+    const line = lines[index];
+    if (/^\S/.test(line) && line.trim() !== "") {
+      return false;
+    }
+    if (/^\s+id-token:\s+write\s*$/.test(line)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function isTrustedPublishWorkflow(relativePath, content) {
+  return (
+    relativePath === ".github/workflows/publish-packages.yml" &&
+    hasWorkflowDispatchOnlyTrigger(content) &&
+    hasReadOnlyContentsPermission(content) &&
+    hasOidcWritePermission(content) &&
+    !/secrets\./i.test(content) &&
+    !/NPM_CONFIG_PROVENANCE\s*=\s*false|--provenance\s*=?\s*false|provenance\s*=\s*false/i.test(content)
+  );
+}
+
+function collectTrustedPublishWorkflowFindings(content, relativePath) {
+  const failures = [];
+
+  if (!hasWorkflowDispatchOnlyTrigger(content)) {
+    failures.push(`trusted publish workflow must be manual-only: ${relativePath}`);
+  }
+  if (!hasOidcWritePermission(content)) {
+    failures.push(`trusted publish workflow must declare id-token write permission: ${relativePath}`);
+  }
+  if (/secrets\./i.test(content)) {
+    failures.push(`trusted publish workflow must not reference repository secrets: ${relativePath}`);
+  }
+  if (/NPM_CONFIG_PROVENANCE\s*=\s*false|--provenance\s*=?\s*false|provenance\s*=\s*false/i.test(content)) {
+    failures.push(`trusted publish workflow must not disable provenance: ${relativePath}`);
+  }
+
+  return failures;
+}
+
+function hasWorkflowDispatchOnlyTrigger(content) {
+  if (!/\bworkflow_dispatch\s*:/i.test(content)) {
+    return false;
+  }
+  return !/\bpull_request(?:_target)?\s*:|\bpush\s*:/i.test(content);
 }
 
 function collectNpmInstallPostureFindings(content, relativePath) {
