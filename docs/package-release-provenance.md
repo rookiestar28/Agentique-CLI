@@ -43,6 +43,12 @@ Public package provenance must not include platform scoring, quarantine criteria
 - Do not create public tags for dry-runs.
 - Review release notes before publication.
 
+## Publish Step Isolation
+
+The checked-in workflow publishes each package in its own step with an explicit `working-directory`. This makes package-level failure evidence visible in GitHub Actions and avoids hiding partial-publish state inside one shell block.
+
+After any publish failure, compare registry readback for all four packages before advertising, tagging, or changing public URL inventory. If one package version is live while another failed, stop promotion and either publish the missing package version, deprecate the affected version, or publish a coordinated replacement version according to owner review.
+
 ## Rollback
 
 If a package release contains incorrect files or wording, stop additional publishing, deprecate or replace the affected package version according to registry policy, and update release notes with a public-safe correction.

@@ -389,26 +389,25 @@ if (/this is free and unencumbered software/i.test(content)) return "Unlicense";
 |---|---|
 | **Severity** | Low |
 | **Module** | CI / CD |
-| **File** | `.github/workflows/publish-packages.yml` (lines 54–63) |
-| **Status** | Open |
+| **File** | `.github/workflows/publish-packages.yml`; `scripts/lib/workflow-posture.mjs`; `docs/package-release-provenance.md` |
+| **Status** | Addressed — publish commands are isolated by package; real registry failures still require owner review and registry readback |
 
 ### Description
 
-The publish step uses sequential `cd` and `npm publish` commands in a single
-shell block. If any intermediate publish fails (e.g., `schemas` succeeds but
-`validator` fails due to a transient registry error), subsequent packages
-(`action`, `readback`) will not be published, and the workflow will exit with
-the error from the failed step.
+The original publish step used sequential `cd` and `npm publish` commands in a
+single shell block. If any intermediate publish failed (e.g., `schemas`
+succeeded but `validator` failed due to a transient registry error), subsequent
+packages (`action`, `readback`) would not be published, and the workflow would
+exit with the error from the failed command.
 
 Because earlier packages may already be live at a new version while later
 packages remain at the old version, this creates a partial-publish state that
 requires manual correction.
 
-### Recommended Fix
+### Repository Guard
 
-Split each publish into its own step with explicit working directories, and
-consider a cleanup step that records which packages were successfully
-published:
+Each package now publishes in its own workflow step with an explicit working
+directory:
 
 ```yaml
 - name: Publish schemas
@@ -429,5 +428,14 @@ published:
 ```
 
 This ensures that each step has independent success/failure reporting in the
-GitHub Actions UI and allows the use of `if: always()` or `continue-on-error`
-for individual steps if partial publication is acceptable.
+GitHub Actions UI. Workflow posture checks reject publish workflows that use a
+directory-changing shell chain or omit one of the approved package directories.
+
+### Remaining Manual Recovery
+
+Actual registry writes are not atomic across packages. After any failed publish
+run, compare registry readback for all four packages before advertising,
+tagging, or changing public URL inventory. If one package version is live while
+another failed, stop promotion and either publish the missing package version,
+deprecate the affected version, or publish a coordinated replacement version
+according to owner review.

@@ -105,6 +105,28 @@ test("rejects trusted publish workflows that require token fallback", async () =
   assert.match(findings, /publishes packages/);
 });
 
+test("rejects trusted publish workflows that chain package directories in one shell block", async () => {
+  const repoRoot = await createWorkflowRepo({
+    "publish-packages.yml": chainedTrustedPublishWorkflow()
+  });
+
+  const findings = collectWorkflowPostureFindings(repoRoot).join("\n");
+
+  assert.match(findings, /trusted publish workflow must publish packages in isolated steps/);
+  assert.match(findings, /publishes packages/);
+});
+
+test("rejects trusted publish workflows missing approved package publish directories", async () => {
+  const repoRoot = await createWorkflowRepo({
+    "publish-packages.yml": trustedPublishWorkflow().replace("working-directory: packages/readback", "working-directory: packages/missing")
+  });
+
+  const findings = collectWorkflowPostureFindings(repoRoot).join("\n");
+
+  assert.match(findings, /trusted publish workflow must publish packages in isolated steps/);
+  assert.match(findings, /publishes packages/);
+});
+
 test("rejects lifecycle-enabled npm installs in pull request workflows", async () => {
   const repoRoot = await createWorkflowRepo({
     "release-check.yml": [
@@ -237,7 +259,45 @@ function trustedPublishWorkflow() {
     "    runs-on: ubuntu-latest",
     "    steps:",
     "      - run: npm ci --ignore-scripts",
-    "      - run: npm publish --access public --provenance"
+    "      - name: Publish schemas",
+    "        working-directory: schemas",
+    "        run: npm publish --access public --provenance",
+    "      - name: Publish validator",
+    "        working-directory: packages/validator",
+    "        run: npm publish --access public --provenance",
+    "      - name: Publish action",
+    "        working-directory: packages/action",
+    "        run: npm publish --access public --provenance",
+    "      - name: Publish readback",
+    "        working-directory: packages/readback",
+    "        run: npm publish --access public --provenance"
+  ].join("\n");
+}
+
+function chainedTrustedPublishWorkflow() {
+  return [
+    "name: Publish Packages",
+    "on:",
+    "  workflow_dispatch:",
+    "permissions:",
+    "  contents: read",
+    "  id-token: write",
+    "jobs:",
+    "  publish:",
+    "    if: ${{ github.ref == 'refs/heads/main' }}",
+    "    runs-on: ubuntu-latest",
+    "    steps:",
+    "      - run: npm ci --ignore-scripts",
+    "      - name: Publish packages with trusted publishing",
+    "        run: |",
+    "          cd schemas",
+    "          npm publish --access public --provenance",
+    "          cd ../packages/validator",
+    "          npm publish --access public --provenance",
+    "          cd ../action",
+    "          npm publish --access public --provenance",
+    "          cd ../readback",
+    "          npm publish --access public --provenance"
   ].join("\n");
 }
 
