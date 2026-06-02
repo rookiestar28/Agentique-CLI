@@ -31,6 +31,27 @@ This file records public-safe release evidence for the companion repository. Do 
 | Action production dependency audit | Pass | `npm --prefix packages/action audit --omit=dev` found 0 vulnerabilities. |
 | Readback production dependency audit | Pass | `npm --prefix packages/readback audit --omit=dev` found 0 vulnerabilities. |
 
+## Post-Publication Hardening Evidence
+
+Local companion hardening and known-issues reconciliation checks were refreshed
+on 2026-06-03.
+
+Current command-line finding:
+
+- Validator tests include package file-size bounds, external intake truncation
+  blockers, precise package JSON schema dispatch, documentation placeholder
+  governance, path-aware `.env` detection, and license recognition/policy
+  classification.
+- `KNOWN_ISSUES.md` is reconciled with repository-side hardening status.
+- Public-content scans found no concrete internal item codes, local workspace
+  paths, private planning paths, or stale known-issues open status text.
+- `npm test`, release checks, workflow posture checks, starter validation,
+  package dry-run, URL inventory, go/no-go checks, secret scan, and production
+  dependency audits passed locally.
+
+Later pushes still require a fresh hosted Release Check before downstream
+release claims are updated.
+
 ## All-Channel Public URL Mode
 
 The stricter all-channel public URL mode now passes for source, package, action usage, badge/readback documentation, schema, docs, and platform links:

@@ -15,7 +15,7 @@ This repository is the public companion developer kit for Agentique creators and
 This repository is for creators and integrators before and after platform submission:
 
 - Prepare static resource packages with public manifests.
-- Validate package shape, hashes, paths, and secret-like content locally.
+- Validate package shape, hashes, paths, bounded file reads, contract-bearing JSON files, and secret-like content locally.
 - Run the same validation in GitHub Actions with read-only permissions.
 - Consume public readback status and badge states for resources that are already published by `agentique.io`.
 - Use public tools to prepare, validate, and display resource status before entering the Agentique website upload flow.
@@ -217,9 +217,11 @@ Checks include:
 - Blocked executable extension rejection.
 - Secret-like value detection with redacted findings.
 - Forbidden public-content path and term checks.
-- External intake preflight for raw candidate directories, including repository metadata gates, payload classification, execution-surface inventory, dangerous capability patterns, redacted secret fingerprints, and license signals.
+- External intake preflight for raw candidate directories, including repository metadata gates, payload classification, execution-surface inventory, dangerous capability patterns, high-risk truncation blockers, redacted secret fingerprints, and license recognition plus intake-policy signals.
 
 External intake findings are review inputs only. Passing this local preflight does not publish, approve, certify, moderate, or legally clear a candidate.
+
+License findings distinguish recognized signals from intake policy outcomes such as allowed, needs-review, blocked, and unknown. These labels are conservative local review signals, not legal advice or platform approval.
 
 See [packages/validator/README.md](packages/validator/README.md).
 

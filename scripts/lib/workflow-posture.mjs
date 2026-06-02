@@ -1,6 +1,8 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 
+const TRUSTED_PUBLISH_PACKAGE_DIRS = Object.freeze(["schemas", "packages/validator", "packages/action", "packages/readback"]);
+
 export function collectWorkflowPostureFindings(repoRoot) {
   const failures = [];
   const workflowFiles = listWorkflowFiles(join(repoRoot, ".github", "workflows"));
@@ -102,6 +104,8 @@ function isTrustedPublishWorkflow(relativePath, content) {
     hasReadOnlyContentsPermission(content) &&
     hasOidcWritePermission(content) &&
     !/secrets\./i.test(content) &&
+    hasExplicitProvenancePublishCommands(content) &&
+    hasIsolatedTrustedPublishSteps(content) &&
     !/NPM_CONFIG_PROVENANCE\s*=\s*false|--provenance\s*=?\s*false|provenance\s*=\s*false/i.test(content)
   );
 }
@@ -118,11 +122,48 @@ function collectTrustedPublishWorkflowFindings(content, relativePath) {
   if (/secrets\./i.test(content)) {
     failures.push(`trusted publish workflow must not reference repository secrets: ${relativePath}`);
   }
+  if (!hasExplicitProvenancePublishCommands(content)) {
+    failures.push(`trusted publish workflow must pass explicit provenance for every npm publish command: ${relativePath}`);
+  }
+  if (!hasIsolatedTrustedPublishSteps(content)) {
+    failures.push(`trusted publish workflow must publish packages in isolated steps: ${relativePath}`);
+  }
   if (/NPM_CONFIG_PROVENANCE\s*=\s*false|--provenance\s*=?\s*false|provenance\s*=\s*false/i.test(content)) {
     failures.push(`trusted publish workflow must not disable provenance: ${relativePath}`);
   }
 
   return failures;
+}
+
+function hasExplicitProvenancePublishCommands(content) {
+  const publishCommands = content
+    .split(/\r?\n/)
+    .map((line) => line.replace(/^\s*-\s*run:\s*/i, "").trim())
+    .filter((line) => /\bnpm\s+publish\b/i.test(line));
+
+  return publishCommands.length > 0 && publishCommands.every((line) => /\s--provenance(?:\s|$)/i.test(line));
+}
+
+function hasIsolatedTrustedPublishSteps(content) {
+  if (/^\s+cd\s+\S+/im.test(content)) {
+    return false;
+  }
+
+  const publishCommands = content
+    .split(/\r?\n/)
+    .map((line) => line.replace(/^\s*-\s*run:\s*/i, "").trim())
+    .filter((line) => /\bnpm\s+publish\b/i.test(line));
+  if (publishCommands.length !== TRUSTED_PUBLISH_PACKAGE_DIRS.length) {
+    return false;
+  }
+
+  return TRUSTED_PUBLISH_PACKAGE_DIRS.every((directory) => {
+    const pattern = new RegExp(
+      `working-directory:\\s*["']?${escapeRegExp(directory)}["']?[\\s\\S]{0,200}\\brun:\\s*npm\\s+publish\\b[^\\n]*\\s--provenance(?:\\s|$)`,
+      "i"
+    );
+    return pattern.test(content);
+  });
 }
 
 function hasWorkflowDispatchOnlyTrigger(content) {
@@ -201,6 +242,10 @@ function extractRequirementPath(command) {
     }
   }
   return null;
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function toPosix(path) {

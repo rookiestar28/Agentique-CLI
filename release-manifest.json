@@ -15,6 +15,7 @@
     ".gitignore",
     "CODEOWNERS",
     "CONTRIBUTING.md",
+    "KNOWN_ISSUES.md",
     "LICENSE",
     "README.md",
     "SECURITY.md",
