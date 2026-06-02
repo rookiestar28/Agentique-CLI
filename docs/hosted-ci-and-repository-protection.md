@@ -8,6 +8,7 @@ Public release requires both local workflow posture checks and hosted repository
 - Validation workflows must not use `pull_request_target`.
 - Validation workflows must not reference repository secrets.
 - Validation workflows must not publish packages, create releases, or write repository contents.
+- Package publishing workflows must be manual-only, use least-privilege permissions, and pass release validation before publishing.
 - `GITHUB_TOKEN` permissions should be read-only for validation.
 
 ## Repository Protection Requirements

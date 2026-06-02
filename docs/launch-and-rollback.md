@@ -1,6 +1,6 @@
 # Launch And Rollback
 
-Use this procedure before and after any public companion repository release.
+Use this procedure before and after any public companion repository release, package release, or public link expansion.
 
 ## Launch Gate
 
@@ -15,7 +15,7 @@ Public launch requires:
 - Support and security routing reviewed.
 - Final public URLs reviewed before links are added.
 
-Do not publish packages, badges, action versions, or documentation links until these checks pass.
+Do not publish new package versions, badges, action references, or documentation links until these checks pass.
 
 ## Link Rules
 

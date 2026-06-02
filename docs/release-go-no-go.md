@@ -2,7 +2,7 @@
 
 Current source repository, package registry, action usage, badge/readback documentation, and platform-link publication decision: **Go**.
 
-The source repository is public. The public repository URL, public documentation URL, schema URL base, `agentique.io` public URL, hosted CI evidence, branch protection evidence, and owner go/no-go approval are recorded.
+The source repository is public. The public repository URL, package registry pages, action usage reference, badge/readback documentation, public documentation URL, schema URL base, `agentique.io` public URL, hosted CI evidence, branch protection evidence, and owner go/no-go approval are recorded.
 
 Package registry pages, badge/readback documentation, and action usage documentation are approved after publication and smoke testing. GitHub Marketplace-style promotion remains a separate future channel.
 
@@ -15,7 +15,7 @@ Current public-safe evidence is recorded in [release-evidence.md](release-eviden
 - Workflow posture check exists.
 - Package dry-run check exists.
 - Package registry publication and post-publish smoke evidence are recorded.
-- Public URL inventory exists and is blocked by default.
+- Public URL inventory exists and now records approved advertised entries.
 - Package tests, starter validation, release check, and dependency audits pass locally.
 - Surfacing contract fixture matrix is covered by release checks.
 - Readback helper docs describe context bundle and selection projections as read-only public projections.
@@ -35,7 +35,7 @@ Current public-safe evidence is recorded in [release-evidence.md](release-eviden
 
 ## Rollback And Unpublish Procedure
 
-If a public release is later made and a blocking issue is found:
+If a blocking issue is found after public release:
 
 1. Stop additional publication.
 2. Remove or disable affected public links.

@@ -14,7 +14,7 @@ Agentique's public companion work is consolidated in this repository. The monore
 
 ## Link Readiness
 
-Downstream links are not advertised until:
+New downstream links are not advertised until:
 
 - Release gates pass.
 - Owner approval exists for the exact public target.
@@ -23,3 +23,5 @@ Downstream links are not advertised until:
 - Rollback steps are ready.
 
 The platform remains authoritative for upload, scan, review, moderation, publication, distribution state, and readback.
+
+Current approved advertised links include the public repository, npm package pages, action usage reference, badge/readback documentation, schema/docs links, and `agentique.io` public links recorded in `docs/public-url-inventory.json`.

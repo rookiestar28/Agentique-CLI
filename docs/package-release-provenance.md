@@ -4,10 +4,12 @@ The companion packages are published for reviewed public release under the `@age
 
 ## Publishable Packages
 
-- `@agentique.io/schemas`
-- `@agentique.io/validator`
-- `@agentique.io/action`
-- `@agentique.io/readback`
+- `@agentique.io/schemas` at version `0.1.0`
+- `@agentique.io/validator` at version `0.1.0`
+- `@agentique.io/action` at version `0.1.0`
+- `@agentique.io/readback` at version `0.1.0`
+
+All four packages are public on npm.
 
 ## Required Pre-Publish Checks
 
@@ -22,6 +24,8 @@ The companion packages are published for reviewed public release under the `@age
 ## Provenance Posture
 
 Provenance helps consumers trace package source and build context. It does not mean a package is risk-free, platform-approved, or safety-certified.
+
+Registry readback and clean install smoke passed with npm 11.14.1 for the dotted `@agentique.io` scope.
 
 Public package provenance must not include platform scoring, quarantine criteria, internal review procedures, moderation disposition logic, or operational playbooks.
 

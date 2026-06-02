@@ -16,7 +16,7 @@
     "hostedCiRun": true,
     "repositoryProtection": true,
     "finalPublicUrls": true,
-    "packagePublicationDeferred": true,
+    "packagePublication": true,
     "platformLinks": true,
     "platformLaunchEvidence": true,
     "ownerApproval": true

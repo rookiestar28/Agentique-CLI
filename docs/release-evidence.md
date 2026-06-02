@@ -7,11 +7,11 @@ This file records public-safe release evidence for the companion repository. Do 
 - Date: 2026-06-02
 - Environment: Windows PowerShell
 - Node.js: v24.13.1
-- npm: 11.8.0
+- npm: 11.8.0 local baseline; npm 11.14.1 for final dotted-scope registry readback/install smoke
 - Git: 2.53.0.windows.1
 - Branch: main
 - Public repository: `https://github.com/rookiestar28/Agentique`
-- Commit evidence: hosted CI is tracked through GitHub Actions for the latest pushed public release candidate. Later pushes require a fresh hosted run before downstream release claims.
+- Commit evidence: hosted CI is tracked through GitHub Actions for the latest pushed public release candidate. Latest recorded public evidence is the successful hosted Release Check for the latest pushed release candidate. Later pushes require a fresh hosted run before downstream release claims.
 
 ## Local Checks
 
@@ -82,6 +82,9 @@ Current command-line finding:
 - Package dry-run passed for schemas, validator, action, and readback packages.
 - npm `11.14.1` registry readback and install smoke passed for the dotted `@agentique.io` scope.
 - npm `11.8.0` returned `E404` for dotted-scope `npm view`; use current npm 11.14+ for registry readback/install validation.
+- Clean install smoke passed with `--ignore-scripts`.
+- Readback import smoke passed.
+- Validator bin smoke passed against the public `agent-assistant` starter with installed schemas.
 
 Publication note:
 
@@ -94,6 +97,12 @@ Command-line public link smoke checks were run on 2026-06-02.
 | URL | Result |
 |---|---|
 | `https://github.com/rookiestar28/Agentique` | HTTP 200 |
+| `https://www.npmjs.com/package/@agentique.io/schemas` | Approved package page |
+| `https://www.npmjs.com/package/@agentique.io/validator` | Approved package page |
+| `https://www.npmjs.com/package/@agentique.io/action` | Approved package page |
+| `https://www.npmjs.com/package/@agentique.io/readback` | Approved package page |
+| `https://github.com/rookiestar28/Agentique/tree/main/packages/action#usage` | Approved action usage reference |
+| `https://github.com/rookiestar28/Agentique/tree/main/packages/readback#badge-states` | Approved badge/readback documentation |
 | `https://www.agentique.io/` | HTTP 200 |
 | `https://www.agentique.io/api/public/v1/resources?limit=1` | HTTP 200 JSON with `pageInfo.page = 1`, `pageInfo.pageSize = 1`, `pageInfo.total = 60`, and `pageInfo.hasNextPage = true` |
 

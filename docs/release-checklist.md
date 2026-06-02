@@ -1,6 +1,6 @@
 # Release Checklist
 
-Use this checklist before any public release, package publish, or repository link.
+Use this checklist before any public release, package publish, repository link change, or newly advertised public channel.
 
 ## Required Checks
 
@@ -27,7 +27,7 @@ Provenance and attestations help consumers trace where an artifact came from. Th
 
 ## Launch Boundary
 
-Passing this checklist means the repository is ready for owner review. It does not publish, advertise, or link the repository.
+Passing this checklist means the release candidate is ready for owner review. It does not itself publish, advertise, or link a new public target.
 
 External-intake output does not approve a candidate, certify safety, replace platform moderation, or provide legal clearance.
 

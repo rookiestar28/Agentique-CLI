@@ -24,6 +24,7 @@ Local tools in this repository do not publish, approve, certify, edit, delete, o
 
 ## Table Of Contents
 
+- [Quick Start With Packages](#quick-start-with-packages)
 - [Quick Start From Source](#quick-start-from-source)
 - [Current Release Status](#current-release-status)
 - [Repository Contents](#repository-contents)
@@ -38,9 +39,35 @@ Local tools in this repository do not publish, approve, certify, edit, delete, o
 - [Support And Security](#support-and-security)
 - [License](#license)
 
+## Quick Start With Packages
+
+The companion packages are published on npm under the `@agentique.io` scope:
+
+```bash
+npm install @agentique.io/schemas @agentique.io/validator @agentique.io/readback
+```
+
+Use the validator package for local static checks:
+
+```bash
+npx agentique-validator validate <package-dir> --schemas-dir node_modules/@agentique.io/schemas --json
+```
+
+Use readback helpers for public resource state exposed by `agentique.io`:
+
+```js
+import { createBadgeState, createReadbackClient } from "@agentique.io/readback";
+
+const client = createReadbackClient();
+const readback = await client.getReadback("resource-id");
+const badge = createBadgeState(readback);
+
+console.log(`${badge.label}: ${badge.message}`);
+```
+
 ## Quick Start From Source
 
-Use this flow while packages and actions are still in pre-release review:
+Use this flow when developing from a local checkout or reviewing repository changes:
 
 Requirements:
 
@@ -90,25 +117,27 @@ The source repository, npm packages, action usage reference, badge/readback docu
 
 ## Current Release Status
 
-Current source repository and platform-link publication decision: **Go**.
+Current source repository, package registry, action usage, badge/readback documentation, and platform-link publication decision: **Go**.
 
 Public-safe evidence currently recorded:
 
 - The public repository is available at [github.com/rookiestar28/Agentique](https://github.com/rookiestar28/Agentique).
+- The companion npm packages are published under the `@agentique.io` scope.
 - Local package tests, starter validation, release checks, workflow posture checks, package dry-runs, dependency audits, and secret scans pass.
 - Hosted Release Check evidence is recorded for the latest pushed public release candidate.
 - Public `main` branch protection is enabled.
-- Final public URLs are approved.
+- Final public repository, package, docs, schema, action usage, badge/readback documentation, and platform URLs are approved.
 - The `agentique.io` public URL and public readback endpoint respond successfully to command-line smoke checks.
 - Owner go/no-go approval is recorded.
 
-Deferred downstream channels:
+Approved and separate channels:
 
 - Package registry URLs are approved after publication and install smoke testing.
 - Badge/readback documentation is approved through the published readback package.
+- Public action usage documentation is approved as a repository usage reference.
 - GitHub Marketplace-style promotion remains separate from this source/package release.
 
-Release evidence and deferred downstream channels are tracked in [docs/release-evidence.md](docs/release-evidence.md), [docs/release-go-no-go.md](docs/release-go-no-go.md), and [docs/public-url-inventory.json](docs/public-url-inventory.json).
+Release evidence and approved public channels are tracked in [docs/release-evidence.md](docs/release-evidence.md), [docs/release-go-no-go.md](docs/release-go-no-go.md), and [docs/public-url-inventory.json](docs/public-url-inventory.json).
 
 ## Repository Contents
 
@@ -129,7 +158,7 @@ Release evidence and deferred downstream channels are tracked in [docs/release-e
 3. Add inspectable Markdown or JSON content files.
 4. Keep secrets, credentials, private paths, generated archives, dependency folders, executable payloads, and personal data out of the package.
 5. Validate locally with the validator CLI.
-6. Submit through the platform-owned upload flow when available.
+6. Submit through the platform-owned upload flow.
 7. Use readback helpers only after `agentique.io` exposes public resource status.
 
 Package concepts are documented in [docs/resource-manifest.md](docs/resource-manifest.md).
@@ -297,7 +326,7 @@ See [docs/contract-evaluation-fixtures.md](docs/contract-evaluation-fixtures.md)
 
 ## Release And Publication Gates
 
-Before package publication, badge advertising, marketplace/action publication, or platform linking, the repository must pass local and hosted gates:
+Before publishing a new version, advertising a new public channel, or changing platform links, the repository must pass local and hosted gates:
 
 ```bash
 npm test
@@ -318,7 +347,7 @@ npm --prefix packages/action audit --omit=dev
 npm --prefix packages/readback audit --omit=dev
 ```
 
-Release status and blockers are documented in [docs/release-go-no-go.md](docs/release-go-no-go.md). Package release expectations are documented in [docs/package-release-provenance.md](docs/package-release-provenance.md).
+Release status and follow-up boundaries are documented in [docs/release-go-no-go.md](docs/release-go-no-go.md). Package release expectations are documented in [docs/package-release-provenance.md](docs/package-release-provenance.md).
 
 ## Support And Security
 
