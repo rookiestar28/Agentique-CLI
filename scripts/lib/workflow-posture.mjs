@@ -1,7 +1,13 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 
-const TRUSTED_PUBLISH_PACKAGE_DIRS = Object.freeze(["schemas", "packages/validator", "packages/action", "packages/readback"]);
+const TRUSTED_PUBLISH_PACKAGE_DIRS = Object.freeze([
+  "schemas",
+  "packages/validator",
+  "packages/action",
+  "packages/readback",
+  "packages/uploader"
+]);
 
 export function collectWorkflowPostureFindings(repoRoot) {
   const failures = [];

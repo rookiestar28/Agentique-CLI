@@ -270,6 +270,9 @@ function trustedPublishWorkflow() {
     "        run: npm publish --access public --provenance",
     "      - name: Publish readback",
     "        working-directory: packages/readback",
+    "        run: npm publish --access public --provenance",
+    "      - name: Publish uploader",
+    "        working-directory: packages/uploader",
     "        run: npm publish --access public --provenance"
   ].join("\n");
 }
@@ -297,6 +300,8 @@ function chainedTrustedPublishWorkflow() {
     "          cd ../action",
     "          npm publish --access public --provenance",
     "          cd ../readback",
+    "          npm publish --access public --provenance",
+    "          cd ../uploader",
     "          npm publish --access public --provenance"
   ].join("\n");
 }
