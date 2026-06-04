@@ -15,8 +15,13 @@ Newer starters include contract examples for surfacing hints, permission and ris
 - `workflow-evidence-review` - workflow template for reviewing public sources.
 - `tool-mcp-listing` - public listing metadata for a tool or MCP-style endpoint.
 - `resource-bundle-curation` - bundled guide and manifest example.
+- `non-static-lane-descriptors` - static descriptors for agent cards, external endpoints, downloadable packages, tool-enabled packages, static skills/workflows, and hosted-deferred records.
 
 Keep starter files static and inspectable. Do not add restricted auth material, personal data, local machine paths, generated archives, or executable payloads.
+
+## Non-Static Lane Descriptors
+
+The `non-static-lane-descriptors` starter provides static JSON examples for the lane types described in [../docs/non-static-lane-examples.md](../docs/non-static-lane-examples.md). These descriptors are local preparation examples only. They do not route live endpoint work, run package content, provide hosting, publish resources, approve submissions, provide safety guarantees, or decide moderation outcomes.
 
 ## Source URL Policy
 

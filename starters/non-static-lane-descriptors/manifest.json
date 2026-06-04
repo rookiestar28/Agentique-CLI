@@ -1,0 +1,65 @@
+{
+  "formatVersion": "1.0",
+  "name": "non-static-lane-descriptors",
+  "summary": "Static descriptor examples for public non-static Agentique resource lanes.",
+  "source": {
+    "type": "git",
+    "url": "https://github.com/rookiestar28/Agentique/tree/main/starters/non-static-lane-descriptors"
+  },
+  "distribution": {
+    "mode": "metadata_view",
+    "notes": "Prepared as static public examples for platform review and documentation."
+  },
+  "surfacing": {
+    "taskIntents": ["lane-selection", "package-preparation", "resource-descriptor"],
+    "audience": ["developer", "integrator", "reviewer", "agent"],
+    "priority": 0.76,
+    "recency": {
+      "lastReviewedAt": "2026-06-05T00:00:00Z",
+      "reviewCadenceDays": 90
+    },
+    "compatibility": {
+      "runtimeFamilies": ["json", "markdown", "descriptor"],
+      "protocols": ["https"]
+    },
+    "contextBudget": {
+      "maxTokens": 2400,
+      "maxBytes": 24576,
+      "preferredSummaryBytes": 3072
+    },
+    "notes": "Surface this starter when creators need static examples for selecting a public resource lane."
+  },
+  "permissionRisk": {
+    "readOnly": true,
+    "destructive": false,
+    "idempotent": true,
+    "openWorld": true,
+    "externalNetwork": true,
+    "credentialed": false,
+    "approvalRequired": false,
+    "dataSensitivity": "public",
+    "capabilities": ["read-public-content", "external-network", "download"],
+    "reviewNotes": "Static public descriptors only; examples do not execute, authenticate, proxy, or mutate state."
+  },
+  "package": {
+    "formatVersion": "1.0",
+    "files": [
+      "README.md",
+      "lanes/agent-card-descriptor.json",
+      "lanes/external-endpoint-registration.json",
+      "lanes/downloadable-package.json",
+      "lanes/tool-enabled-package.json",
+      "lanes/static-skill-workflow.json",
+      "lanes/hosted-deferred-record.json"
+    ],
+    "hashes": {
+      "README.md": "sha256:1c1acc427319bb0de25a4dde7a2e070d97a1efb5b645a0308dce61c4eb66be57",
+      "lanes/agent-card-descriptor.json": "sha256:e74aad4bae13316b529876529d332f33c4e603a462215751efd21e2222d4d585",
+      "lanes/external-endpoint-registration.json": "sha256:4a68c9a9e12bb407fb5d838c2bc67e49dc45934d59bd2b709a8fe005813b9663",
+      "lanes/downloadable-package.json": "sha256:25688765d273dbab92befe80d6280d66a7122b937b490cfa0e709f539c9ffdb0",
+      "lanes/tool-enabled-package.json": "sha256:f6512844a2726519c67da6841f76756fe8dd8ef45203904fcaab0f8940d2310d",
+      "lanes/static-skill-workflow.json": "sha256:9571e1ea1028a31c72158af9de9dcba98449c395f3f7d14d057d9ce3bb63cca3",
+      "lanes/hosted-deferred-record.json": "sha256:4e9d8a798ebaa4e06dcfde4dd560cae6aa2e383af2d146f7a0a554efbb54f7ec"
+    }
+  }
+}

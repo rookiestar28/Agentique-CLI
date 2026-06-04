@@ -1,0 +1,16 @@
+{
+  "lane": "static-skill-workflow",
+  "displayName": "Static Skill And Workflow Package",
+  "summary": "Static descriptor for skill and workflow resources that are inspectable before upload.",
+  "distributionMode": "package_download",
+  "resourceKinds": ["skill", "workflow"],
+  "expectedContent": {
+    "skill": "Markdown instructions with declared inputs and outputs.",
+    "workflow": "Step descriptions with bounded public output expectations."
+  },
+  "boundaries": {
+    "localValidation": "Validates files and optional skill or workflow metadata contracts.",
+    "runtime": "Skill and workflow examples are documentation until a user chooses to use them elsewhere.",
+    "publication": "Local validation is not platform approval or a safety guarantee."
+  }
+}

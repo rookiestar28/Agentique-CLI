@@ -30,6 +30,7 @@ Local tools in this repository do not publish, approve, certify, edit, delete, o
 - [Repository Contents](#repository-contents)
 - [Resource Package Workflow](#resource-package-workflow)
 - [Starters](#starters)
+- [Non-Static Lane Examples](#non-static-lane-examples)
 - [Validator CLI](#validator-cli)
 - [GitHub Action](#github-action)
 - [Readback SDK And Badges](#readback-sdk-and-badges)
@@ -173,6 +174,7 @@ Available examples:
 - `starters/workflow-evidence-review` - workflow template for reviewing public sources.
 - `starters/tool-mcp-listing` - public listing metadata for a tool or MCP-style endpoint.
 - `starters/resource-bundle-curation` - bundled guide and manifest example.
+- `starters/non-static-lane-descriptors` - static descriptors for agent cards, external endpoints, downloadable packages, tool-enabled packages, static skill/workflow resources, and hosted-deferred readback records.
 
 Validate every starter:
 
@@ -181,6 +183,12 @@ npm run validate:starters
 ```
 
 See [starters/README.md](starters/README.md) for starter-specific guidance.
+
+## Non-Static Lane Examples
+
+The public examples in [docs/non-static-lane-examples.md](docs/non-static-lane-examples.md) show how to describe non-static resource lanes with static, inspectable package metadata. The examples cover agent cards/descriptors, external endpoint registrations, downloadable packages, tool-enabled packages, static skills/workflows, and hosted-deferred records.
+
+These examples validate package shape and metadata only. They do not route live endpoint work, run package content, provide hosting, publish resources, approve submissions, provide safety guarantees, or decide moderation outcomes.
 
 ## Validator CLI
 

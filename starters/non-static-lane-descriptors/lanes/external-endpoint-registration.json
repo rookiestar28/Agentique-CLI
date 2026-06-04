@@ -1,0 +1,25 @@
+{
+  "lane": "external-endpoint-registration",
+  "displayName": "Public Endpoint Registration",
+  "summary": "Static metadata for a creator-owned public HTTPS endpoint.",
+  "distributionMode": "external_project",
+  "endpoint": {
+    "kind": "https-api",
+    "documentationUrl": "https://example.com/docs/public-endpoint",
+    "auth": "not-declared-in-public-descriptor"
+  },
+  "permissionRisk": {
+    "readOnly": true,
+    "destructive": false,
+    "openWorld": true,
+    "externalNetwork": true,
+    "credentialed": false,
+    "approvalRequired": false,
+    "dataSensitivity": "public"
+  },
+  "boundaries": {
+    "localValidation": "Reviews descriptor packaging and static metadata only.",
+    "runtime": "This descriptor does not proxy requests or verify endpoint behavior.",
+    "publication": "Endpoint visibility depends on platform review and public readback."
+  }
+}

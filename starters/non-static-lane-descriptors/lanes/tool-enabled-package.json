@@ -1,0 +1,25 @@
+{
+  "lane": "tool-enabled-package",
+  "displayName": "Tool-Enabled Package Listing",
+  "summary": "Static metadata for a resource that declares public tool capability boundaries.",
+  "distributionMode": "metadata_view",
+  "tooling": {
+    "capabilities": ["public-lookup", "structured-readback"],
+    "protocols": ["https", "mcp"],
+    "outputBoundary": "bounded-json"
+  },
+  "permissionRisk": {
+    "readOnly": true,
+    "destructive": false,
+    "openWorld": true,
+    "externalNetwork": true,
+    "credentialed": false,
+    "approvalRequired": false,
+    "dataSensitivity": "public"
+  },
+  "boundaries": {
+    "localValidation": "Checks static package and declared metadata contracts.",
+    "runtime": "The local package does not execute tool calls.",
+    "publication": "Tool visibility and public status are platform readback concerns."
+  }
+}
