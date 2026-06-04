@@ -7,9 +7,21 @@ This package currently exposes the package boundary only. Live upload commands a
 Current boundary:
 
 - The package reserves the `agentique` command name.
-- The CLI fails closed with exit code `2`.
+- The CLI exposes help, version, auth, and upload command skeletons.
+- Upload/auth commands fail closed until the later auth and upload-session contracts are enabled.
 - JSON output is available with `--json`.
 - No token, browser session, cookie, CSRF state, upload session, storage URL, or network request is read or sent.
 - The package does not publish, approve, certify, host, or moderate resources.
+
+Examples:
+
+```bash
+agentique --help
+agentique --version
+agentique auth status --json
+agentique upload plan ./my-package --json
+agentique upload submit ./my-package --json
+agentique upload status submission-id --json
+```
 
 Use `@agentique.io/validator` for local no-execution package validation and `@agentique.io/readback` for read-only public status helpers.

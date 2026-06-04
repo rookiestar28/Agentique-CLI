@@ -1,5 +1,6 @@
 export const UPLOADER_PACKAGE_BOUNDARY = Object.freeze({
   packageName: "@agentique.io/uploader",
+  version: "0.1.0",
   commandName: "agentique",
   status: "boundary-only",
   submissionMode: "review-only",
@@ -15,6 +16,8 @@ export const UPLOADER_PACKAGE_BOUNDARY = Object.freeze({
   ])
 });
 
+export const UPLOADER_PACKAGE_VERSION = UPLOADER_PACKAGE_BOUNDARY.version;
+
 export function createUploaderBoundaryStatus() {
   return {
     ok: false,
@@ -23,6 +26,7 @@ export function createUploaderBoundaryStatus() {
       "The Agentique uploader package boundary is present, but live upload commands are not enabled in this release.",
     boundary: {
       packageName: UPLOADER_PACKAGE_BOUNDARY.packageName,
+      version: UPLOADER_PACKAGE_BOUNDARY.version,
       commandName: UPLOADER_PACKAGE_BOUNDARY.commandName,
       submissionMode: UPLOADER_PACKAGE_BOUNDARY.submissionMode,
       liveUploadAvailable: UPLOADER_PACKAGE_BOUNDARY.liveUploadAvailable
