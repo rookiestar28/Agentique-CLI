@@ -3,12 +3,14 @@ import { execFile } from "node:child_process";
 import { mkdtemp, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { test } from "node:test";
 import { executeUploaderCli, EXIT_CODES, parseArgs } from "../src/cli-core.mjs";
 import { createUploaderBoundaryStatus, UPLOADER_PACKAGE_BOUNDARY } from "../src/index.mjs";
 
 const execFileAsync = promisify(execFile);
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 
 test("declares the uploader as the only review-only mutation package boundary", () => {
   assert.equal(UPLOADER_PACKAGE_BOUNDARY.packageName, "@agentique.io/uploader");
@@ -36,6 +38,7 @@ test("parser handles global flags and rejects unknown options", () => {
     help: false,
     version: false,
     token: null,
+    schemasDir: null,
     tokens: ["upload", "plan", "pkg"]
   });
 
@@ -57,8 +60,8 @@ test("cli returns help and version without treating them as errors", async () =>
   assert.equal(version.stderr, "");
 });
 
-test("auth status skeleton is stable and redacted", () => {
-  const result = executeUploaderCli(["auth", "status", "--json"]);
+test("auth status skeleton is stable and redacted", async () => {
+  const result = await executeUploaderCli(["auth", "status", "--json"]);
   const status = JSON.parse(result.stdout);
 
   assert.equal(result.exitCode, EXIT_CODES.unavailable);
@@ -74,7 +77,7 @@ test("auth status honors token precedence without leaking tokens or config paths
   const configPath = path.join(tempDir, "config.json");
   await writeFile(configPath, JSON.stringify({ token: "config-token-value" }), "utf8");
 
-  const result = executeUploaderCli(["auth", "status", "--token", "flag-token-value", "--json"], {
+  const result = await executeUploaderCli(["auth", "status", "--token", "flag-token-value", "--json"], {
     env: {
       AGENTIQUE_TOKEN: "env-token-value",
       AGENTIQUE_CONFIG: configPath
@@ -95,13 +98,13 @@ test("auth status falls back from env to config", async () => {
   const configPath = path.join(tempDir, "config.json");
   await writeFile(configPath, JSON.stringify({ auth: { token: "config-token-value" } }), "utf8");
 
-  const envResult = executeUploaderCli(["auth", "status", "--json"], {
+  const envResult = await executeUploaderCli(["auth", "status", "--json"], {
     env: {
       AGENTIQUE_TOKEN: "env-token-value",
       AGENTIQUE_CONFIG: configPath
     }
   });
-  const configResult = executeUploaderCli(["auth", "status", "--json"], {
+  const configResult = await executeUploaderCli(["auth", "status", "--json"], {
     env: {
       AGENTIQUE_CONFIG: configPath
     }
@@ -112,9 +115,9 @@ test("auth status falls back from env to config", async () => {
   assert.doesNotMatch(envResult.stdout + configResult.stdout, /env-token-value|config-token-value|config\.json/i);
 });
 
-test("auth status fails closed for invalid token and config errors", () => {
-  const invalidToken = executeUploaderCli(["auth", "status", "--token", "short", "--json"]);
-  const configError = executeUploaderCli(["auth", "status", "--json"], {
+test("auth status fails closed for invalid token and config errors", async () => {
+  const invalidToken = await executeUploaderCli(["auth", "status", "--token", "short", "--json"]);
+  const configError = await executeUploaderCli(["auth", "status", "--json"], {
     env: {
       AGENTIQUE_CONFIG: "C:\\Users\\Ray\\missing-agentique-config.json"
     }
@@ -127,16 +130,19 @@ test("auth status fails closed for invalid token and config errors", () => {
   assert.doesNotMatch(invalidToken.stdout + configError.stdout + configError.stderr, /short|missing-agentique-config|Users|Ray/i);
 });
 
-test("missing token value is a usage error", () => {
-  const result = executeUploaderCli(["auth", "status", "--token", "--json"]);
+test("missing token value is a usage error", async () => {
+  const result = await executeUploaderCli(["auth", "status", "--token", "--json"]);
 
   assert.equal(result.exitCode, EXIT_CODES.usage);
   assert.equal(JSON.parse(result.stdout).code, "cli.usage_error");
 });
 
-test("upload command skeletons fail closed without echoing operands", () => {
+test("upload command skeletons fail closed without echoing operands", async () => {
   for (const command of ["plan", "submit", "status"]) {
-    const result = executeUploaderCli(["upload", command, "C:\\Users\\Ray\\private-package", "--json"]);
+    if (command === "plan") {
+      continue;
+    }
+    const result = await executeUploaderCli(["upload", command, "C:\\Users\\Ray\\private-package", "--json"]);
     const status = JSON.parse(result.stdout);
 
     assert.equal(result.exitCode, EXIT_CODES.unavailable);
@@ -148,17 +154,51 @@ test("upload command skeletons fail closed without echoing operands", () => {
   }
 });
 
-test("usage errors are deterministic", () => {
-  const missingCommand = executeUploaderCli(["--json"]);
-  const unknownCommand = executeUploaderCli(["unknown", "--json"]);
-  const unknownOption = executeUploaderCli(["upload", "plan", "pkg", "--token", "--json"]);
+test("upload plan emits validator evidence for a valid starter", async () => {
+  const result = await executeUploaderCli(
+    ["upload", "plan", "starters/agent-assistant", "--schemas-dir", "schemas", "--json"],
+    { cwd: repoRoot }
+  );
+  const status = JSON.parse(result.stdout);
+
+  assert.equal(result.exitCode, EXIT_CODES.success);
+  assert.equal(status.ok, true);
+  assert.equal(status.code, "upload.plan.ready");
+  assert.equal(status.data.schemaVersion, "agentique.uploader.plan.v1");
+  assert.equal(status.data.reviewOnly, true);
+  assert.equal(status.data.noExecution, true);
+  assert.equal(status.data.package.name, "agent-assistant");
+  assert.equal(status.data.evidence.inventory.length, 2);
+  assert.match(status.data.evidence.inventoryDigest, /^sha256:[a-f0-9]{64}$/);
+  assert.doesNotMatch(result.stdout, /Agentique-Public|我的專案|Users|Ray/i);
+});
+
+test("upload plan fails closed for invalid packages without absolute path leakage", async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), "agentique-uploader-plan-invalid-"));
+  const result = await executeUploaderCli(["upload", "plan", tempDir, "--schemas-dir", path.join(repoRoot, "schemas"), "--json"]);
+  const status = JSON.parse(result.stdout);
+
+  assert.equal(result.exitCode, EXIT_CODES.unavailable);
+  assert.equal(status.ok, false);
+  assert.equal(status.code, "upload.plan.validation_failed");
+  assert.ok(status.data.evidence.findingCount > 0);
+  assert.doesNotMatch(result.stdout, /Agentique-Public|我的專案|Users|Ray|uploader-plan-invalid/i);
+});
+
+test("usage errors are deterministic", async () => {
+  const missingCommand = await executeUploaderCli(["--json"]);
+  const unknownCommand = await executeUploaderCli(["unknown", "--json"]);
+  const unknownOption = await executeUploaderCli(["upload", "plan", "pkg", "--token", "--json"]);
+  const missingSchemasDir = await executeUploaderCli(["upload", "plan", "pkg", "--schemas-dir", "--json"]);
 
   assert.equal(JSON.parse(missingCommand.stdout).code, "cli.usage_error");
   assert.equal(JSON.parse(unknownCommand.stdout).code, "cli.unknown_command");
   assert.equal(JSON.parse(unknownOption.stdout).code, "cli.usage_error");
+  assert.equal(JSON.parse(missingSchemasDir.stdout).code, "cli.usage_error");
   assert.equal(missingCommand.exitCode, EXIT_CODES.usage);
   assert.equal(unknownCommand.exitCode, EXIT_CODES.usage);
   assert.equal(unknownOption.exitCode, EXIT_CODES.usage);
+  assert.equal(missingSchemasDir.exitCode, EXIT_CODES.usage);
 });
 
 test("cli upload submit emits stable json on request", async () => {

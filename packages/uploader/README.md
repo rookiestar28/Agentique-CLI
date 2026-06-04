@@ -20,7 +20,7 @@ Examples:
 agentique --help
 agentique --version
 agentique auth status --token <token> --json
-agentique upload plan ./my-package --json
+agentique upload plan ./my-package --schemas-dir ./schemas --json
 agentique upload submit ./my-package --json
 agentique upload status submission-id --json
 ```
