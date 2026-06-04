@@ -8,9 +8,10 @@ Current boundary:
 
 - The package reserves the `agentique` command name.
 - The CLI exposes help, version, auth, and upload command skeletons.
-- Upload/auth commands fail closed until the later auth and upload-session contracts are enabled.
+- Auth status can read a one-command `--token`, `AGENTIQUE_TOKEN`, or an `AGENTIQUE_CONFIG` JSON file and reports only redacted metadata.
+- Upload commands fail closed until the later upload-plan and upload-session contracts are enabled.
 - JSON output is available with `--json`.
-- No token, browser session, cookie, CSRF state, upload session, storage URL, or network request is read or sent.
+- No browser session, cookie, CSRF state, upload session, storage URL, or network request is read or sent.
 - The package does not publish, approve, certify, host, or moderate resources.
 
 Examples:
@@ -18,7 +19,7 @@ Examples:
 ```bash
 agentique --help
 agentique --version
-agentique auth status --json
+agentique auth status --token <token> --json
 agentique upload plan ./my-package --json
 agentique upload submit ./my-package --json
 agentique upload status submission-id --json

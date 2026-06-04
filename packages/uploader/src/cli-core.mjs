@@ -1,4 +1,5 @@
 import { createUploaderBoundaryStatus, UPLOADER_PACKAGE_VERSION } from "./index.mjs";
+import { resolveAuthState } from "./auth.mjs";
 
 export const EXIT_CODES = Object.freeze({
   success: 0,
@@ -21,7 +22,7 @@ Current status:
 const COMMANDS = new Set(["auth", "upload"]);
 const UPLOAD_COMMANDS = new Set(["plan", "submit", "status"]);
 
-export function executeUploaderCli(argv) {
+export function executeUploaderCli(argv, options = {}) {
   const parsed = parseArgs(argv);
   if (parsed.error) {
     return formatResult({
@@ -74,7 +75,7 @@ export function executeUploaderCli(argv) {
   }
 
   if (scope === "auth") {
-    return handleAuthCommand(action, parsed);
+    return handleAuthCommand(action, parsed, options);
   }
 
   return handleUploadCommand(action, operand, parsed);
@@ -85,14 +86,27 @@ export function parseArgs(argv) {
   let json = false;
   let help = false;
   let version = false;
+  let token = null;
 
-  for (const arg of argv) {
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index];
     if (arg === "--json") {
       json = true;
     } else if (arg === "--help" || arg === "-h") {
       help = true;
     } else if (arg === "--version" || arg === "-v") {
       version = true;
+    } else if (arg === "--token") {
+      const value = argv[index + 1];
+      if (!value || value.startsWith("-")) {
+        return {
+          json: json || argv.includes("--json"),
+          command: tokens.join(" ") || "unknown",
+          error: "--token requires a value."
+        };
+      }
+      token = value;
+      index += 1;
     } else if (arg.startsWith("-")) {
       return {
         json: json || argv.includes("--json"),
@@ -104,10 +118,10 @@ export function parseArgs(argv) {
     }
   }
 
-  return { json, help, version, tokens };
+  return { json, help, version, token, tokens };
 }
 
-function handleAuthCommand(action, parsed) {
+function handleAuthCommand(action, parsed, options) {
   if (action !== "status" || parsed.tokens.length !== 2) {
     return formatResult({
       result: createResult({
@@ -122,20 +136,41 @@ function handleAuthCommand(action, parsed) {
     });
   }
 
+  const auth = resolveAuthState({
+    tokenOption: parsed.token,
+    env: options.env,
+    readFile: options.readFile
+  });
+
   return formatResult({
     result: createResult({
-      ok: false,
-      code: "auth.not_enabled",
-      message: "Auth status is reserved for the uploader auth contract and is not enabled in this release.",
+      ok: auth.ok,
+      code: auth.code,
+      message: authMessage(auth),
       command: "auth status",
       data: {
-        configured: false,
-        redacted: true
+        configured: auth.configured,
+        source: auth.source,
+        redacted: auth.redacted,
+        ...(auth.tokenFingerprint ? { tokenFingerprint: auth.tokenFingerprint } : {})
       }
     }),
-    exitCode: EXIT_CODES.unavailable,
+    exitCode: auth.ok ? EXIT_CODES.success : EXIT_CODES.unavailable,
     json: parsed.json
   });
+}
+
+function authMessage(auth) {
+  if (auth.ok) {
+    return "Uploader auth is configured.";
+  }
+  if (auth.code === "auth.config_error") {
+    return "Uploader auth config could not be read.";
+  }
+  if (auth.code === "auth.invalid_token") {
+    return "Uploader auth token is invalid.";
+  }
+  return "Uploader auth is not configured.";
 }
 
 function handleUploadCommand(action, operand, parsed) {
