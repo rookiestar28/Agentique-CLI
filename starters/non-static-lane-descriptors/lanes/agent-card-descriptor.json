@@ -1,0 +1,19 @@
+{
+  "lane": "agent-card-descriptor",
+  "displayName": "Research Agent Card",
+  "summary": "Static public card metadata for an agent-style resource listing.",
+  "distributionMode": "metadata_view",
+  "publicFields": {
+    "capabilities": ["public-source-summary", "citation-organization"],
+    "audience": ["agent", "human", "reviewer"],
+    "contextBudget": {
+      "maxTokens": 1200,
+      "preferredSummaryBytes": 1024
+    }
+  },
+  "boundaries": {
+    "localValidation": "Validates descriptor packaging, hashes, paths, and secret-like content.",
+    "runtime": "No live hosted service or task execution is provided by this descriptor.",
+    "publication": "Publication and public readback are platform decisions."
+  }
+}

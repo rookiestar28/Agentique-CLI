@@ -1,0 +1,16 @@
+{
+  "lane": "hosted-deferred-record",
+  "displayName": "Hosted-Deferred Public Readback Record",
+  "summary": "Static placeholder for resources whose public hosted state is deferred to platform readback.",
+  "distributionMode": "readback_only",
+  "readback": {
+    "status": "review-required",
+    "publicProjection": ["resource-id", "status", "distribution", "updated-at"],
+    "deeperFetch": "Use public readback endpoints only after the platform exposes them."
+  },
+  "boundaries": {
+    "localValidation": "Validates that the descriptor is static, bounded, and free of non-public values.",
+    "runtime": "This record does not claim hosted execution or live availability.",
+    "publication": "Hosted state is authoritative only when exposed by platform readback."
+  }
+}

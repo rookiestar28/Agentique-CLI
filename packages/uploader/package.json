@@ -1,0 +1,43 @@
+{
+  "name": "@agentique.io/uploader",
+  "version": "0.1.0",
+  "description": "Review-only Agentique uploader CLI boundary.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rookiestar28/Agentique.git",
+    "directory": "packages/uploader"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "main": "./src/index.mjs",
+  "exports": {
+    ".": "./src/index.mjs"
+  },
+  "bin": {
+    "agentique": "src/cli.mjs"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test tests/*.test.mjs"
+  },
+  "dependencies": {
+    "@agentique.io/validator": "^0.1.0"
+  },
+  "keywords": [
+    "agentique",
+    "uploader",
+    "cli",
+    "review"
+  ],
+  "engines": {
+    "node": ">=20"
+  }
+}

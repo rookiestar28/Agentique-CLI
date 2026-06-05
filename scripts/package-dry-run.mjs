@@ -5,7 +5,8 @@ const packages = [
   "schemas",
   "packages/validator",
   "packages/action",
-  "packages/readback"
+  "packages/readback",
+  "packages/uploader"
 ];
 
 const failures = [];

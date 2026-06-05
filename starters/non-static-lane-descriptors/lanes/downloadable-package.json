@@ -1,0 +1,16 @@
+{
+  "lane": "downloadable-package",
+  "displayName": "Downloadable Resource Package",
+  "summary": "Static descriptor for a package that may be downloadable after platform publication.",
+  "distributionMode": "package_download",
+  "packageShape": {
+    "contentTypes": ["markdown", "json"],
+    "expectedFiles": ["README.md", "manifest.json", "public-content/*"],
+    "maxFiles": 200
+  },
+  "boundaries": {
+    "localValidation": "Validates package paths, file inventory, hashes, and secret-like content.",
+    "runtime": "Downloadable packages are content packages, not executable runtimes.",
+    "publication": "Download availability is determined by platform publication state."
+  }
+}

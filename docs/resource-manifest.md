@@ -25,6 +25,12 @@ A workflow template should describe steps, public parameters, and expected outpu
 
 A distribution mode explains how users can inspect or obtain a resource after `agentique.io` accepts it. Examples include public metadata view, package download, external project link, or read-only readback. The platform decides the final publication and distribution state.
 
+## Non-Static Lane Descriptors
+
+Static packages can describe non-static resource lanes without executing or hosting them. The examples in `starters/non-static-lane-descriptors` cover agent card descriptors, external endpoint registrations, downloadable packages, tool-enabled packages, static skills or workflows, and hosted-deferred readback records.
+
+These descriptors are public metadata for preparation and review. They do not route endpoint traffic, run tools, publish packages, approve resources, or prove live behavior.
+
 ## Surfacing Metadata
 
 Resource manifests may include optional `surfacing` metadata. These fields are public creator or integrator hints that help describe intended task use, audience, rough priority, review recency, compatibility, and context budget preferences.

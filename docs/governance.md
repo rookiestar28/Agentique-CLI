@@ -12,9 +12,10 @@ This document defines the public boundary for the Agentique companion monorepo. 
 | `packages/validator` | Static no-execution local checks for upload preparation and package inventory review. | Local readiness only. |
 | `packages/action` | Least-privilege workflow wrapper around local validation output. | No platform approval claim. |
 | `packages/readback` | Read-only clients and badge helpers for public resource status and readback state. | Read-only public status only. |
-| `scripts/` | Repository release checks, starter validation, workflow posture checks, package dry-runs, URL inventory checks, and go/no-go checks. | Local/repository evidence only. |
+| `packages/uploader` | Source implementation of review-only upload planning, submit, and status helpers. | Source preview only; npm publication and live upload advertising remain owner-approved release decisions. |
+| `scripts/` | Repository release checks, starter validation, workflow posture checks, registry readback, install smoke, package dry-runs, URL inventory checks, and go/no-go checks. | Local/repository evidence only. |
 
-No companion surface may publish, edit, delete, moderate, approve, or certify platform resources. Manual upload and platform review stay on `agentique.io`.
+No companion surface may publish, edit, delete, moderate, approve, or certify platform resources. Upload authority and platform review stay on `agentique.io`.
 
 ## Public-Safe Content
 
@@ -24,6 +25,7 @@ Allowed content:
 - Public JSON schemas.
 - De-weaponized examples.
 - Static validation tooling.
+- Review-only source uploader tooling.
 - Read-only readback clients.
 - Community health files.
 
@@ -47,6 +49,7 @@ Every companion release must pass:
 - Relevant tests.
 - Workflow security review when automation exists.
 - CODEOWNERS review for docs, schemas, starters, packages, workflows, release scripts, and public readback surfaces.
+- Registry readback and clean install smoke for any package page being newly advertised.
 
 Local validation is not platform approval. Local validation is not safety certification. Badge state is not a safety guarantee.
 

@@ -34,6 +34,7 @@ jobs:
           npm --prefix packages/validator ci --ignore-scripts
           npm --prefix packages/action ci --ignore-scripts
           npm --prefix packages/readback ci --ignore-scripts
+          npm --prefix packages/uploader ci --ignore-scripts
 
       - name: Validate release candidate
         run: |
@@ -42,12 +43,15 @@ jobs:
           npm run validate:starters
           npm run release:check
           npm run pack:dry-run
+          npm run registry:readback
+          npm run install:smoke
           npm run urls:check
           npm run release:go-no-go
           npm audit --omit=dev
           npm --prefix packages/validator audit --omit=dev
           npm --prefix packages/action audit --omit=dev
           npm --prefix packages/readback audit --omit=dev
+          npm --prefix packages/uploader audit --omit=dev
           python -m pip install --requirement .github/requirements-ci.txt
           python -m detect_secrets scan --all-files --exclude-files '(\.git/|\.git\\|node_modules/|node_modules\\)'
 
@@ -65,4 +69,8 @@ jobs:
 
       - name: Publish readback package
         working-directory: packages/readback
+        run: npm publish --access public --provenance
+
+      - name: Publish uploader package
+        working-directory: packages/uploader
         run: npm publish --access public --provenance

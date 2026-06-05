@@ -1,6 +1,6 @@
 # Known Issues
 
-Last reviewed: 2026-06-02
+Last reviewed: 2026-06-05
 
 This document catalogues all known defects, edge cases, and potential risks
 identified through static analysis, code review, and test-suite evaluation of
@@ -19,6 +19,7 @@ root cause, severity assessment, and a recommended remediation path.
 - [KI-006: Secret-like pattern false positives on documentation examples](#ki-006-secret-like-pattern-false-positives-on-documentation-examples)
 - [KI-007: License recognizer limited to seven identifiers](#ki-007-license-recognizer-limited-to-seven-identifiers)
 - [KI-008: Sequential publish step lacks error isolation](#ki-008-sequential-publish-step-lacks-error-isolation)
+- [KI-009: Uploader package registry publication is pending](#ki-009-uploader-package-registry-publication-is-pending)
 
 ---
 
@@ -465,8 +466,45 @@ directory-changing shell chain or omit one of the approved package directories.
 ### Remaining Manual Recovery
 
 Actual registry writes are not atomic across packages. After any failed publish
-run, compare registry readback for all four packages before advertising,
+run, compare registry readback for all publish-target packages before advertising,
 tagging, or changing public URL inventory. If one package version is live while
 another failed, stop promotion and either publish the missing package version,
 deprecate the affected version, or publish a coordinated replacement version
 according to owner review.
+
+---
+
+## KI-009: Uploader package registry publication is pending
+
+| Field | Value |
+|---|---|
+| **Severity** | Medium |
+| **Module** | `@agentique.io/uploader` — Release and Registry State |
+| **File** | `packages/uploader`; `docs/package-release-provenance.md`; `docs/public-url-inventory.json`; `docs/release-go-no-go.json` |
+| **Status** | Open — source implementation and local tarball smoke exist, but npm registry publication remains No-Go until owner-approved publish evidence, registry readback, and install smoke from npm are recorded |
+
+### Description
+
+The uploader package is implemented in source and included in local tests,
+package dry-run, workflow posture checks, and production dependency audit.
+However, npm registry readback currently reports `@agentique.io/uploader` as
+not found. Users should not expect `npm install @agentique.io/uploader` to work
+until registry publication and install smoke evidence are recorded.
+
+The public URL inventory tracks the uploader package page as pending and
+non-advertised. Existing published package pages for schemas, validator, action,
+and readback remain approved advertised channels. The current uploader
+publication closeout is No-Go.
+
+### Required Closeout
+
+Before advertising the uploader package page:
+
+1. Publish the exact reviewed package version through the approved package
+   publishing route.
+2. Verify registry readback for version, dist-tag, package metadata, and
+   tarball contents.
+3. Run a clean install smoke without lifecycle scripts.
+4. Run a CLI smoke that proves help/version and auth-gated review-only behavior.
+5. Update the public URL inventory and release evidence only after those checks
+   pass.

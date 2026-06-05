@@ -2,7 +2,7 @@
 
 This inventory tracks public links that must exist before the companion repository, packages, action, schemas, docs, badges, or platform links are advertised.
 
-Current status: source repository, schema, documentation, package registry pages, action usage reference, badge/readback documentation, and `agentique.io` public links are approved for advertising after publication and smoke testing.
+Current status: source repository, schema, documentation, approved package registry pages, action usage reference, badge/readback documentation, and `agentique.io` public links are approved for advertising after publication and smoke testing. The uploader package page is tracked as pending and must not be advertised yet.
 
 ## Approved URL Classes
 
@@ -11,7 +11,8 @@ Current status: source repository, schema, documentation, package registry pages
 - Public documentation URL: approved.
 - `agentique.io` companion landing link: approved.
 - `agentique.io` read-only public readback endpoint: approved.
-- Package registry pages: approved.
+- Package registry pages for `@agentique.io/schemas`, `@agentique.io/validator`, `@agentique.io/action`, and `@agentique.io/readback`: approved.
+- Package registry page for `@agentique.io/uploader`: pending and non-advertised.
 - Action usage reference: approved.
 - Badge example URL: approved.
 
@@ -34,3 +35,5 @@ Starter manifest `source.url` values must use final owner-approved HTTPS URLs wh
 Example content files may still show obviously non-production example URLs when the field is part of a sample payload, but those URLs must not be advertised as working public endpoints.
 
 When package, action, badge, or platform URLs are advertised, release checks must fail until every advertised URL is a final owner-approved HTTPS URL.
+
+The stricter all-public-url mode applies only after all pending channels are approved for advertising. Until uploader publication is closed, normal URL inventory checks allow the pending uploader package page with `advertise: false`.

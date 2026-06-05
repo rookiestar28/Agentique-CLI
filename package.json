@@ -9,12 +9,14 @@
   ],
   "scripts": {
     "pack:dry-run": "node scripts/package-dry-run.mjs",
+    "install:smoke": "node scripts/package-install-smoke.mjs",
+    "registry:readback": "node scripts/registry-readback.mjs",
     "release:go-no-go": "node scripts/check-release-go-no-go.mjs",
     "release:check": "node scripts/release-check.mjs .",
     "urls:check": "node scripts/check-public-url-inventory.mjs",
     "validate:starters": "node scripts/validate-starters.mjs",
     "workflow:check": "node scripts/check-workflow-posture.mjs",
-    "test": "node --test scripts/tests/*.test.mjs && npm --prefix packages/validator test && npm --prefix packages/action test && npm --prefix packages/readback test"
+    "test": "node --test scripts/tests/*.test.mjs && npm --prefix packages/validator test && npm --prefix packages/action test && npm --prefix packages/readback test && npm --prefix packages/uploader test"
   },
   "engines": {
     "node": ">=20"
