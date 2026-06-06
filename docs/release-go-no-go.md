@@ -2,6 +2,8 @@
 
 Current source repository, published package registry pages, action usage, badge/readback documentation, and platform-link publication decision: **Go** for advertised channels.
 
+Current branch-local source changes have local release-gate evidence only until they are pushed and hosted checks run. They do not publish a new package version by themselves.
+
 The source repository is public. The public repository URL, package registry pages, action usage reference, badge/readback documentation, public documentation URL, schema URL base, `agentique.io` public URL, hosted CI evidence, branch protection evidence, and owner go/no-go approval are recorded.
 
 Package registry pages, badge/readback documentation, and action usage documentation are approved after publication and smoke testing. GitHub Marketplace-style promotion remains a separate future channel.
@@ -34,6 +36,7 @@ Current public-safe evidence is recorded in [release-evidence.md](release-eviden
 - Surfacing contract fixture matrix is covered by release checks.
 - Readback helper docs describe context bundle and selection projections as read-only public projections.
 - Hosted Release Check evidence is recorded for the latest pushed public release candidate; later branch changes require a fresh hosted run before downstream release claims.
+- Current branch-local release gate refresh passed package tests, starter validation, release checks, workflow posture, package dry-run, URL inventory, registry readback, install smoke, go/no-go, content scan, diff check, and production dependency audits.
 - Public `main` branch protection is enabled.
 - Final public URLs are approved.
 - `agentique.io` public links are approved.

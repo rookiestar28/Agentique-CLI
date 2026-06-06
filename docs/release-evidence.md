@@ -9,7 +9,7 @@ This file records public-safe release evidence for the companion repository. Do 
 - Node.js: v24.13.1
 - npm: 11.8.0 local baseline; npm 11.14.1 for earlier dotted-scope registry readback/install smoke
 - Git: 2.53.0.windows.1
-- Branch: feature/uploader-alignment
+- Branch: feature/registry-trust-alignment
 - Public repository: `https://github.com/rookiestar28/Agentique`
 - Commit evidence: hosted CI is tracked through GitHub Actions for the latest pushed public release candidate. Latest recorded public evidence is the successful hosted Release Check for the latest pushed release candidate. Later pushes require a fresh hosted run before downstream release claims.
 
@@ -26,6 +26,7 @@ This file records public-safe release evidence for the companion repository. Do 
 | Package dry run | Pass | `npm run pack:dry-run` passed schemas, validator, action, readback, and uploader package checks. |
 | URL inventory check | Pass | `npm run urls:check` passed. |
 | Go/no-go check | Pass as Go | `npm run release:go-no-go` passed with recorded external evidence. |
+| Branch-local release gate refresh | Pass | Current source branch local validation passed package tests, starter validation, release checks, workflow posture, package dry-run, URL inventory, registry readback, install smoke, go/no-go, content scan, diff check, and production dependency audits. This local refresh does not replace hosted CI evidence for later pushed changes. |
 | Root production dependency audit | Pass | `npm audit --omit=dev` found 0 vulnerabilities. |
 | Validator production dependency audit | Pass | `npm --prefix packages/validator audit --omit=dev` found 0 vulnerabilities. |
 | Action production dependency audit | Pass | `npm --prefix packages/action audit --omit=dev` found 0 vulnerabilities. |
@@ -66,7 +67,7 @@ Current command-line finding:
 - Authenticated review-session access and final resource publication remain platform and account/token gated. Package checks do not advertise live publication or platform approval.
 - Final uploader publication closeout is Go for npm package availability after owner-approved publication, hosted CI evidence, npm registry readback, and clean install smoke from npm.
 
-Current branch-local documentation now describes registry trust metadata, creator checkpoints, trust readback, local draft output, and patch/delta output. A fresh hosted release check is still required before any downstream release claim is updated for later pushed changes.
+Current branch-local documentation now describes registry trust metadata, creator checkpoints, trust readback, local draft output, and patch/delta output. Current local release gates pass for this source branch, but a fresh hosted release check is still required before any downstream release claim is updated for later pushed changes.
 
 ## All-Channel Public URL Mode
 
@@ -150,4 +151,4 @@ These smoke checks approve source repository, published package registry, action
 
 ## Current Decision
 
-The source repository, published npm packages including `@agentique.io/uploader`, action usage reference, badge/readback documentation, and `agentique.io` public links are Go for advertised channels. Authenticated review-session access and final resource publication remain platform-owned and account/token gated. GitHub Marketplace-style promotion remains separate from this source/package release.
+The source repository, published npm packages including `@agentique.io/uploader`, action usage reference, badge/readback documentation, and `agentique.io` public links are Go for advertised channels. The current source branch does not publish a new package version by itself; later pushed changes still require hosted CI evidence and owner review before downstream release claims are updated. Authenticated review-session access and final resource publication remain platform-owned and account/token gated. GitHub Marketplace-style promotion remains separate from this source/package release.
