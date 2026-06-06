@@ -183,6 +183,61 @@ export function normalizePublicReadback(value) {
   return Object.freeze(normalized);
 }
 
+export function normalizeTrustReadback(value) {
+  const normalized = normalizePublicReadback(value);
+  if (!normalized || typeof normalized !== "object" || Array.isArray(normalized)) {
+    return Object.freeze({
+      platformState: "unavailable",
+      desiredState: null,
+      scannerPolicy: null,
+      trustPanel: null,
+      reviewEligibility: null,
+      reportActionState: null,
+      versionHistory: []
+    });
+  }
+
+  const platformProjection = isRecord(normalized.platformProjection) ? normalized.platformProjection : {};
+  const desiredState = isRecord(normalized.desiredState) ? normalized.desiredState : null;
+  const scannerPolicy = isRecord(normalized.scannerPolicy) ? normalized.scannerPolicy : null;
+  const trustPanel = isRecord(normalized.trustPanel) ? normalized.trustPanel : null;
+  const reviewEligibility = isRecord(normalized.reviewEligibility) ? normalized.reviewEligibility : null;
+  const versionHistory = Array.isArray(normalized.versionHistory) ? normalized.versionHistory.filter(isRecord).map(projectVersion) : [];
+
+  return Object.freeze({
+    platformState: normalizePublicState(platformProjection.publicationState ?? normalized.status ?? normalized.state),
+    desiredState: desiredState
+      ? Object.freeze({
+          state: normalizePublicState(desiredState.readbackState),
+          fingerprintPresent: typeof desiredState.fingerprint === "string",
+          reasons: arrayOfStrings(desiredState.reasons)
+        })
+      : null,
+    scannerPolicy: scannerPolicy
+      ? Object.freeze({
+          policyVersion: stringOrNull(scannerPolicy.policyVersion),
+          freshness: normalizePublicState(scannerPolicy.freshness)
+        })
+      : null,
+    trustPanel: trustPanel
+      ? Object.freeze({
+          state: normalizePublicState(trustPanel.state),
+          messages: arrayOfStrings(trustPanel.messages),
+          versionHistoryUrl: stringOrNull(trustPanel.versionHistoryUrl)
+        })
+      : null,
+    reviewEligibility: reviewEligibility
+      ? Object.freeze({
+          state: normalizePublicState(reviewEligibility.state),
+          evidenceTypes: arrayOfStrings(reviewEligibility.evidenceTypes),
+          reasons: arrayOfStrings(reviewEligibility.reasons)
+        })
+      : null,
+    reportActionState: stringOrNull(normalized.reportActionState),
+    versionHistory: Object.freeze(versionHistory)
+  });
+}
+
 function isPrivateProjectionKey(key) {
   const normalized = key.replace(/[-_\s]/g, "").toLowerCase();
   return (
@@ -193,6 +248,35 @@ function isPrivateProjectionKey(key) {
     normalized.includes("credential") ||
     (normalized.endsWith("token") && normalized !== "tokencount")
   );
+}
+
+function projectVersion(entry) {
+  return Object.freeze({
+    version: stringOrNull(entry.version),
+    observedAt: stringOrNull(entry.observedAt),
+    state: normalizePublicState(entry.state),
+    desiredStateFingerprintPresent: typeof entry.desiredStateFingerprint === "string"
+  });
+}
+
+function arrayOfStrings(value) {
+  return Object.freeze(Array.isArray(value) ? value.filter((item) => typeof item === "string") : []);
+}
+
+function stringOrNull(value) {
+  return typeof value === "string" ? value : null;
+}
+
+function normalizePublicState(value) {
+  return String(value ?? "unknown")
+    .trim()
+    .toLowerCase()
+    .replace(/_/g, "-")
+    .replace(/\s+/g, "-");
+}
+
+function isRecord(value) {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
 export function assertReadOnlyClientSurface(client) {

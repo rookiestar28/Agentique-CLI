@@ -2,6 +2,7 @@ export {
   ReadbackError,
   assertReadOnlyClientSurface,
   createReadbackClient,
+  normalizeTrustReadback,
   normalizeBaseUrl,
   normalizePublicReadback
 } from "./client.mjs";

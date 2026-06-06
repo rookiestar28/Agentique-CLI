@@ -13,6 +13,12 @@ const BADGE_STATES = Object.freeze({
     color: "bf8700",
     description: "The platform readback requires review before normal public use."
   },
+  "rescan-required": {
+    state: "rescan-required",
+    label: "Rescan required",
+    color: "9a6700",
+    description: "The platform readback indicates local content should be scanned again before normal public use."
+  },
   blocked: {
     state: "blocked",
     label: "Blocked",
@@ -56,6 +62,11 @@ export function createBadgeState(readback, options = {}) {
     return badge("stale", { observedAt });
   }
 
+  const trustState = trustBadgeState(readback);
+  if (trustState) {
+    return badge(trustState, { platformUrl: readback.platformUrl ?? readback.url ?? null });
+  }
+
   const status = normalizeStatus(readback.status ?? readback.publicationStatus ?? readback.state);
 
   if (status === "published") {
@@ -92,6 +103,40 @@ function badge(state, extras = {}) {
     ...BADGE_STATES[state],
     ...extras
   });
+}
+
+function trustBadgeState(readback) {
+  const desiredState = normalizeStatus(readback.desiredState?.readbackState);
+  const scannerFreshness = normalizeStatus(readback.scannerPolicy?.freshness);
+  const trustPanelState = normalizeStatus(readback.trustPanel?.state);
+  const reviewState = normalizeStatus(readback.reviewEligibility?.state);
+  const platformState = normalizeStatus(readback.platformProjection?.publicationState);
+
+  if ([trustPanelState, platformState].some((state) => ["blocked", "quarantined", "rejected"].includes(state))) {
+    return "blocked";
+  }
+
+  if ([desiredState, scannerFreshness, trustPanelState].includes("rescan-required")) {
+    return "rescan-required";
+  }
+
+  if (
+    [desiredState, trustPanelState, platformState].includes("review-required") ||
+    reviewState === "needs-evidence" ||
+    reviewState === "creator-blocked"
+  ) {
+    return "review-required";
+  }
+
+  if (platformState === "published" || trustPanelState === "current") {
+    return "published";
+  }
+
+  if ([desiredState, scannerFreshness, trustPanelState, platformState].includes("stale")) {
+    return "stale";
+  }
+
+  return null;
 }
 
 function isStale(value, now, staleAfterSeconds) {

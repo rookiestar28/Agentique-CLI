@@ -7,7 +7,8 @@ import {
   createBadgeState,
   createReadbackClient,
   listBadgeStates,
-  normalizePublicReadback
+  normalizePublicReadback,
+  normalizeTrustReadback
 } from "../src/index.mjs";
 
 function jsonResponse(payload, options = {}) {
@@ -265,6 +266,7 @@ describe("badge states", () => {
     assert.deepEqual(listBadgeStates(), [
       "published",
       "review-required",
+      "rescan-required",
       "blocked",
       "stale",
       "unavailable",
@@ -276,6 +278,15 @@ describe("badge states", () => {
     assert.equal(createBadgeState({ status: "published" }).state, "published");
     assert.equal(createBadgeState({ status: "review required" }).state, "review-required");
     assert.equal(createBadgeState({ status: "quarantined" }).state, "blocked");
+    assert.equal(createBadgeState({ platformProjection: { publicationState: "published" } }).state, "published");
+    assert.equal(createBadgeState({ desiredState: { readbackState: "review-required" } }).state, "review-required");
+    assert.equal(createBadgeState({ trustPanel: { state: "blocked" } }).state, "blocked");
+  });
+
+  it("maps trust projection rescan and review eligibility states", () => {
+    assert.equal(createBadgeState({ desiredState: { readbackState: "rescan-required" } }).state, "rescan-required");
+    assert.equal(createBadgeState({ scannerPolicy: { freshness: "rescan-required" } }).state, "rescan-required");
+    assert.equal(createBadgeState({ reviewEligibility: { state: "needs-evidence" } }).state, "review-required");
   });
 
   it("maps stale, unavailable, and rate-limited states", () => {
@@ -294,6 +305,7 @@ describe("badge states", () => {
     const states = [
       createBadgeState({ status: "published" }),
       createBadgeState({ status: "review required" }),
+      createBadgeState({ scannerPolicy: { freshness: "rescan-required" } }),
       createBadgeState({ status: "blocked" }),
       createBadgeState(null),
       createBadgeState({ code: "rate-limited" })
@@ -305,6 +317,90 @@ describe("badge states", () => {
 });
 
 describe("normalizer", () => {
+  it("normalizes public trust readback fields into a stable summary", () => {
+    assert.deepEqual(
+      normalizeTrustReadback({
+        platformProjection: {
+          publicationState: "published"
+        },
+        desiredState: {
+          fingerprint: "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          readbackState: "unchanged",
+          reasons: ["current"]
+        },
+        scannerPolicy: {
+          policyVersion: "policy-v1",
+          freshness: "current",
+          rawScanResults: "hidden"
+        },
+        reviewEligibility: {
+          state: "eligible",
+          evidenceTypes: ["download"],
+          privateReviewNotes: "hidden"
+        },
+        trustPanel: {
+          state: "current",
+          messages: ["Public readback shows current platform state."],
+          versionHistoryUrl: "https://agentique.io/resources/example-resource/versions",
+          privateOperatorNote: "hidden"
+        },
+        versionHistory: [
+          {
+            version: "1.0.0",
+            observedAt: "2026-06-06T00:00:00.000Z",
+            state: "current",
+            desiredStateFingerprint: "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+            storageKey: "hidden"
+          }
+        ],
+        reportActionState: "available"
+      }),
+      {
+        platformState: "published",
+        desiredState: {
+          state: "unchanged",
+          fingerprintPresent: true,
+          reasons: ["current"]
+        },
+        scannerPolicy: {
+          policyVersion: "policy-v1",
+          freshness: "current"
+        },
+        trustPanel: {
+          state: "current",
+          messages: ["Public readback shows current platform state."],
+          versionHistoryUrl: "https://agentique.io/resources/example-resource/versions"
+        },
+        reviewEligibility: {
+          state: "eligible",
+          evidenceTypes: ["download"],
+          reasons: []
+        },
+        reportActionState: "available",
+        versionHistory: [
+          {
+            version: "1.0.0",
+            observedAt: "2026-06-06T00:00:00.000Z",
+            state: "current",
+            desiredStateFingerprintPresent: true
+          }
+        ]
+      }
+    );
+  });
+
+  it("keeps legacy trust readback payloads compatible", () => {
+    assert.deepEqual(normalizeTrustReadback({ status: "review required" }), {
+      platformState: "review-required",
+      desiredState: null,
+      scannerPolicy: null,
+      trustPanel: null,
+      reviewEligibility: null,
+      reportActionState: null,
+      versionHistory: []
+    });
+  });
+
   it("preserves public projection keys that contain formerly ambiguous terms", () => {
     assert.deepEqual(
       normalizePublicReadback({
