@@ -2,9 +2,9 @@
 
 Agentique.io is a platform for preparing, reviewing, publishing, and displaying public AI resource listings. Agentique companion docs describe the public developer kit and creator kit for that platform.
 
-These docs help external creators prepare public resources before entering the `agentique.io` upload flow, validate package structure with public tooling, inspect non-static lane descriptors, review uploader behavior, and display resource status through public readback after platform publication.
+These docs help external creators prepare public resources before entering the `agentique.io` upload flow, validate package structure with public tooling, inspect non-static lane descriptors, review uploader behavior, prepare local draft or patch output, and display resource status through public readback after platform publication.
 
-The docs explain resource manifests, skill packages, workflow templates, non-static lane examples, distribution mode choices, uploader boundaries, scan readback, and support routing.
+The docs explain resource manifests, registry trust metadata, skill packages, workflow templates, non-static lane examples, distribution mode choices, uploader boundaries, trust readback, generated draft and patch/delta preparation, and support routing.
 
 agentique.io owns upload, scan, review, consent, moderation, distribution state, and readback. Companion docs and local tools only help prepare content for that platform-owned flow.
 
@@ -16,8 +16,9 @@ Local validation is not platform approval. Local validation is not safety certif
 2. Add package metadata and inventory.
 3. Choose a distribution mode that matches the content.
 4. Run local static checks when available.
-5. Enter the platform-owned upload flow on `agentique.io`, or review an uploader session when explicitly configured with platform API access.
-6. Wait for platform scan, review, consent, moderation, publication, and readback.
+5. Use uploader plan, draft, or patch commands for local review-only preparation when useful.
+6. Enter the platform-owned upload flow on `agentique.io`, or review an uploader session when explicitly configured with platform API access and checkpoint-ready package metadata.
+7. Wait for platform scan, review, consent, moderation, publication, and readback.
 
 ## Public Boundaries
 

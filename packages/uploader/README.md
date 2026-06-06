@@ -14,7 +14,7 @@ Current boundary:
 - Upload plan validates local packages with `@agentique.io/validator` without executing package code.
 - Upload draft emits local draft-only card or manifest output for review; it does not submit generated content.
 - Upload patch emits local patch or delta operation summaries when package metadata provides them; it does not submit partial updates.
-- Upload submit requires token auth, validates the package first, creates a review-only session, uploads evidence, and requires server completion verification.
+- Upload submit requires token auth, an Agentique API origin, checkpoint-ready package metadata, local validation, review-only session creation, evidence transfer, and server completion verification.
 - Upload status requires token auth and reads a review-only submission status.
 - JSON output is available with `--json`.
 - Browser sessions, cookies, CSRF state, storage URLs, and bearer tokens are not printed in CLI output.
@@ -34,4 +34,4 @@ agentique upload submit ./my-package --schemas-dir ./schemas --token <token> --a
 agentique upload status submission-id --token <token> --api-url https://www.agentique.io --json
 ```
 
-Use `@agentique.io/validator` for local no-execution package validation and `@agentique.io/readback` for read-only public status helpers.
+Use `@agentique.io/validator` for local no-execution package validation and `@agentique.io/readback` for read-only public status and trust projection helpers.

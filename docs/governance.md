@@ -11,8 +11,8 @@ This document defines the public boundary for the Agentique companion monorepo. 
 | `starters/` | Benign starter kits and canonical examples for public resource preparation. | De-weaponized examples only. |
 | `packages/validator` | Static no-execution local checks for upload preparation and package inventory review. | Local readiness only. |
 | `packages/action` | Least-privilege workflow wrapper around local validation output. | No platform approval claim. |
-| `packages/readback` | Read-only clients and badge helpers for public resource status and readback state. | Read-only public status only. |
-| `packages/uploader` | Published review-only upload planning, submit, and status helpers. | Review-only package; authenticated review-session access and final resource publication remain platform-owned and account/token gated. |
+| `packages/readback` | Read-only clients, trust projection normalizers, and badge helpers for public resource status and readback state. | Read-only public status only. |
+| `packages/uploader` | Published review-only upload planning, local draft, local patch, submit, and status helpers. | Local preparation plus review-only package; authenticated review-session access and final resource publication remain platform-owned and account/token gated. |
 | `scripts/` | Repository release checks, starter validation, workflow posture checks, registry readback, install smoke, package dry-runs, URL inventory checks, and go/no-go checks. | Local/repository evidence only. |
 
 No companion surface may publish, edit, delete, moderate, approve, or certify platform resources. Upload authority and platform review stay on `agentique.io`.
@@ -27,6 +27,7 @@ Allowed content:
 - Static validation tooling.
 - Review-only uploader tooling.
 - Read-only readback clients.
+- Local draft and patch/delta preparation output.
 - Community health files.
 
 Excluded content:

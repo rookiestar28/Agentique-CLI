@@ -100,6 +100,18 @@ A minimal context bundle is a public projection for selected resource context. I
 
 Context bundles should not embed private manifests, all-catalog payloads, account data, moderation notes, or unbounded resource content. Treat bundle content as advisory public context; `agentique.io` remains authoritative for final readback state and public resource availability.
 
+## Registry Trust Metadata
+
+Resource manifests may include optional `registryTrust` metadata for public-safe preparation signals:
+
+- `creatorMetadata` records who declared the package metadata and when.
+- `packageContext` records public package identity, source URL, ownership evidence version, and digest presence.
+- `creatorCheckpoints` records acknowledged preparation steps such as lane selection, source upload, manifest inspection, scan or ownership evidence, data-flow disclosure, card fields, public draft preview, review-only confirmation, and readback acknowledgement.
+- `generatedDraft` marks local card or manifest suggestions as draft-only.
+- `patchDelta` describes explicit patch or delta operations without representing a full snapshot.
+
+These fields are creator-supplied preparation metadata. They do not set platform scan state, publication state, review state, verified badges, latest-version state, or platform trust scores. The uploader can use them to report checkpoint readiness and local draft or patch output, but `agentique.io` remains authoritative for review submission, validation, moderation, publication, distribution state, and public readback.
+
 ## Scan Readback
 
-Scan readback is the public status that `agentique.io` exposes after platform processing. Local validation is not platform approval. Local validation is not safety certification.
+Scan and trust readback are public statuses that `agentique.io` exposes after platform processing. Public readback can include desired-state, scanner-policy, trust-panel, review-eligibility, report-action, and version-history fields. Local validation is not platform approval. Local validation is not safety certification.

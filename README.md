@@ -17,8 +17,8 @@ This repository is for creators and integrators before and after platform submis
 - Prepare static resource packages with public manifests.
 - Validate package shape, hashes, paths, bounded file reads, contract-bearing JSON files, and secret-like content locally.
 - Run the same validation in GitHub Actions with read-only permissions.
-- Use the review-only uploader CLI before a platform-owned submission.
-- Consume public readback status and badge states for resources that are already published by `agentique.io`.
+- Use the review-only uploader CLI for upload plans, creator checkpoint readiness, local draft output, local patch/delta output, and authenticated review-session checks before a platform-owned submission.
+- Consume public readback status, trust projection summaries, and badge states for resources that are already published by `agentique.io`.
 - Use public tools to prepare, validate, and display resource status before entering the Agentique website upload flow.
 
 Local tools in this repository do not publish, approve, certify, edit, delete, or moderate resources.
@@ -61,13 +61,15 @@ npx agentique-validator validate <package-dir> --schemas-dir node_modules/@agent
 Use readback helpers for public resource state exposed by `agentique.io`:
 
 ```js
-import { createBadgeState, createReadbackClient } from "@agentique.io/readback";
+import { createBadgeState, createReadbackClient, normalizeTrustReadback } from "@agentique.io/readback";
 
 const client = createReadbackClient();
 const readback = await client.getReadback("resource-id");
+const trust = normalizeTrustReadback(readback);
 const badge = createBadgeState(readback);
 
 console.log(`${badge.label}: ${badge.message}`);
+console.log(trust.platformState);
 ```
 
 ## Quick Start From Source
@@ -113,9 +115,11 @@ Review uploader source behavior locally:
 ```bash
 node packages/uploader/src/cli.mjs auth status --json
 node packages/uploader/src/cli.mjs upload plan starters/agent-assistant --schemas-dir schemas --json
+node packages/uploader/src/cli.mjs upload draft starters/agent-assistant --schemas-dir schemas --draft-kind manifest --json
+node packages/uploader/src/cli.mjs upload patch starters/agent-assistant --schemas-dir schemas --json
 ```
 
-The uploader can create review-only upload sessions when configured with platform API access. It does not publish, approve, certify, host, or moderate resources.
+The uploader can create review-only upload sessions when configured with platform API access and checkpoint-ready package metadata. Local draft and patch commands are unsubmitted helper outputs. The uploader does not publish, approve, certify, host, or moderate resources.
 
 Run release-readiness checks locally:
 
@@ -177,9 +181,11 @@ Release evidence and approved public channels are tracked in [docs/release-evide
 2. Edit `manifest.json` with public metadata.
 3. Add inspectable Markdown or JSON content files.
 4. Keep secrets, credentials, private paths, generated archives, dependency folders, executable payloads, and personal data out of the package.
-5. Validate locally with the validator CLI.
-6. Submit through the platform-owned upload flow.
-7. Use readback helpers only after `agentique.io` exposes public resource status.
+5. Add optional `registryTrust` metadata only for public-safe creator checkpoints, package context, generated draft metadata, or patch/delta metadata.
+6. Validate locally with the validator CLI.
+7. Use uploader plan, draft, or patch commands for local review-only preparation when useful.
+8. Submit through the platform-owned upload flow or an authenticated review-only uploader session when configured.
+9. Use readback helpers only after `agentique.io` exposes public resource status.
 
 Package concepts are documented in [docs/resource-manifest.md](docs/resource-manifest.md).
 
@@ -267,9 +273,13 @@ Source commands:
 ```bash
 node packages/uploader/src/cli.mjs auth status --json
 node packages/uploader/src/cli.mjs upload plan <package-dir> --schemas-dir schemas --json
+node packages/uploader/src/cli.mjs upload draft <package-dir> --schemas-dir schemas --draft-kind manifest --json
+node packages/uploader/src/cli.mjs upload patch <package-dir> --schemas-dir schemas --json
 node packages/uploader/src/cli.mjs upload submit <package-dir> --schemas-dir schemas --token <token> --api-url https://www.agentique.io --json
 node packages/uploader/src/cli.mjs upload status <submission-id> --token <token> --api-url https://www.agentique.io --json
 ```
+
+`upload plan` reports validator-backed package evidence and creator checkpoint readiness. `upload draft` and `upload patch` are local-only and unsubmitted. `upload submit` requires scoped token auth, an Agentique API origin, checkpoint-ready package metadata, and server completion verification.
 
 The uploader does not publish, approve, certify, host, or moderate resources. Package installation is available from npm, while authenticated review-session access and final resource publication remain platform-owned and account/token gated.
 
@@ -316,13 +326,15 @@ The readback package is read-only. It targets versioned public resource paths un
 Example:
 
 ```js
-import { createBadgeState, createReadbackClient } from "@agentique.io/readback";
+import { createBadgeState, createReadbackClient, normalizeTrustReadback } from "@agentique.io/readback";
 
 const client = createReadbackClient();
 const readback = await client.getReadback("resource-id");
+const trust = normalizeTrustReadback(readback);
 const badge = createBadgeState(readback);
 
 console.log(`${badge.label}: ${badge.message}`);
+console.log(trust.trustPanel?.state ?? trust.platformState);
 ```
 
 Read-only methods:
@@ -339,12 +351,13 @@ Badge states:
 
 - `published`
 - `review-required`
+- `rescan-required`
 - `blocked`
 - `stale`
 - `unavailable`
 - `rate-limited`
 
-Badge output is a public readback summary, not a safety guarantee. See [packages/readback/README.md](packages/readback/README.md).
+Trust normalization projects public desired-state, scanner-policy, trust-panel, review-eligibility, report-action, and version-history fields when the platform exposes them. Badge output is a public readback summary, not a safety guarantee. See [packages/readback/README.md](packages/readback/README.md).
 
 ## Schemas
 
@@ -356,6 +369,7 @@ Schemas are stored in `schemas/` and can be used by local tooling or external va
 - `workflow-metadata.schema.json`
 - `distribution-mode.schema.json`
 - `public-readback.schema.json`
+- `registry-trust.schema.json`
 - `surfacing-metadata.schema.json`
 - `permission-risk.schema.json`
 - `output-contract.schema.json`

@@ -11,8 +11,8 @@ This repository uses public review rules to keep companion content narrow, safe,
 | Starters | `starters/` | De-weaponized examples, matching hashes, no executable payloads unless explicitly part of a blocked fixture |
 | Validator | `packages/validator/` | Static no-execution behavior, redacted findings, stable exit codes |
 | Action | `packages/action/`, `.github/workflows/` | Least privilege, no untrusted secret exposure, no publish behavior in validation workflows |
-| Readback | `packages/readback/` | Read-only methods only, stale/unavailable states, no safety guarantee wording |
-| Uploader | `packages/uploader/` | Review-only wording, auth redaction, token handling, registry state, no platform publication or approval claims |
+| Readback | `packages/readback/` | Read-only methods only, stale/unavailable states, trust projection wording, no safety guarantee wording |
+| Uploader | `packages/uploader/` | Review-only wording, auth redaction, token handling, checkpoint readiness, local draft and patch output, no platform publication or approval claims |
 | Release | `release-manifest.json`, `scripts/`, release checklist | Allowlist coverage, content scan behavior, registry readback, install smoke, package dry-run evidence |
 
 ## Public Issue Boundary
@@ -25,4 +25,4 @@ Do not include credentials, vulnerability details, exploit steps, private accoun
 
 Pull requests must pass the release check, package tests, starter validation, and dependency audits before release review. Changes that advertise package pages must also record registry readback and install smoke. Changes that touch workflows, packages, schemas, or release scripts require owner review before public release.
 
-Local validation output means local readiness only. It does not approve publication, certify safety, or replace platform review.
+Local validation, uploader planning, local draft output, and patch/delta output mean local readiness only. They do not approve publication, certify safety, or replace platform review.

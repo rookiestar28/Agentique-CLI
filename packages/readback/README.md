@@ -15,13 +15,15 @@ npm install @agentique.io/readback
 ## Usage
 
 ```js
-import { createBadgeState, createReadbackClient } from "@agentique.io/readback";
+import { createBadgeState, createReadbackClient, normalizeTrustReadback } from "@agentique.io/readback";
 
 const client = createReadbackClient();
 const readback = await client.getReadback("resource-id");
+const trust = normalizeTrustReadback(readback);
 const badge = createBadgeState(readback);
 
 console.log(badge.label);
+console.log(trust.trustPanel?.state ?? trust.platformState);
 ```
 
 ## Read-Only Client
@@ -44,12 +46,15 @@ Context bundle and selection readback helpers use narrow query allowlists for pu
 
 Returned payloads are normalized with a defense-in-depth projection pass that removes explicitly private fields while preserving public schema fields such as `internalId`, `storageUsage`, `deploymentDate`, `tokenCount`, `objectType`, and `storageMode`. The platform API remains responsible for the authoritative public projection; client-side normalization is not a privacy boundary.
 
+`normalizeTrustReadback()` projects public desired-state, scanner-policy, trust-panel, review-eligibility, report-action, and version-history fields into a stable readback summary when those fields are present.
+
 ## Badge States
 
 Badge helpers return explicit states:
 
 - `published`
 - `review-required`
+- `rescan-required`
 - `blocked`
 - `stale`
 - `unavailable`

@@ -19,7 +19,8 @@ Use this checklist before any public release, package publish, repository link c
 - Public docs describe external-intake output as advisory review evidence only.
 - Surfacing contract fixture matrix exists and covers overlapping, risky, stale, off-topic, invalid-output, and budget-overflow cases.
 - Public docs describe context bundle and selection readback helpers as read-only baseline projections.
-- Uploader package status is documented separately from platform publication and live resource availability.
+- Public docs describe registry trust metadata, creator checkpoints, trust readback, generated drafts, and patch/delta output as preparation/readback contracts only.
+- Uploader package status, local draft/patch output, and review-only submit are documented separately from platform publication and live resource availability.
 - Any pending package pages are marked non-advertised in the URL inventory.
 - Registry readback passed with expected published package states.
 - Package install smoke passed from locally packed tarballs with lifecycle scripts disabled.
@@ -41,3 +42,5 @@ Passing this checklist means the release candidate is ready for owner review. It
 External-intake output does not approve a candidate, certify safety, replace platform moderation, or provide legal clearance.
 
 Surfacing contract fixtures and readback helper output are release-review inputs only. They do not replace `agentique.io` review, moderation, publication state, distribution state, or public readback.
+
+Generated draft and patch/delta helper output is local preparation output only. It remains unsubmitted until the user confirms the change and the platform validates it through the review flow.

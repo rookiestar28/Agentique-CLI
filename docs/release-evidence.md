@@ -60,11 +60,13 @@ Uploader source alignment and npm package checks were refreshed on 2026-06-06.
 Current command-line finding:
 
 - `@agentique.io/uploader` is implemented in source at version `0.1.0`.
-- Uploader CLI source includes redacted auth status, upload-plan evidence, review-only submit/status helpers, bearer/storage separation, bounded transfer retry, and server completion verification checks.
+- Uploader CLI source includes redacted auth status, upload-plan evidence, creator checkpoint readiness, local draft output, local patch/delta output, review-only submit/status helpers, bearer/storage separation, bounded transfer retry, and server completion verification checks.
 - `@agentique.io/uploader` is included in root tests, package dry-run, publish workflow validation, and production dependency audit.
 - npm registry readback for `@agentique.io/uploader` returns published version `0.1.0`, so the package page is approved for advertising.
 - Authenticated review-session access and final resource publication remain platform and account/token gated. Package checks do not advertise live publication or platform approval.
 - Final uploader publication closeout is Go for npm package availability after owner-approved publication, hosted CI evidence, npm registry readback, and clean install smoke from npm.
+
+Current branch-local documentation now describes registry trust metadata, creator checkpoints, trust readback, local draft output, and patch/delta output. A fresh hosted release check is still required before any downstream release claim is updated for later pushed changes.
 
 ## All-Channel Public URL Mode
 
