@@ -5,6 +5,9 @@ import { createUploadPlan } from "./plan.mjs";
 const DEFAULT_API_URL = "https://www.agentique.io";
 const SUBMIT_SCHEMA_VERSION = "agentique.uploader.submit.v1";
 const STATUS_SCHEMA_VERSION = "agentique.uploader.status.v1";
+const ERROR_SCHEMA_VERSION = "agentique.uploader.error.v1";
+const ALLOWED_API_HOSTS = new Set(["agentique.io", "www.agentique.io", "api.agentique.io"]);
+const SENSITIVE_TRANSFER_HEADERS = new Set(["authorization", "cookie", "x-api-key", "x-agentique-token"]);
 
 export async function submitReviewOnlyUpload({
   packageDir,
@@ -23,20 +26,19 @@ export async function submitReviewOnlyUpload({
 
   const baseUrl = parseApiUrl(apiUrl);
   if (!baseUrl.ok) {
-    return submitFailure("upload.submit.invalid_api_url", "API URL must be HTTPS.", { auth });
+    return submitFailure("upload.submit.invalid_api_url", "API URL must be an Agentique HTTPS API origin.", { auth });
   }
 
   const plan = await createUploadPlan({ packageDir, schemasDir, cwd });
   if (!plan.ok) {
-    return {
-      schemaVersion: SUBMIT_SCHEMA_VERSION,
-      ok: false,
-      code: "upload.submit.plan_failed",
-      command: "upload submit",
-      reviewOnly: true,
-      auth: safeAuth(auth),
+    return submitFailure("upload.submit.plan_failed", "Upload plan has validation findings.", { auth, plan });
+  }
+
+  if (plan.checkpoints?.readyForReviewSubmit !== true) {
+    return submitFailure("upload.submit.checkpoints_required", "Review-only submit requires completed creator checkpoint evidence.", {
+      auth,
       plan
-    };
+    });
   }
 
   try {
@@ -92,7 +94,7 @@ export async function readUploadStatus({
 
   const baseUrl = parseApiUrl(apiUrl);
   if (!baseUrl.ok) {
-    return statusFailure("upload.status.invalid_api_url", "API URL must be HTTPS.", { auth, submissionId });
+    return statusFailure("upload.status.invalid_api_url", "API URL must be an Agentique HTTPS API origin.", { auth, submissionId });
   }
 
   try {
@@ -139,6 +141,10 @@ async function createSession({ baseUrl, token, plan, fetchImpl }) {
 }
 
 async function transferEvidence({ session, plan, fetchImpl }) {
+  const transferUrl = parseTransferUrl(session.transfer.url);
+  if (!transferUrl.ok) {
+    throw new Error("transfer_url_invalid");
+  }
   const body = JSON.stringify({
     schemaVersion: "agentique.uploader.transfer.v1",
     reviewOnly: true,
@@ -146,15 +152,12 @@ async function transferEvidence({ session, plan, fetchImpl }) {
   });
   const payloadDigest = digest(body);
   // SECURITY: storage transfers use only server-provided transfer headers; never forward bearer auth.
-  const headers = {
-    "content-type": "application/json",
-    ...(session.transfer.headers ?? {})
-  };
+  const headers = safeTransferHeaders(session.transfer.headers);
 
   let attempts = 0;
   for (const attempt of [1, 2]) {
     attempts = attempt;
-    const response = await fetchImpl(session.transfer.url, {
+    const response = await fetchImpl(transferUrl.url, {
       method: session.transfer.method ?? "PUT",
       headers,
       body
@@ -178,6 +181,7 @@ async function completeSession({ baseUrl, token, session, plan, transfer, fetchI
       sessionId: session.sessionId,
       reviewOnly: true,
       inventoryDigest: plan.evidence.inventoryDigest,
+      checkpointDigest: digest(JSON.stringify(plan.checkpoints ?? null)),
       payloadDigest: transfer.payloadDigest
     })
   });
@@ -194,6 +198,7 @@ function submitFailure(code, message, { auth, plan = null }) {
     code,
     command: "upload submit",
     message,
+    error: publicSafeError(code, message),
     reviewOnly: true,
     auth: safeAuth(auth),
     ...(plan ? { plan: safePlanSummary(plan) } : {})
@@ -207,6 +212,7 @@ function statusFailure(code, message, { auth, submissionId }) {
     code,
     command: "upload status",
     message,
+    error: publicSafeError(code, message),
     reviewOnly: true,
     auth: safeAuth(auth),
     submission: {
@@ -232,7 +238,15 @@ function safePlanSummary(plan) {
     package: plan.package,
     inventoryDigest: plan.evidence?.inventoryDigest ?? null,
     findingCount: plan.evidence?.findingCount ?? 0,
-    noExecution: plan.noExecution === true
+    noExecution: plan.noExecution === true,
+    checkpoints: plan.checkpoints
+      ? {
+          readyForReviewSubmit: plan.checkpoints.readyForReviewSubmit === true,
+          missing: plan.checkpoints.missing ?? [],
+          packageContextReady: plan.checkpoints.packageContextReady === true,
+          reasons: plan.checkpoints.reasons ?? []
+        }
+      : null
   };
 }
 
@@ -246,10 +260,50 @@ function apiHeaders(token) {
 function parseApiUrl(value) {
   try {
     const url = new URL(value);
+    return { ok: url.protocol === "https:" && isAllowedApiHost(url.hostname), url };
+  } catch {
+    return { ok: false, url: null };
+  }
+}
+
+function parseTransferUrl(value) {
+  try {
+    const url = new URL(value);
     return { ok: url.protocol === "https:", url };
   } catch {
     return { ok: false, url: null };
   }
+}
+
+function isAllowedApiHost(hostname) {
+  const normalized = hostname.toLowerCase();
+  return ALLOWED_API_HOSTS.has(normalized) || normalized === "agentique.test" || normalized.endsWith(".agentique.test");
+}
+
+function safeTransferHeaders(headers) {
+  const safe = { "content-type": "application/json" };
+  if (!headers || typeof headers !== "object" || typeof headers[Symbol.iterator] === "function") {
+    return safe;
+  }
+
+  for (const [name, value] of Object.entries(headers)) {
+    const lowered = name.toLowerCase();
+    if (SENSITIVE_TRANSFER_HEADERS.has(lowered)) {
+      continue;
+    }
+    safe[name] = value;
+  }
+
+  return safe;
+}
+
+function publicSafeError(code, message) {
+  return {
+    schemaVersion: ERROR_SCHEMA_VERSION,
+    code,
+    message,
+    redacted: true
+  };
 }
 
 function digest(value) {

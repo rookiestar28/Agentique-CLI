@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { mkdtemp, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -8,6 +9,7 @@ import { promisify } from "node:util";
 import { test } from "node:test";
 import { executeUploaderCli, EXIT_CODES, parseArgs } from "../src/cli-core.mjs";
 import { createUploaderBoundaryStatus, UPLOADER_PACKAGE_BOUNDARY } from "../src/index.mjs";
+import { REQUIRED_CREATOR_CHECKPOINTS, evaluateUploadCheckpointEvidence } from "../src/plan.mjs";
 
 const execFileAsync = promisify(execFile);
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
@@ -119,6 +121,9 @@ test("auth status falls back from env to config", async () => {
 
 test("auth status fails closed for invalid token and config errors", async () => {
   const invalidToken = await executeUploaderCli(["auth", "status", "--token", "short", "--json"]);
+  const wrongSurfaceToken = await executeUploaderCli(
+    ["auth", "status", "--token", "session=browser_state_value;csrf=csrf_state_value", "--json"]
+  );
   const configError = await executeUploaderCli(["auth", "status", "--json"], {
     env: {
       AGENTIQUE_CONFIG: path.join(os.homedir(), "missing-agentique-config.json")
@@ -127,11 +132,13 @@ test("auth status fails closed for invalid token and config errors", async () =>
 
   assert.equal(invalidToken.exitCode, EXIT_CODES.unavailable);
   assert.equal(JSON.parse(invalidToken.stdout).code, "auth.invalid_token");
+  assert.equal(wrongSurfaceToken.exitCode, EXIT_CODES.unavailable);
+  assert.equal(JSON.parse(wrongSurfaceToken.stdout).code, "auth.wrong_surface_credential");
   assert.equal(configError.exitCode, EXIT_CODES.unavailable);
   assert.equal(JSON.parse(configError.stdout).code, "auth.config_error");
   assert.doesNotMatch(
-    invalidToken.stdout + configError.stdout + configError.stderr,
-    forbiddenLocalOutputPattern(["short", "missing-agentique-config"])
+    invalidToken.stdout + wrongSurfaceToken.stdout + configError.stdout + configError.stderr,
+    forbiddenLocalOutputPattern(["short", "browser_state_value", "csrf_state_value", "missing-agentique-config"])
   );
 });
 
@@ -179,7 +186,23 @@ test("upload plan emits validator evidence for a valid starter", async () => {
   assert.equal(status.data.package.name, "agent-assistant");
   assert.equal(status.data.evidence.inventory.length, 2);
   assert.match(status.data.evidence.inventoryDigest, /^sha256:[a-f0-9]{64}$/);
+  assert.equal(status.data.checkpoints.readyForReviewSubmit, false);
+  assert.deepEqual(status.data.checkpoints.missing, REQUIRED_CREATOR_CHECKPOINTS);
   assert.doesNotMatch(result.stdout, forbiddenLocalOutputPattern());
+});
+
+test("upload plan reports ready checkpoint evidence for a valid checkpoint package", async () => {
+  const packageDir = await createCheckpointPackageFixture();
+  const result = await executeUploaderCli(["upload", "plan", packageDir, "--schemas-dir", path.join(repoRoot, "schemas"), "--json"]);
+  const status = JSON.parse(result.stdout);
+
+  assert.equal(result.exitCode, EXIT_CODES.success);
+  assert.equal(status.ok, true);
+  assert.equal(status.data.checkpoints.readyForReviewSubmit, true);
+  assert.equal(status.data.checkpoints.packageContextReady, true);
+  assert.deepEqual(status.data.checkpoints.missing, []);
+  assert.equal(status.data.registryTrust.creatorCheckpointCount, REQUIRED_CREATOR_CHECKPOINTS.length);
+  assert.doesNotMatch(result.stdout, forbiddenLocalOutputPattern([packageDir]));
 });
 
 test("upload plan fails closed for invalid packages without absolute path leakage", async () => {
@@ -196,6 +219,7 @@ test("upload plan fails closed for invalid packages without absolute path leakag
 
 test("upload submit completes a review-only session without forwarding bearer auth to storage", async () => {
   const calls = [];
+  const packageDir = await createCheckpointPackageFixture();
   const fetchImpl = async (url, init = {}) => {
     const call = { url: String(url), init };
     calls.push(call);
@@ -211,7 +235,9 @@ test("upload submit completes a review-only session without forwarding bearer au
           url: "https://storage.agentique.test/upload/sess_test_123?sig=private",
           method: "PUT",
           headers: {
-            "x-agentique-transfer": "session"
+            "x-agentique-transfer": "session",
+            authorization: "Bearer storage-header-value",
+            cookie: "storage_cookie=value"
           }
         }
       });
@@ -221,6 +247,7 @@ test("upload submit completes a review-only session without forwarding bearer au
       assert.equal(call.url, "https://storage.agentique.test/upload/sess_test_123?sig=private");
       assert.equal(init.method, "PUT");
       assert.equal(headerValue(init.headers, "authorization"), null);
+      assert.equal(headerValue(init.headers, "cookie"), null);
       assert.equal(headerValue(init.headers, "x-agentique-transfer"), "session");
       return { ok: false, status: 503 };
     }
@@ -235,6 +262,7 @@ test("upload submit completes a review-only session without forwarding bearer au
     assert.equal(init.method, "POST");
     assert.equal(headerValue(init.headers, "authorization"), "Bearer flag-token-value");
     assert.match(init.body, /"payloadDigest":"sha256:[a-f0-9]{64}"/);
+    assert.match(init.body, /"checkpointDigest":"sha256:[a-f0-9]{64}"/);
     return jsonResponse({
       verified: true,
       submissionId: "sub_test_123",
@@ -246,9 +274,9 @@ test("upload submit completes a review-only session without forwarding bearer au
     [
       "upload",
       "submit",
-      "starters/agent-assistant",
+      packageDir,
       "--schemas-dir",
-      "schemas",
+      path.join(repoRoot, "schemas"),
       "--token",
       "flag-token-value",
       "--api-url",
@@ -270,11 +298,48 @@ test("upload submit completes a review-only session without forwarding bearer au
   assert.equal(status.data.transfer.authorizationForwarded, false);
   assert.match(status.data.transfer.payloadDigest, /^sha256:[a-f0-9]{64}$/);
   assert.equal(calls.length, 4);
-  assert.doesNotMatch(result.stdout, forbiddenLocalOutputPattern(["flag-token-value", "storage.agentique.test", "sig=private"]));
+  assert.doesNotMatch(
+    result.stdout,
+    forbiddenLocalOutputPattern(["flag-token-value", "storage.agentique.test", "sig=private", packageDir])
+  );
+});
+
+test("upload submit requires checkpoint evidence before creating a session", async () => {
+  let calls = 0;
+  const result = await executeUploaderCli(
+    [
+      "upload",
+      "submit",
+      "starters/agent-assistant",
+      "--schemas-dir",
+      "schemas",
+      "--token",
+      "flag-token-value",
+      "--api-url",
+      "https://api.agentique.test",
+      "--json"
+    ],
+    {
+      cwd: repoRoot,
+      fetchImpl: async () => {
+        calls += 1;
+        throw new Error("unexpected network call");
+      }
+    }
+  );
+  const status = JSON.parse(result.stdout);
+
+  assert.equal(result.exitCode, EXIT_CODES.unavailable);
+  assert.equal(status.code, "upload.submit.checkpoints_required");
+  assert.equal(status.data.plan.checkpoints.readyForReviewSubmit, false);
+  assert.equal(status.data.plan.checkpoints.missing.length, REQUIRED_CREATOR_CHECKPOINTS.length);
+  assert.equal(calls, 0);
+  assert.doesNotMatch(result.stdout, /flag-token-value/i);
 });
 
 test("upload submit fails closed when server completion is not verified", async () => {
   let calls = 0;
+  const packageDir = await createCheckpointPackageFixture();
   const fetchImpl = async (url) => {
     calls += 1;
     if (calls === 1) {
@@ -301,9 +366,9 @@ test("upload submit fails closed when server completion is not verified", async 
     [
       "upload",
       "submit",
-      "starters/agent-assistant",
+      packageDir,
       "--schemas-dir",
-      "schemas",
+      path.join(repoRoot, "schemas"),
       "--token",
       "flag-token-value",
       "--api-url",
@@ -317,7 +382,7 @@ test("upload submit fails closed when server completion is not verified", async 
   assert.equal(result.exitCode, EXIT_CODES.unavailable);
   assert.equal(status.code, "upload.submit.completion_unverified");
   assert.equal(calls, 3);
-  assert.doesNotMatch(result.stdout, /flag-token-value|storage\.agentique\.test|sig=private/i);
+  assert.doesNotMatch(result.stdout, forbiddenLocalOutputPattern(["flag-token-value", "storage.agentique.test", "sig=private", packageDir]));
 });
 
 test("upload submit rejects non-https api urls before network access", async () => {
@@ -349,6 +414,37 @@ test("upload submit rejects non-https api urls before network access", async () 
   assert.equal(status.code, "upload.submit.invalid_api_url");
   assert.equal(calls, 0);
   assert.doesNotMatch(result.stdout, /flag-token-value/i);
+});
+
+test("upload submit rejects third-party api origins before bearer forwarding", async () => {
+  let calls = 0;
+  const result = await executeUploaderCli(
+    [
+      "upload",
+      "submit",
+      "starters/agent-assistant",
+      "--schemas-dir",
+      "schemas",
+      "--token",
+      "flag-token-value",
+      "--api-url",
+      "https://example.com",
+      "--json"
+    ],
+    {
+      cwd: repoRoot,
+      fetchImpl: async () => {
+        calls += 1;
+        throw new Error("unexpected network call");
+      }
+    }
+  );
+  const status = JSON.parse(result.stdout);
+
+  assert.equal(result.exitCode, EXIT_CODES.unavailable);
+  assert.equal(status.code, "upload.submit.invalid_api_url");
+  assert.equal(calls, 0);
+  assert.doesNotMatch(result.stdout, /flag-token-value|example\.com/i);
 });
 
 test("upload status reads a review-only submission with redacted auth", async () => {
@@ -437,6 +533,80 @@ async function execFileExpectFailure(command, args) {
       stderr: error.stderr ?? ""
     };
   }
+}
+
+async function createCheckpointPackageFixture() {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), "agentique-uploader-checkpoints-"));
+  const agentsDir = path.join(tempDir, "agents");
+  await mkdir(agentsDir, { recursive: true });
+
+  const readme = "# Checkpoint Fixture\n\nA public review-only checkpoint fixture for uploader tests.\n";
+  const assistant = "# Research Assistant\n\nSummarizes public sources for reviewer inspection only.\n";
+  await writeFile(path.join(tempDir, "README.md"), readme, "utf8");
+  await writeFile(path.join(agentsDir, "research-assistant.md"), assistant, "utf8");
+
+  const hashes = {
+    "README.md": fingerprint(readme),
+    "agents/research-assistant.md": fingerprint(assistant)
+  };
+  const manifest = {
+    formatVersion: "1.0",
+    name: "checkpoint-fixture",
+    summary: "A static review-only package fixture with completed creator checkpoints.",
+    source: {
+      type: "git",
+      url: "https://github.com/rookiestar28/Agentique/tree/main/starters/agent-assistant"
+    },
+    distribution: {
+      mode: "package_download",
+      notes: "Prepared for platform upload review before publication."
+    },
+    permissionRisk: {
+      readOnly: true,
+      destructive: false,
+      idempotent: true,
+      openWorld: false,
+      externalNetwork: false,
+      credentialed: false,
+      approvalRequired: false,
+      dataSensitivity: "public",
+      capabilities: ["read-public-content"],
+      reviewNotes: "Static documentation only; it does not request auth material or mutate state."
+    },
+    package: {
+      formatVersion: "1.0",
+      files: ["README.md", "agents/research-assistant.md"],
+      hashes
+    },
+    registryTrust: {
+      creatorMetadata: {
+        declaredBy: "test-author",
+        declaredAt: "2026-06-06T00:00:00.000Z",
+        notes: "Creator supplied checkpoint evidence for review-only submission."
+      },
+      packageContext: {
+        packageName: "checkpoint-fixture",
+        version: "1.0.0",
+        sourceUrl: "https://github.com/rookiestar28/Agentique/tree/main/starters/agent-assistant",
+        ownershipEvidenceVersion: "owner-v1",
+        packageDigest: fingerprint(JSON.stringify(hashes))
+      },
+      creatorCheckpoints: REQUIRED_CREATOR_CHECKPOINTS.map((kind, index) => ({
+        kind,
+        acknowledged: true,
+        completedAt: `2026-06-06T00:00:0${index}.000Z`,
+        evidenceHash: fingerprint(kind)
+      }))
+    }
+  };
+  await writeFile(path.join(tempDir, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
+
+  assert.equal(evaluateUploadCheckpointEvidence(manifest.registryTrust).readyForReviewSubmit, true);
+  return tempDir;
+}
+
+function fingerprint(value) {
+  return `sha256:${createHash("sha256").update(value).digest("hex")}`;
 }
 
 function jsonResponse(payload, { ok = true, status = 200 } = {}) {

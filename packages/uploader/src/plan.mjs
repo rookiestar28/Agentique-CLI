@@ -1,20 +1,37 @@
 import { createHash } from "node:crypto";
-import { access } from "node:fs/promises";
+import { access, readFile as defaultReadFile } from "node:fs/promises";
 import path from "node:path";
 import { validatePackage } from "@agentique.io/validator/src/validator.mjs";
 
 const PLAN_SCHEMA_VERSION = "agentique.uploader.plan.v1";
+const CHECKPOINT_SCHEMA_VERSION = "agentique.uploader.checkpoints.v1";
 
-export async function createUploadPlan({ packageDir, schemasDir = null, cwd = process.cwd() }) {
+export const REQUIRED_CREATOR_CHECKPOINTS = Object.freeze([
+  "lane-selection",
+  "source-upload",
+  "manifest-inspection",
+  "scan-ownership-evidence",
+  "data-flow-disclosure",
+  "card-fields",
+  "public-draft-preview",
+  "review-only-confirmation",
+  "readback-acknowledgement"
+]);
+
+const REQUIRED_CREATOR_CHECKPOINT_SET = new Set(REQUIRED_CREATOR_CHECKPOINTS);
+
+export async function createUploadPlan({ packageDir, schemasDir = null, cwd = process.cwd(), readFile = defaultReadFile }) {
   try {
+    const resolvedPackageDir = path.resolve(cwd, packageDir);
     const resolvedSchemasDir = schemasDir ? path.resolve(cwd, schemasDir) : await resolveSchemasDir(cwd);
     const report = await validatePackage({
       command: "upload-plan",
-      packageDir: path.resolve(cwd, packageDir),
+      packageDir: resolvedPackageDir,
       schemasDir: resolvedSchemasDir
     });
 
-    return createPlanFromReport(report);
+    const registryTrust = await readManifestRegistryTrust(resolvedPackageDir, readFile);
+    return createPlanFromReport(report, registryTrust);
   } catch {
     return {
       schemaVersion: PLAN_SCHEMA_VERSION,
@@ -24,6 +41,8 @@ export async function createUploadPlan({ packageDir, schemasDir = null, cwd = pr
       reviewOnly: true,
       noExecution: true,
       package: null,
+      registryTrust: null,
+      checkpoints: createUnavailableCheckpointSummary(),
       evidence: {
         inventory: [],
         findings: [
@@ -38,6 +57,51 @@ export async function createUploadPlan({ packageDir, schemasDir = null, cwd = pr
       }
     };
   }
+}
+
+export function evaluateUploadCheckpointEvidence(registryTrust) {
+  const checkpointEntries = isRecord(registryTrust) && Array.isArray(registryTrust.creatorCheckpoints)
+    ? registryTrust.creatorCheckpoints
+    : [];
+  const acknowledged = [];
+
+  for (const checkpoint of checkpointEntries) {
+    if (!isRecord(checkpoint) || checkpoint.acknowledged !== true || typeof checkpoint.kind !== "string") {
+      continue;
+    }
+    if (REQUIRED_CREATOR_CHECKPOINT_SET.has(checkpoint.kind) && !acknowledged.includes(checkpoint.kind)) {
+      acknowledged.push(checkpoint.kind);
+    }
+  }
+
+  const missing = REQUIRED_CREATOR_CHECKPOINTS.filter((kind) => !acknowledged.includes(kind));
+  const packageContext = isRecord(registryTrust?.packageContext) ? registryTrust.packageContext : null;
+  const packageContextReady = Boolean(
+    packageContext &&
+      typeof packageContext.packageDigest === "string" &&
+      typeof packageContext.ownershipEvidenceVersion === "string"
+  );
+  const reasons = [];
+  if (missing.length > 0) {
+    reasons.push("creator-checkpoints-missing");
+  }
+  if (!packageContextReady) {
+    reasons.push("package-context-evidence-missing");
+  }
+
+  const readyForReviewSubmit = missing.length === 0 && packageContextReady;
+
+  return Object.freeze({
+    schemaVersion: CHECKPOINT_SCHEMA_VERSION,
+    ok: readyForReviewSubmit,
+    code: readyForReviewSubmit ? "upload.checkpoints.ready" : "upload.checkpoints.required",
+    readyForReviewSubmit,
+    required: REQUIRED_CREATOR_CHECKPOINTS,
+    acknowledged: Object.freeze(acknowledged),
+    missing: Object.freeze(missing),
+    packageContextReady,
+    reasons: Object.freeze(reasons)
+  });
 }
 
 export async function resolveSchemasDir(cwd = process.cwd()) {
@@ -58,10 +122,11 @@ export async function resolveSchemasDir(cwd = process.cwd()) {
   return candidates[0];
 }
 
-function createPlanFromReport(report) {
+function createPlanFromReport(report, registryTrust) {
   const inventory = Array.isArray(report.inventory) ? report.inventory : [];
   const findings = Array.isArray(report.findings) ? report.findings : [];
   const inventoryDigest = digestInventory(inventory);
+  const registryTrustSummary = isRecord(report.manifest?.registryTrust) ? report.manifest.registryTrust : null;
 
   return {
     schemaVersion: PLAN_SCHEMA_VERSION,
@@ -73,8 +138,10 @@ function createPlanFromReport(report) {
     package: {
       name: report.manifest?.name ?? null,
       formatVersion: report.manifest?.formatVersion ?? null,
-      directory: report.manifest?.name ? report.packageDir ?? null : null
+      directory: report.manifest?.name ?? null
     },
+    registryTrust: registryTrustSummary,
+    checkpoints: evaluateUploadCheckpointEvidence(registryTrust),
     evidence: {
       inventory,
       findings,
@@ -84,10 +151,27 @@ function createPlanFromReport(report) {
   };
 }
 
+async function readManifestRegistryTrust(packageDir, readFile) {
+  try {
+    const parsed = JSON.parse(await readFile(path.join(packageDir, "manifest.json"), "utf8"));
+    return isRecord(parsed?.registryTrust) ? parsed.registryTrust : null;
+  } catch {
+    return null;
+  }
+}
+
+function createUnavailableCheckpointSummary() {
+  return evaluateUploadCheckpointEvidence(null);
+}
+
 function digestInventory(inventory) {
   const normalized = inventory
     .map((entry) => `${entry.path}\0${entry.sha256}\0${entry.bytes}`)
     .sort()
     .join("\n");
   return `sha256:${createHash("sha256").update(normalized).digest("hex")}`;
+}
+
+function isRecord(value) {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }

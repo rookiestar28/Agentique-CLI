@@ -196,6 +196,9 @@ function authMessage(auth) {
   if (auth.code === "auth.invalid_token") {
     return "Uploader auth token is invalid.";
   }
+  if (auth.code === "auth.wrong_surface_credential") {
+    return "Uploader auth must use a scoped CLI token.";
+  }
   return "Uploader auth is not configured.";
 }
 
