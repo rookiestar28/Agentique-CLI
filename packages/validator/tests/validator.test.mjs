@@ -239,6 +239,94 @@ test("rejects invalid manifest output contracts", async () => {
   assertFindings(report, ["schema"]);
 });
 
+test("accepts registry trust metadata and emits a public-safe summary", async () => {
+  const tempDir = await copyFixture("valid-package");
+  const manifest = await readManifest(tempDir);
+  manifest.registryTrust = registryTrustFixture();
+  await writeManifest(tempDir, manifest);
+
+  const report = await validatePackage({ command: "validate", packageDir: tempDir, schemasDir });
+
+  assert.equal(report.ok, true);
+  assert.equal(report.manifest.registryTrust.packageContext.packageName, "@example/valid-starter");
+  assert.equal(report.manifest.registryTrust.packageContext.packageDigestPresent, true);
+  assert.equal(report.manifest.registryTrust.desiredStateFingerprintPresent, true);
+  assert.equal(report.manifest.registryTrust.scannerPolicyVersionExpectation, "platform-managed-readback");
+  assert.equal(report.manifest.registryTrust.creatorCheckpointCount, 3);
+  assert.deepEqual(report.manifest.registryTrust.generatedDraft, { draftOnly: true, kind: "manifest" });
+  assert.deepEqual(report.manifest.registryTrust.patchDelta, { mode: "patch", operationCount: 1 });
+  assert.equal(JSON.stringify(report).includes(tempDir), false);
+});
+
+test("rejects creator-authored platform managed registry trust overclaims", async () => {
+  const tempDir = await copyFixture("valid-package");
+  const manifest = await readManifest(tempDir);
+  manifest.registryTrust = {
+    ...registryTrustFixture(),
+    platformManaged: {
+      approved: true,
+      listed: true,
+      scanPassed: true,
+      verifiedBadge: true,
+      platformTrustScore: 100,
+      latestVersion: true,
+      publishedAt: "2026-06-06T00:00:00.000Z"
+    }
+  };
+  await writeManifest(tempDir, manifest);
+
+  const report = await validatePackage({ command: "validate", packageDir: tempDir, schemasDir });
+
+  assert.equal(report.ok, false);
+  assertFindings(report, ["schema", "platform-managed-overclaim"]);
+  assert.equal(JSON.stringify(report).includes("approved"), false);
+  assert.equal(JSON.stringify(report).includes(tempDir), false);
+});
+
+test("rejects unsafe registry trust package context and missing policy markers", async () => {
+  const tempDir = await copyFixture("valid-package");
+  const manifest = await readManifest(tempDir);
+  manifest.registryTrust = registryTrustFixture({
+    packageContext: {
+      packageName: "@example/valid-starter",
+      version: "^1.0.0",
+      sourceUrl: "http://example.com/valid-starter"
+    }
+  });
+  await writeManifest(tempDir, manifest);
+
+  const report = await validatePackage({ command: "validate", packageDir: tempDir, schemasDir });
+
+  assert.equal(report.ok, false);
+  assertFindings(report, ["schema", "package-context-unsafe", "desired-state-fingerprint-missing", "scanner-policy-missing"]);
+  assert.equal(JSON.stringify(report).includes(tempDir), false);
+});
+
+test("rejects generated draft and patch delta registry trust boundary violations", async () => {
+  const tempDir = await copyFixture("valid-package");
+  const manifest = await readManifest(tempDir);
+  manifest.registryTrust = registryTrustFixture({
+    generatedDraft: {
+      draftOnly: false,
+      kind: "manifest",
+      generatedAt: "2026-06-06T00:00:00.000Z",
+      schemaVersion: "draft-v1",
+      summary: "This generated content wrongly claims final submission."
+    },
+    patchDelta: {
+      mode: "patch",
+      operations: [{ op: "replace", path: "/" }]
+    }
+  });
+  await writeManifest(tempDir, manifest);
+
+  const report = await validatePackage({ command: "validate", packageDir: tempDir, schemasDir });
+
+  assert.equal(report.ok, false);
+  assertFindings(report, ["schema", "generated-draft-boundary", "patch-delta-ambiguous"]);
+  assert.equal(JSON.stringify(report).includes(tempDir), false);
+});
+
 test("validates packaged tool listing contracts", async () => {
   const tempDir = await copyFixture("valid-package");
   await addPackageFile(
@@ -1106,6 +1194,56 @@ async function readManifest(packageDir) {
 
 async function writeManifest(packageDir, manifest) {
   await fs.writeFile(path.join(packageDir, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
+}
+
+function registryTrustFixture(overrides = {}) {
+  const base = {
+    creatorMetadata: {
+      declaredBy: "example-creator",
+      declaredAt: "2026-06-06T00:00:00.000Z",
+      notes: "Creator-provided public metadata for registry trust validation."
+    },
+    packageContext: {
+      packageName: "@example/valid-starter",
+      version: "1.0.0",
+      sourceUrl: "https://github.com/example/valid-starter",
+      ownershipEvidenceVersion: "ownership-v1",
+      packageDigest: "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    },
+    creatorCheckpoints: [
+      {
+        kind: "lane-selection",
+        acknowledged: true,
+        completedAt: "2026-06-06T00:01:00.000Z"
+      },
+      {
+        kind: "public-draft-preview",
+        acknowledged: true,
+        completedAt: "2026-06-06T00:02:00.000Z"
+      },
+      {
+        kind: "review-only-confirmation",
+        acknowledged: true,
+        completedAt: "2026-06-06T00:03:00.000Z"
+      }
+    ],
+    generatedDraft: {
+      draftOnly: true,
+      kind: "manifest",
+      generatedAt: "2026-06-06T00:04:00.000Z",
+      schemaVersion: "draft-v1",
+      summary: "Draft-only manifest suggestion prepared for user review."
+    },
+    patchDelta: {
+      mode: "patch",
+      operations: [{ op: "replace", path: "/summary", valueSummary: "Updated public summary copy." }]
+    }
+  };
+
+  return {
+    ...base,
+    ...overrides
+  };
 }
 
 async function addPackageFile(packageDir, packagePath, content) {
