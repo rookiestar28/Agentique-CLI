@@ -12,7 +12,7 @@ This repository uses public review rules to keep companion content narrow, safe,
 | Validator | `packages/validator/` | Static no-execution behavior, redacted findings, stable exit codes |
 | Action | `packages/action/`, `.github/workflows/` | Least privilege, no untrusted secret exposure, no publish behavior in validation workflows |
 | Readback | `packages/readback/` | Read-only methods only, stale/unavailable states, no safety guarantee wording |
-| Uploader | `packages/uploader/` | Review-only wording, auth redaction, token handling, registry state, no live upload advertising before owner-approved closeout |
+| Uploader | `packages/uploader/` | Review-only wording, auth redaction, token handling, registry state, no platform publication or approval claims |
 | Release | `release-manifest.json`, `scripts/`, release checklist | Allowlist coverage, content scan behavior, registry readback, install smoke, package dry-run evidence |
 
 ## Public Issue Boundary

@@ -8,9 +8,9 @@ Companion packages are released under the `@agentique.io` npm scope after owner 
 - `@agentique.io/validator` at version `0.1.0`
 - `@agentique.io/action` at version `0.1.0`
 - `@agentique.io/readback` at version `0.1.0`
-- `@agentique.io/uploader` source package at version `0.1.0`; npm publication pending owner-approved closeout
+- `@agentique.io/uploader` at version `0.1.0`
 
-Schemas, validator, action, and readback are public on npm. Uploader is implemented in source and included in package dry-run checks, but registry readback currently reports it as not found.
+Schemas, validator, action, readback, and uploader are public on npm. The uploader package is review-only; it does not publish, approve, certify, host, or moderate resources.
 
 ## Required Pre-Publish Checks
 
@@ -32,7 +32,7 @@ Provenance helps consumers trace package source and build context. It does not m
 
 The first public package publication used an owner-approved short-lived granular token fallback after local and hosted validation passed. Future releases should prefer the checked-in GitHub Actions trusted-publishing workflow once npm Trusted Publisher setup is complete. Token fallback is a contingency for owner-approved manual recovery only; it is not part of the normal trusted-publishing workflow and must not be added to workflow YAML.
 
-Registry readback and clean install smoke passed with npm 11.14.1 for the published dotted `@agentique.io` package set. Uploader requires separate registry readback and install smoke before its package page is advertised.
+Registry readback and clean install smoke passed for the published dotted `@agentique.io` package set. The initial uploader publication used an owner-approved one-time granular token fallback after local and hosted validation; provenance was not generated for that fallback because it was not published from the checked-in OIDC workflow. Future releases should prefer the checked-in GitHub Actions trusted-publishing workflow once npm Trusted Publisher setup is complete.
 
 Local release candidates should run:
 
@@ -41,9 +41,9 @@ npm run registry:readback
 npm run install:smoke
 ```
 
-The registry readback script records the current expected state: schemas, validator, action, and readback are published, while uploader remains pending until owner-approved publication.
+The registry readback script records the current expected state: schemas, validator, action, readback, and uploader are published at version `0.1.0`.
 
-Current uploader publication closeout is No-Go. Do not advertise `@agentique.io/uploader` as installable until owner approval, hosted CI evidence, registry publish/readback, and clean install smoke from npm are recorded.
+Current uploader publication closeout is Go for npm package availability after owner approval, hosted CI evidence, registry publish/readback, and clean install smoke. The package remains review-only, and final resource publication stays on `agentique.io`.
 
 Public package provenance must not include platform scoring, quarantine criteria, internal review procedures, moderation disposition logic, or operational playbooks.
 

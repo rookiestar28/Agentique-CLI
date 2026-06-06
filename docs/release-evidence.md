@@ -4,10 +4,10 @@ This file records public-safe release evidence for the companion repository. Do 
 
 ## Evidence Snapshot
 
-- Date: 2026-06-05
+- Date: 2026-06-06
 - Environment: Windows PowerShell
 - Node.js: v24.13.1
-- npm: 11.8.0 local baseline; npm 11.14.1 for final dotted-scope registry readback/install smoke
+- npm: 11.8.0 local baseline; npm 11.14.1 for earlier dotted-scope registry readback/install smoke
 - Git: 2.53.0.windows.1
 - Branch: feature/uploader-alignment
 - Public repository: `https://github.com/rookiestar28/Agentique`
@@ -55,16 +55,16 @@ release claims are updated.
 
 ## Uploader Source Alignment Evidence
 
-Uploader source alignment checks were refreshed on 2026-06-05.
+Uploader source alignment and npm package checks were refreshed on 2026-06-06.
 
 Current command-line finding:
 
 - `@agentique.io/uploader` is implemented in source at version `0.1.0`.
 - Uploader CLI source includes redacted auth status, upload-plan evidence, review-only submit/status helpers, bearer/storage separation, bounded transfer retry, and server completion verification checks.
 - `@agentique.io/uploader` is included in root tests, package dry-run, publish workflow validation, and production dependency audit.
-- npm registry readback for `@agentique.io/uploader` currently returns not found, so the package page is tracked as pending and non-advertised.
-- Live upload availability remains platform and owner gated. Source checks do not advertise live publication or platform approval.
-- Final uploader publication closeout is No-Go until owner-approved publication, hosted CI evidence, npm registry readback, and clean install smoke from npm are recorded.
+- npm registry readback for `@agentique.io/uploader` returns published version `0.1.0`, so the package page is approved for advertising.
+- Authenticated review-session access and final resource publication remain platform and account/token gated. Package checks do not advertise live publication or platform approval.
+- Final uploader publication closeout is Go for npm package availability after owner-approved publication, hosted CI evidence, npm registry readback, and clean install smoke from npm.
 
 ## All-Channel Public URL Mode
 
@@ -75,17 +75,17 @@ npm run urls:check
 npm run release:check
 ```
 
-Observed result: all advertised inventory entries are approved. The stricter all-channel mode is deferred while the uploader package page remains pending and non-advertised.
+Observed result: all advertised inventory entries are approved, including the uploader package page.
 
 ## Hosted Repository Evidence
 
-Hosted repository evidence is recorded from command-line checks on 2026-06-02.
+Hosted repository evidence is recorded from GitHub Actions checks refreshed on 2026-06-06.
 
 Current command-line finding:
 
 - Public repository URL is approved: `https://github.com/rookiestar28/Agentique`.
 - Public repository visibility is `PUBLIC`.
-- Hosted Release Check evidence is recorded for the latest pushed public release candidate.
+- Hosted Release Check evidence is recorded for the latest pushed public release candidate; run `27047071695` passed on `main` at commit `bf6b508e563f69f74acad57510861c8b28865e7a`.
 - Each later push requires a fresh hosted run before downstream release claims.
 - Hosted Release Check matrix jobs passed for Node 20, Node 22, and Node 24.
 - Public `main` branch protection is enabled.
@@ -103,7 +103,7 @@ Required follow-up for later pushes:
 
 ## Package Registry Evidence
 
-Command-line package registry checks were run on 2026-06-02.
+Command-line package registry checks were refreshed on 2026-06-06.
 
 Current command-line finding:
 
@@ -112,11 +112,12 @@ Current command-line finding:
 - `@agentique.io/validator` is published at version `0.1.0`.
 - `@agentique.io/action` is published at version `0.1.0`.
 - `@agentique.io/readback` is published at version `0.1.0`.
-- `@agentique.io/uploader` is implemented in source at version `0.1.0`; npm registry readback currently returns not found.
+- `@agentique.io/uploader` is published at version `0.1.0`.
 - Package manifests include public access and provenance publish configuration.
 - Package dry-run passed for schemas, validator, action, readback, and uploader packages.
 - npm `11.14.1` registry readback and install smoke passed for the dotted `@agentique.io` scope.
-- npm `11.8.0` registry readback on 2026-06-05 returned published version `0.1.0` for schemas, validator, action, and readback; uploader returned not found.
+- npm `11.8.0` registry readback on 2026-06-06 returned published version `0.1.0` for schemas, validator, action, readback, and uploader.
+- Clean install smoke from the npm registry package passed for `@agentique.io/uploader@0.1.0`; the installed CLI returned `0.1.0`.
 - Clean install smoke passed with `--ignore-scripts`.
 - Readback import smoke passed.
 - Validator bin smoke passed against the public `agent-assistant` starter with installed schemas.
@@ -128,7 +129,7 @@ Publication note:
 
 ## Public Link Smoke Evidence
 
-Command-line public link smoke checks were run on 2026-06-02.
+Command-line public link smoke checks were run on 2026-06-02, and package registry page status for uploader was refreshed through npm registry readback on 2026-06-06.
 
 | URL | Result |
 |---|---|
@@ -137,14 +138,14 @@ Command-line public link smoke checks were run on 2026-06-02.
 | `https://www.npmjs.com/package/@agentique.io/validator` | Approved package page |
 | `https://www.npmjs.com/package/@agentique.io/action` | Approved package page |
 | `https://www.npmjs.com/package/@agentique.io/readback` | Approved package page |
-| `https://www.npmjs.com/package/@agentique.io/uploader` | Pending package page; not advertised until publication and smoke testing pass |
+| `https://www.npmjs.com/package/@agentique.io/uploader` | Approved package page |
 | `https://github.com/rookiestar28/Agentique/tree/main/packages/action#usage` | Approved action usage reference |
 | `https://github.com/rookiestar28/Agentique/tree/main/packages/readback#badge-states` | Approved badge/readback documentation |
 | `https://www.agentique.io/` | HTTP 200 |
 | `https://www.agentique.io/api/public/v1/resources?limit=1` | HTTP 200 JSON with `pageInfo.page = 1`, `pageInfo.pageSize = 1`, `pageInfo.total = 60`, and `pageInfo.hasNextPage = true` |
 
-These smoke checks approve source repository, published package registry, action usage, badge/readback documentation, schema, documentation, and `agentique.io` public links for advertising. GitHub Marketplace-style promotion and uploader package advertising remain separate future channels.
+These smoke checks approve source repository, published package registry, action usage, badge/readback documentation, schema, documentation, and `agentique.io` public links for advertising. GitHub Marketplace-style promotion remains a separate future channel.
 
 ## Current Decision
 
-The source repository, published npm packages, action usage reference, badge/readback documentation, and `agentique.io` public links are Go for advertised channels. `@agentique.io/uploader` npm publication and live upload advertising are No-Go for this closeout and remain pending owner-approved publication evidence. GitHub Marketplace-style promotion remains separate from this source/package release.
+The source repository, published npm packages including `@agentique.io/uploader`, action usage reference, badge/readback documentation, and `agentique.io` public links are Go for advertised channels. Authenticated review-session access and final resource publication remain platform-owned and account/token gated. GitHub Marketplace-style promotion remains separate from this source/package release.

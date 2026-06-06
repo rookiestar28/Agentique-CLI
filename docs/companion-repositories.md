@@ -1,6 +1,6 @@
 # Companion Monorepo
 
-Agentique's public companion work is consolidated in this repository. The monorepo contains public-facing docs, schemas, starter kits, local validation, workflow validation, readback helpers, source-only uploader tooling, and release smoke checks.
+Agentique's public companion work is consolidated in this repository. The monorepo contains public-facing docs, schemas, starter kits, local validation, workflow validation, readback helpers, review-only uploader tooling, and release smoke checks.
 
 ## Monorepo Areas
 
@@ -10,7 +10,7 @@ Agentique's public companion work is consolidated in this repository. The monore
 - `packages/validator`: static no-execution local checks for package validation and upload preparation.
 - `packages/action`: least-privilege workflow wrapper around local validation.
 - `packages/readback`: read-only SDK and badge helpers for public status and readback projections.
-- `packages/uploader`: source implementation of the review-only uploader CLI; npm publication and live upload advertising are pending owner-approved closeout.
+- `packages/uploader`: published review-only uploader CLI; authenticated review-session access and final resource publication remain platform-owned and account/token gated.
 - `scripts/`: repository release checks, starter validation, workflow posture checks, registry readback, install smoke, URL inventory checks, and package dry-runs.
 
 ## Link Readiness
@@ -26,4 +26,4 @@ New downstream links are not advertised until:
 
 The platform remains authoritative for upload, scan, review, moderation, publication, distribution state, and readback.
 
-Current approved advertised links include the public repository, approved npm package pages, action usage reference, badge/readback documentation, schema/docs links, and `agentique.io` public links recorded in `docs/public-url-inventory.json`. The uploader package page remains pending and non-advertised until publication closeout records a Go decision.
+Current approved advertised links include the public repository, approved npm package pages, action usage reference, badge/readback documentation, schema/docs links, and `agentique.io` public links recorded in `docs/public-url-inventory.json`.

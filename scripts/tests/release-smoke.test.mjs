@@ -10,14 +10,14 @@ import {
   summarizePackResult
 } from "../package-install-smoke.mjs";
 
-test("registry readback policy accepts published packages and pending uploader", () => {
+test("registry readback policy accepts published companion packages", () => {
   const uploader = REGISTRY_EXPECTATIONS.find((item) => item.name === "@agentique.io/uploader");
   const validator = REGISTRY_EXPECTATIONS.find((item) => item.name === "@agentique.io/validator");
 
   assert.equal(evaluateRegistryReadback({ status: "published", version: "0.1.0" }, validator), null);
-  assert.equal(evaluateRegistryReadback({ status: "not_found", version: null }, uploader), null);
+  assert.equal(evaluateRegistryReadback({ status: "published", version: "0.1.0" }, uploader), null);
   assert.match(
-    evaluateRegistryReadback({ status: "not_found", version: null }, uploader, { uploaderMustBePublished: true }),
+    evaluateRegistryReadback({ status: "not_found", version: null }, uploader),
     /expected published/
   );
 });
