@@ -1,6 +1,6 @@
 {
   "releaseBlocked": false,
-  "reason": "Source repository, approved package registry pages, action usage reference, badge/readback documentation, and agentique.io public links are approved for advertising after publication and smoke testing. Uploader package publication remains pending and non-advertised.",
+  "reason": "Source repository, approved package registry pages, action usage reference, badge/readback documentation, and agentique.io public links are approved for advertising after publication and smoke testing. The uploader package page is approved after owner-approved publication, registry readback, and clean install smoke.",
   "entries": [
     {
       "id": "public-repository",
@@ -41,8 +41,8 @@
       "id": "uploader-package",
       "label": "Uploader package page",
       "url": "https://www.npmjs.com/package/@agentique.io/uploader",
-      "status": "pending",
-      "advertise": false
+      "status": "approved",
+      "advertise": true
     },
     {
       "id": "schema-url-base",

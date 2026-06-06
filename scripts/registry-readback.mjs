@@ -6,13 +6,11 @@ export const REGISTRY_EXPECTATIONS = Object.freeze([
   { name: "@agentique.io/validator", version: "0.1.0", state: "published" },
   { name: "@agentique.io/action", version: "0.1.0", state: "published" },
   { name: "@agentique.io/readback", version: "0.1.0", state: "published" },
-  { name: "@agentique.io/uploader", version: "0.1.0", state: "pending_not_found" }
+  { name: "@agentique.io/uploader", version: "0.1.0", state: "published" }
 ]);
 
-export function evaluateRegistryReadback(actual, expectation, { uploaderMustBePublished = false } = {}) {
-  const expectedState = uploaderMustBePublished && expectation.name === "@agentique.io/uploader"
-    ? "published"
-    : expectation.state;
+export function evaluateRegistryReadback(actual, expectation) {
+  const expectedState = expectation.state;
 
   if (expectedState === "published") {
     if (actual.status !== "published") {
@@ -55,12 +53,11 @@ export function readRegistryVersion(packageName, { npmCli = process.env.npm_exec
 }
 
 export async function main() {
-  const uploaderMustBePublished = process.env.AGENTIQUE_UPLOADER_EXPECT_PUBLISHED === "1";
   const failures = [];
 
   for (const expectation of REGISTRY_EXPECTATIONS) {
     const actual = readRegistryVersion(expectation.name);
-    const failure = evaluateRegistryReadback(actual, expectation, { uploaderMustBePublished });
+    const failure = evaluateRegistryReadback(actual, expectation);
     if (failure) {
       failures.push(failure);
       continue;

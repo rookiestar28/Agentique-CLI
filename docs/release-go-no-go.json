@@ -26,30 +26,18 @@
       "@agentique.io/schemas": "0.1.0",
       "@agentique.io/validator": "0.1.0",
       "@agentique.io/action": "0.1.0",
-      "@agentique.io/readback": "0.1.0"
+      "@agentique.io/readback": "0.1.0",
+      "@agentique.io/uploader": "0.1.0"
     },
-    "pendingPackages": {
-      "@agentique.io/uploader": {
-        "sourceVersion": "0.1.0",
-        "registryStatus": "not_found",
-        "advertise": false,
-        "releaseGate": "owner_approval_required",
-        "liveUploadAvailable": false
-      }
-    }
+    "pendingPackages": {}
   },
   "uploaderPublicationDecision": {
-    "decision": "no_go",
-    "releaseBlocked": true,
-    "advertisePackage": false,
+    "decision": "go",
+    "releaseBlocked": false,
+    "advertisePackage": true,
     "liveUploadAvailable": false,
-    "reason": "Uploader source, tarball smoke, and pending registry readback are complete, but owner-approved npm publication, hosted CI evidence for this branch, registry publish/readback, and install smoke from npm are not complete.",
-    "blockers": [
-      "owner-approved uploader publish GO is not recorded",
-      "hosted CI evidence for the final public release candidate is not recorded",
-      "npm registry readback for @agentique.io/uploader is not published",
-      "clean install smoke from the npm registry package is not recorded"
-    ]
+    "reason": "Uploader publication is owner-approved, hosted Release Check evidence is recorded, npm registry readback returns @agentique.io/uploader@0.1.0, and clean install smoke from the npm registry package passes. The package remains review-only and does not publish, approve, certify, host, or moderate resources.",
+    "blockers": []
   },
   "blockers": []
 }

@@ -8,9 +8,9 @@ Companion packages are released under the `@agentique.io` npm scope after owner 
 - `@agentique.io/validator` at version `0.1.0`
 - `@agentique.io/action` at version `0.1.0`
 - `@agentique.io/readback` at version `0.1.0`
-- `@agentique.io/uploader` source package at version `0.1.0`; npm publication pending owner-approved closeout
+- `@agentique.io/uploader` at version `0.1.0`
 
-Schemas, validator, action, and readback are public on npm. Uploader is implemented in source and included in package dry-run checks, but registry readback currently reports it as not found.
+Schemas, validator, action, readback, and uploader are public on npm. The uploader package is review-only; it does not publish, approve, certify, host, or moderate resources.
 
 ## Required Pre-Publish Checks
 
@@ -26,8 +26,6 @@ Schemas, validator, action, and readback are public on npm. Uploader is implemen
 
 Provenance helps consumers trace package source and build context. It does not mean a package is risk-free, platform-approved, or safety-certified.
 
-Registry readback and clean install smoke passed with npm 11.14.1 for the published dotted `@agentique.io` package set. Uploader requires separate registry readback and install smoke before its package page is advertised.
-
 Local release candidates should run:
 
 ```bash
@@ -35,9 +33,9 @@ npm run registry:readback
 npm run install:smoke
 ```
 
-The registry readback script records the current expected state: schemas, validator, action, and readback are published, while uploader remains pending until owner-approved publication.
+The registry readback script records the current expected state: schemas, validator, action, readback, and uploader are published at version `0.1.0`.
 
-Current uploader publication closeout is No-Go. Do not advertise `@agentique.io/uploader` as installable until owner approval, hosted CI evidence, registry publish/readback, and clean install smoke from npm are recorded.
+Current uploader publication closeout is Go for npm package availability after owner approval, hosted CI evidence, registry publish/readback, and clean install smoke. The package remains review-only, and final resource publication stays on `agentique.io`.
 
 Public package provenance must not include platform scoring, quarantine criteria, internal review procedures, moderation disposition logic, or operational playbooks.
 

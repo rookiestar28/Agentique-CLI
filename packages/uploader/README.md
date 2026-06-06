@@ -1,10 +1,10 @@
 # Agentique Uploader
 
-`@agentique.io/uploader` is the planned public CLI package for review-only Agentique submissions.
+`@agentique.io/uploader` is the public CLI package for review-only Agentique submissions.
 
 This package exposes a review-only upload lane. It can validate a package locally, create an authenticated review session, transfer local evidence to the server-provided upload URL, complete the session, and read back review status. It does not publish, approve, certify, host, or moderate resources.
 
-Registry publication is pending. The source package is included in local validation and package dry-run checks, but `@agentique.io/uploader` should not be advertised as installable from npm until registry readback and install smoke evidence are recorded.
+The package is published on npm at version `0.1.0` after owner-approved publication, registry readback, and clean install smoke. It remains review-only; authenticated review-session access and final resource publication stay on `agentique.io`.
 
 Current boundary:
 
