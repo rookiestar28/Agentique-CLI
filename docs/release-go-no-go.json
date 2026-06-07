@@ -23,17 +23,13 @@
   },
   "packagePublicationState": {
     "publishedPackages": {
-      "@agentique.io/schemas": "0.1.0",
-      "@agentique.io/validator": "0.1.0",
-      "@agentique.io/action": "0.1.0",
-      "@agentique.io/readback": "0.1.0",
-      "@agentique.io/uploader": "0.1.0"
-    },
-    "pendingPackages": {
       "@agentique.io/schemas": "0.2.0",
       "@agentique.io/validator": "0.2.0",
       "@agentique.io/action": "0.2.0",
       "@agentique.io/readback": "0.2.0",
+      "@agentique.io/uploader": "0.1.0"
+    },
+    "pendingPackages": {
       "@agentique.io/uploader": "0.2.0"
     }
   },
@@ -49,11 +45,11 @@
     "decision": "no_go",
     "releaseBlocked": true,
     "advertisePackageChanges": false,
-    "reason": "Parser/variant package changes are prepared for the next coordinated package release target 0.2.0, and owner approval to use the manual GitHub Actions package publishing workflow is recorded. Existing published packages remain at 0.1.0, and no new parser/variant package-release claim is advertised without hosted CI for the pushed candidate, GitHub Actions publication, registry readback for 0.2.0, clean install smoke, and rollback/unpublish evidence.",
+    "reason": "Parser/variant package changes are prepared for the next coordinated package release target 0.2.0, and owner approval to use the manual GitHub Actions package publishing workflow is recorded. The manual publish run partially completed: schemas, validator, action, and readback are readable from npm at 0.2.0, while uploader 0.2.0 remains pending. No new parser/variant package-release claim is advertised without the recovery workflow on main, uploader 0.2.0 publication, full registry readback, clean install smoke, and rollback/unpublish evidence.",
     "blockers": [
-      "Fresh hosted Release Check evidence for the pushed parser/variant package candidate is not recorded.",
-      "GitHub Actions publication for 0.2.0 is not recorded.",
-      "Registry readback and clean install smoke currently prove only existing published 0.1.0 packages.",
+      "Fresh hosted Release Check evidence for the publish-recovery workflow branch is not recorded.",
+      "Uploader 0.2.0 publication through GitHub Actions is not recorded.",
+      "Full 0.2.0 registry readback and clean install smoke are not recorded.",
       "Rollback or unpublish evidence for a new parser/variant package release is not recorded."
     ]
   },
@@ -72,11 +68,11 @@
       "newVersionRegistryReadback": false,
       "rollbackEvidenceForNewRelease": false
     },
-    "reason": "Catalog/download CLI and SDK changes are prepared for the next coordinated package release target 0.2.0, and owner approval to use the manual GitHub Actions package publishing workflow is recorded. Existing published packages remain at 0.1.0. A GET-only live metadata smoke on 2026-06-07 reached the canonical public list, first resource detail, and first resource download-metadata endpoints with 200 JSON responses, but no new catalog/download package-release or direct-download live availability claim is advertised without hosted CI for the pushed candidate, GitHub Actions publication, registry readback for 0.2.0, clean install smoke, rollback/unpublish evidence, and owner-approved disposable direct-download evidence.",
+    "reason": "Catalog/download CLI and SDK changes are prepared for the next coordinated package release target 0.2.0, and owner approval to use the manual GitHub Actions package publishing workflow is recorded. The manual publish run partially completed: schemas, validator, action, and readback are readable from npm at 0.2.0, while uploader 0.2.0 remains pending. A GET-only live metadata smoke on 2026-06-07 reached the canonical public list, first resource detail, and first resource download-metadata endpoints with 200 JSON responses, but no new catalog/download package-release or direct-download live availability claim is advertised without the recovery workflow on main, uploader 0.2.0 publication, full registry readback, clean install smoke, rollback/unpublish evidence, and owner-approved disposable direct-download evidence.",
     "blockers": [
-      "Fresh hosted Release Check evidence for the pushed catalog/download package candidate is not recorded.",
-      "GitHub Actions publication for 0.2.0 is not recorded.",
-      "Registry readback and clean install smoke currently prove only existing published 0.1.0 packages.",
+      "Fresh hosted Release Check evidence for the publish-recovery workflow branch is not recorded.",
+      "Uploader 0.2.0 publication through GitHub Actions is not recorded.",
+      "Full 0.2.0 registry readback and clean install smoke are not recorded.",
       "Rollback or unpublish evidence for a new catalog/download package release is not recorded.",
       "Owner-approved disposable direct-download byte-transfer evidence is not recorded, so direct-download live availability is not advertised."
     ]

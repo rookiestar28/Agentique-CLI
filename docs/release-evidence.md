@@ -25,15 +25,15 @@ This file records public-safe release evidence for the companion repository. Do 
 | Workflow posture | Pass | `npm run workflow:check` passed. |
 | Package dry run | Pass | `npm run pack:dry-run` passed schemas, validator, action, readback, and uploader package checks. |
 | Parser/variant and catalog/download package surface smoke | Pass | `npm run install:smoke` installs locally packed tarballs with lifecycle scripts disabled and checks parser-variant schema, readback parser/variant export, readback catalog/download exports, uploader import/variant help, uploader catalog help, and uploader direct-download help. |
-| Registry prepublish readback | Pass | `npm run registry:readback` checked `@agentique.io/*@0.2.0` and confirmed each target version is pending/not found. |
+| Registry readback | Partial publish recovery | `npm run registry:readback` now expects schemas, validator, action, and readback at `0.2.0`; uploader `0.2.0` remains pending/not found until publish recovery completes. |
 | URL inventory check | Pass | `npm run urls:check` passed. |
 | Go/no-go check | Pass as Go | `npm run release:go-no-go` passed with recorded external evidence. |
-| Prepublish release gate refresh | Pass | Current source branch local validation passed dependency install, package tests, starter validation, release checks, workflow posture, package dry-run, URL inventory, prepublish registry readback, install smoke, go/no-go, secret scan, diff check, and production dependency audits. This local refresh does not replace hosted CI evidence for later pushed changes. |
+| Publish-recovery release gate refresh | In progress | Current source branch local validation passed dependency install, package tests, starter validation, release checks, workflow posture, package dry-run, URL inventory, registry readback, install smoke, go/no-go, secret scan, diff check, and production dependency audits before the publish attempt. A publish-recovery branch is required because the first trusted-publishing run partially completed before uploader publication. |
 | Root production dependency audit | Pass | `npm audit --omit=dev` found 0 vulnerabilities. |
 | Validator production dependency audit | Pass | `npm --prefix packages/validator audit --omit=dev` found 0 vulnerabilities. |
 | Action production dependency audit | Pass | `npm --prefix packages/action audit --omit=dev` found 0 vulnerabilities. |
 | Readback production dependency audit | Pass | `npm --prefix packages/readback audit --omit=dev` found 0 vulnerabilities. |
-| Uploader production dependency audit | Post-publish gate | Uploader now depends on `@agentique.io/readback@^0.2.0` and `@agentique.io/validator@^0.2.0`; package-local registry audit is deferred until those versions are published. The publish workflow verifies dependency versions before publishing uploader and then runs registry install smoke after the full package set is published. |
+| Uploader production dependency audit | Pass | Uploader depends on `@agentique.io/readback@^0.2.0` and `@agentique.io/validator@^0.2.0`; those dependency versions are readable from npm. `npm --prefix packages/uploader ci --ignore-scripts` and `npm --prefix packages/uploader audit --omit=dev` passed with 0 vulnerabilities. Uploader `0.2.0` publication and registry install smoke remain pending. |
 
 ## Post-Publication Hardening Evidence
 
@@ -66,11 +66,11 @@ Current command-line finding:
 - Uploader CLI source includes redacted auth status, upload-plan evidence, creator checkpoint readiness, local draft output, local patch/delta output, review-only submit/status helpers, bearer/storage separation, bounded transfer retry, and server completion verification checks.
 - Current source branch additionally includes GET-only catalog list/detail/download-metadata commands and a direct byte-download command with explicit output path, no auth forwarding, signed URL redaction, no absolute output path in CLI output, redirect controls, max-byte checks, digest checks, and no install/extract/open/execute behavior.
 - `@agentique.io/uploader` is included in root tests, package dry-run, publish workflow validation, and root/workspace production dependency audit.
-- npm registry readback for `@agentique.io/uploader` returns published version `0.1.0`, so the package page is approved for advertising.
+- npm registry readback for `@agentique.io/uploader` returns published version `0.1.0`, so the existing package page remains approved for advertising. Uploader `0.2.0` is pending publish recovery.
 - Authenticated review-session access and final resource publication remain platform and account/token gated. Package checks do not advertise live publication or platform approval.
 - Final uploader publication closeout is Go for npm package availability after owner-approved publication, hosted CI evidence, npm registry readback, and clean install smoke from npm.
 
-Current documentation now describes registry trust metadata, creator checkpoints, trust readback, local draft output, and patch/delta output. Current local release gates pass for this source branch, and owner approval to use the manual GitHub Actions package publishing workflow is recorded. A fresh hosted release check and successful package publication are still required before any downstream package-release claim is updated.
+Current documentation now describes registry trust metadata, creator checkpoints, trust readback, local draft output, and patch/delta output. Current local release gates pass for this source branch, and owner approval to use the manual GitHub Actions package publishing workflow is recorded. A publish-recovery workflow merge, uploader `0.2.0` publication, full registry readback, and clean install smoke are still required before any downstream `0.2.0` package-release claim is updated.
 
 ## Parser And Variant Branch-Local Evidence
 
@@ -82,9 +82,9 @@ Parser/variant evidence remains limited to static metadata, local dry-runs, and 
 
 Current release tooling packs schemas, validator, action, readback, and uploader packages, then installs the local tarballs with lifecycle scripts disabled. The install smoke checks that parser/variant package surfaces survive packaging: `parser-variant.schema.json` is present in the schemas package, `normalizeParserVariantReadback()` is exported from readback, and uploader help exposes `upload import-plan` and `upload variant-plan`.
 
-Registry readback still proves the currently published `0.1.0` package pages only. Parser/variant source changes are prepared for package version `0.2.0` and have owner approval for the manual GitHub Actions publishing path, but still require hosted CI for the pushed candidate, successful package publication, registry readback for `0.2.0`, clean install smoke, and rollback or unpublish evidence before any new package-release claim changes.
+Registry readback proves schemas, validator, action, and readback at `0.2.0`, while uploader `0.2.0` remains pending. Parser/variant source changes are prepared for package version `0.2.0` and have owner approval for the manual GitHub Actions publishing path, but still require the recovery workflow on `main`, uploader publication, full registry readback for `0.2.0`, clean install smoke, and rollback or unpublish evidence before any new package-release claim changes.
 
-Parser/variant package publication is currently No-Go for a new package-release claim. The blockers are missing hosted Release Check evidence for the pushed candidate, missing GitHub Actions publication evidence for `0.2.0`, registry/readback evidence that still covers only existing `0.1.0` packages, and missing rollback or unpublish evidence for a new parser/variant package release.
+Parser/variant package publication is currently No-Go for a new package-release claim. The blockers are missing hosted Release Check evidence for the publish-recovery workflow branch, missing uploader `0.2.0` publication evidence, missing full `0.2.0` registry readback and clean install smoke, and missing rollback or unpublish evidence for a new parser/variant package release.
 
 ## Catalog And Download Branch-Local Evidence
 
@@ -92,9 +92,9 @@ Current source now includes readback catalog list/detail/download-metadata helpe
 
 Catalog/download evidence remains limited to local source behavior, local tests, installed-tarball smoke, and the bounded live metadata smoke below. It does not advertise a new npm package version, prove direct-download byte-transfer availability, approve resources, certify safety, install or execute downloaded content, or replace platform review.
 
-Registry readback still proves the currently published `0.1.0` package pages only. Catalog/download source changes are prepared for package version `0.2.0` and have owner approval for the manual GitHub Actions publishing path, but still require hosted CI for the pushed candidate, successful package publication, registry readback for `0.2.0`, clean install smoke, rollback or unpublish evidence, and owner-approved disposable direct-download evidence before any new package-release or direct-download live availability claim changes.
+Registry readback proves schemas, validator, action, and readback at `0.2.0`, while uploader `0.2.0` remains pending. Catalog/download source changes are prepared for package version `0.2.0` and have owner approval for the manual GitHub Actions publishing path, but still require the recovery workflow on `main`, uploader publication, full registry readback for `0.2.0`, clean install smoke, rollback or unpublish evidence, and owner-approved disposable direct-download evidence before any new package-release or direct-download live availability claim changes.
 
-Catalog/download package publication and direct-download live availability claims are currently No-Go. The blockers are missing hosted Release Check evidence for the pushed candidate, missing GitHub Actions publication evidence for `0.2.0`, registry/readback evidence that still covers only existing `0.1.0` packages, missing rollback or unpublish evidence for a new package release, and missing owner-approved disposable direct-download byte-transfer evidence.
+Catalog/download package publication and direct-download live availability claims are currently No-Go. The blockers are missing hosted Release Check evidence for the publish-recovery workflow branch, missing uploader `0.2.0` publication evidence, missing full `0.2.0` registry readback and clean install smoke, missing rollback or unpublish evidence for a new package release, and missing owner-approved disposable direct-download byte-transfer evidence.
 
 ## Catalog And Download Live Metadata Evidence
 
@@ -118,10 +118,10 @@ Current source closeout evidence is complete for local preparation only:
 - The safe direct-download utility is covered by package tests with path, overwrite, redirect, size, digest, cleanup, and token-forwarding boundaries.
 - Uploader catalog and direct-download commands are covered by package tests.
 - Installed-tarball smoke covers readback catalog/download exports and uploader catalog/direct-download help surfaces.
-- Registry readback proves only the currently published `0.1.0` packages.
+- Registry readback proves schemas, validator, action, and readback at `0.2.0`; uploader remains at `0.1.0` with uploader `0.2.0` pending.
 - Live metadata smoke proves the public list/detail/download-metadata endpoints for the sampled public resource.
 
-Current closeout evidence does not include direct byte-download smoke, hosted CI for the pushed catalog/download candidate, GitHub Actions publication evidence for `0.2.0`, registry readback for `0.2.0`, or rollback/unpublish evidence for a new package release. The catalog/download scoped release decision therefore remains No-Go for a new package-release or direct-download live availability claim.
+Current closeout evidence does not include direct byte-download smoke, hosted CI for the publish-recovery workflow branch, uploader `0.2.0` publication evidence, full registry readback for `0.2.0`, or rollback/unpublish evidence for a new package release. The catalog/download scoped release decision therefore remains No-Go for a new package-release or direct-download live availability claim.
 
 ## All-Channel Public URL Mode
 
@@ -165,15 +165,15 @@ Command-line package registry checks were refreshed on 2026-06-07.
 Current command-line finding:
 
 - npm registry connectivity passed.
-- `@agentique.io/schemas` is published at version `0.1.0`; target `0.2.0` is pending/not found before publication.
-- `@agentique.io/validator` is published at version `0.1.0`; target `0.2.0` is pending/not found before publication.
-- `@agentique.io/action` is published at version `0.1.0`; target `0.2.0` is pending/not found before publication.
-- `@agentique.io/readback` is published at version `0.1.0`; target `0.2.0` is pending/not found before publication.
-- `@agentique.io/uploader` is published at version `0.1.0`; target `0.2.0` is pending/not found before publication.
+- `@agentique.io/schemas` is published at version `0.2.0`.
+- `@agentique.io/validator` is published at version `0.2.0`.
+- `@agentique.io/action` is published at version `0.2.0`.
+- `@agentique.io/readback` is published at version `0.2.0`.
+- `@agentique.io/uploader` is published at version `0.1.0`; target `0.2.0` is pending publish recovery.
 - Package manifests include public access and provenance publish configuration.
 - Package dry-run passed for schemas, validator, action, readback, and uploader packages.
 - npm `11.14.1` registry readback and install smoke passed for the dotted `@agentique.io` scope.
-- npm `11.8.0` registry readback on 2026-06-07 confirmed target version `0.2.0` is not published yet for schemas, validator, action, readback, and uploader.
+- npm registry readback on 2026-06-07 confirmed schemas, validator, action, and readback at target version `0.2.0`; uploader `0.2.0` remains pending.
 - Clean install smoke from the npm registry package passed for `@agentique.io/uploader@0.1.0`; the installed CLI returned `0.1.0`.
 - Clean install smoke passed with `--ignore-scripts`.
 - Readback import smoke passed.
@@ -182,6 +182,7 @@ Current command-line finding:
 Publication note:
 
 - The first package release used an owner-approved maintainer-approved publication path after validation.
+- Owner approval is recorded to use the checked-in manual GitHub Actions package publishing workflow for the coordinated package release target, `0.2.0`. Publication recovery still depends on the retry workflow running on `main`, uploader `0.2.0` publication, full registry readback for `0.2.0`, and clean install smoke.
 
 ## Public Link Smoke Evidence
 
@@ -204,4 +205,4 @@ These smoke checks approve source repository, published package registry, action
 
 ## Current Decision
 
-The source repository, published npm packages including `@agentique.io/uploader`, action usage reference, badge/readback documentation, and `agentique.io` public links remain Go for existing advertised channels. Parser/variant source changes are No-Go for a new package-release claim until hosted CI, GitHub Actions publication, registry readback for `0.2.0`, clean install smoke, and rollback or unpublish evidence are recorded. Catalog/download source changes are No-Go for a new package-release or direct-download live availability claim until the same package-release evidence plus owner-approved disposable direct-download evidence are recorded. Authenticated review-session access and final resource publication remain platform-owned and account/token gated. GitHub Marketplace-style promotion remains separate from this source/package release.
+The source repository, published npm packages including `@agentique.io/uploader`, action usage reference, badge/readback documentation, and `agentique.io` public links remain Go for existing advertised channels. Parser/variant source changes are No-Go for a new package-release claim until the recovery workflow runs on `main`, uploader `0.2.0` publication, full registry readback for `0.2.0`, clean install smoke, and rollback or unpublish evidence are recorded. Catalog/download source changes are No-Go for a new package-release or direct-download live availability claim until the same package-release evidence plus owner-approved disposable direct-download evidence are recorded. Authenticated review-session access and final resource publication remain platform-owned and account/token gated. GitHub Marketplace-style promotion remains separate from this source/package release.

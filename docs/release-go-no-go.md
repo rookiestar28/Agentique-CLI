@@ -10,6 +10,8 @@ Package registry pages, badge/readback documentation, and action usage documenta
 
 `@agentique.io/uploader` is published on npm at version `0.1.0` after owner-approved publication, hosted Release Check evidence, registry readback, and clean install smoke. The package remains review-only; it does not publish, approve, certify, host, or moderate resources.
 
+The coordinated `0.2.0` package publish is currently in recovery. Registry readback shows schemas, validator, action, and readback at `0.2.0`; uploader remains at `0.1.0` and uploader `0.2.0` is pending.
+
 ## Uploader Publication Decision
 
 Current uploader publication decision: **Go** for npm package availability.
@@ -26,13 +28,13 @@ The uploader package page is approved for advertising. Authenticated review-sess
 
 Current parser/variant package release decision: **No-Go** for a new package-release claim.
 
-Reason: parser/variant source changes are prepared for the next coordinated package release target, `0.2.0`, and owner approval to use the manual GitHub Actions package publishing workflow is recorded. Existing published package pages remain approved at `0.1.0`, but no new parser/variant package release is advertised until hosted CI for the pushed candidate, GitHub Actions publication, registry readback for `0.2.0`, clean install smoke, and rollback or unpublish evidence are recorded.
+Reason: parser/variant source changes are prepared for the coordinated package release target, `0.2.0`, and owner approval to use the manual GitHub Actions package publishing workflow is recorded. The manual publish run partially completed for schemas, validator, action, and readback at `0.2.0`; uploader `0.2.0` remains pending. No new parser/variant package release is advertised until the recovery workflow is merged to `main`, uploader `0.2.0` is published, full registry readback for `0.2.0`, clean install smoke, and rollback or unpublish evidence are recorded.
 
 Current blockers:
 
-- Fresh hosted Release Check evidence for the pushed parser/variant package candidate is not recorded.
-- GitHub Actions publication for `0.2.0` is not recorded.
-- Registry readback and clean install smoke currently prove only existing published `0.1.0` packages.
+- Fresh hosted Release Check evidence for the publish-recovery workflow branch is not recorded.
+- Uploader `0.2.0` publication through GitHub Actions is not recorded.
+- Full `0.2.0` registry readback and clean install smoke are not recorded.
 - Rollback or unpublish evidence for a new parser/variant package release is not recorded.
 
 Parser/variant schemas, validator findings, readback helpers, uploader dry-runs, examples, and release smoke coverage are unpublished preparation evidence. They do not publish new package contents, create platform downloads, prove runtime compatibility, approve resources, or replace platform review.
@@ -41,19 +43,19 @@ Parser/variant schemas, validator findings, readback helpers, uploader dry-runs,
 
 Current catalog/download package release decision: **No-Go** for a new package-release or direct-download live availability claim.
 
-Reason: catalog/download CLI and SDK changes are prepared for the next coordinated package release target, `0.2.0`, and owner approval to use the manual GitHub Actions package publishing workflow is recorded. Existing published package pages remain approved at `0.1.0`. A GET-only live metadata smoke on 2026-06-07 reached the canonical public list, first resource detail, and first resource download-metadata endpoints with 200 JSON responses. No new catalog/download package release or direct-download live availability claim is advertised without hosted CI for the pushed candidate, GitHub Actions publication, registry readback for `0.2.0`, clean install smoke, rollback or unpublish evidence, and owner-approved disposable direct-download evidence.
+Reason: catalog/download CLI and SDK changes are prepared for the coordinated package release target, `0.2.0`, and owner approval to use the manual GitHub Actions package publishing workflow is recorded. The manual publish run partially completed for schemas, validator, action, and readback at `0.2.0`; uploader `0.2.0` remains pending. A GET-only live metadata smoke on 2026-06-07 reached the canonical public list, first resource detail, and first resource download-metadata endpoints with 200 JSON responses. No new catalog/download package release or direct-download live availability claim is advertised without the recovery workflow on `main`, uploader `0.2.0` publication, full registry readback for `0.2.0`, clean install smoke, rollback or unpublish evidence, and owner-approved disposable direct-download evidence.
 
 Current blockers:
 
-- Fresh hosted Release Check evidence for the pushed catalog/download package candidate is not recorded.
-- GitHub Actions publication for `0.2.0` is not recorded.
-- Registry readback and clean install smoke currently prove only existing published `0.1.0` packages.
+- Fresh hosted Release Check evidence for the publish-recovery workflow branch is not recorded.
+- Uploader `0.2.0` publication through GitHub Actions is not recorded.
+- Full `0.2.0` registry readback and clean install smoke are not recorded.
 - Rollback or unpublish evidence for a new catalog/download package release is not recorded.
 - Owner-approved disposable direct-download byte-transfer evidence is not recorded, so direct-download live availability is not advertised.
 
 Catalog list/detail/download-metadata commands, direct download command, readback catalog normalizers, direct download utility, live metadata smoke, and release smoke coverage are unpublished preparation evidence. They do not publish new package contents, prove direct-download live availability, approve resources, certify safety, install or execute downloaded content, or replace platform review.
 
-Closeout evidence: source validation, installed-tarball smoke, registry readback for the currently published `0.1.0` packages, live metadata smoke, and owner approval to use the manual GitHub Actions publishing workflow are recorded. Direct byte-download smoke, hosted CI for the pushed catalog/download candidate, GitHub Actions publication, registry readback for `0.2.0`, and rollback or unpublish evidence for a new release are not recorded.
+Closeout evidence: source validation, installed-tarball smoke, registry readback for schemas, validator, action, and readback at `0.2.0`, live metadata smoke, and owner approval to use the manual GitHub Actions publishing workflow are recorded. Direct byte-download smoke, hosted CI for the publish-recovery workflow branch, uploader `0.2.0` publication, full registry readback for `0.2.0`, and rollback or unpublish evidence for a new release are not recorded.
 
 Current public-safe evidence is recorded in [release-evidence.md](release-evidence.md).
 

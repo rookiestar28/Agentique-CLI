@@ -53,30 +53,112 @@ jobs:
           python -m pip install --requirement .github/requirements-ci.txt
           python -m detect_secrets scan --all-files --exclude-files '(\.git/|\.git\\|node_modules/|node_modules\\)'
 
+      - name: Check published package versions
+        id: package_status
+        run: |
+          set -euo pipefail
+
+          VERSION="0.2.0"
+
+          check_package() {
+            local output_name="$1"
+            local package_name="$2"
+
+            if npm view "$package_name@$VERSION" version --json >/dev/null 2>&1; then
+              echo "$package_name@$VERSION already published."
+              echo "${output_name}_exists=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "$package_name@$VERSION is not published yet."
+              echo "${output_name}_exists=false" >> "$GITHUB_OUTPUT"
+            fi
+          }
+
+          check_package schemas @agentique.io/schemas
+          check_package validator @agentique.io/validator
+          check_package action @agentique.io/action
+          check_package readback @agentique.io/readback
+          check_package uploader @agentique.io/uploader
+
       - name: Publish schemas package
+        if: ${{ steps.package_status.outputs.schemas_exists != 'true' }}
         working-directory: schemas
         run: npm publish --access public --provenance
 
       - name: Publish validator package
+        if: ${{ steps.package_status.outputs.validator_exists != 'true' }}
         working-directory: packages/validator
         run: npm publish --access public --provenance
 
       - name: Publish action package
+        if: ${{ steps.package_status.outputs.action_exists != 'true' }}
         working-directory: packages/action
         run: npm publish --access public --provenance
 
       - name: Publish readback package
+        if: ${{ steps.package_status.outputs.readback_exists != 'true' }}
         working-directory: packages/readback
         run: npm publish --access public --provenance
 
       - name: Verify uploader dependency versions after companion publish
         run: |
-          npm view @agentique.io/readback@0.2.0 version --json
-          npm view @agentique.io/validator@0.2.0 version --json
+          set -euo pipefail
+
+          wait_for_package() {
+            local package_name="$1"
+
+            for attempt in {1..30}; do
+              if npm view "$package_name@0.2.0" version --json >/dev/null 2>&1; then
+                echo "$package_name@0.2.0 is readable from npm."
+                return 0
+              fi
+
+              echo "Waiting for $package_name@0.2.0 npm readback ($attempt/30)."
+              sleep 10
+            done
+
+            echo "$package_name@0.2.0 was not readable from npm after waiting." >&2
+            return 1
+          }
+
+          wait_for_package @agentique.io/readback
+          wait_for_package @agentique.io/validator
+
+      - name: Verify uploader package dependencies
+        run: |
+          npm --prefix packages/uploader ci --ignore-scripts
+          npm --prefix packages/uploader audit --omit=dev
 
       - name: Publish uploader package
+        if: ${{ steps.package_status.outputs.uploader_exists != 'true' }}
         working-directory: packages/uploader
         run: npm publish --access public --provenance
+
+      - name: Wait for published package readback
+        run: |
+          set -euo pipefail
+
+          wait_for_package() {
+            local package_name="$1"
+
+            for attempt in {1..30}; do
+              if npm view "$package_name@0.2.0" version --json >/dev/null 2>&1; then
+                echo "$package_name@0.2.0 is readable from npm."
+                return 0
+              fi
+
+              echo "Waiting for $package_name@0.2.0 npm readback ($attempt/30)."
+              sleep 10
+            done
+
+            echo "$package_name@0.2.0 was not readable from npm after waiting." >&2
+            return 1
+          }
+
+          wait_for_package @agentique.io/schemas
+          wait_for_package @agentique.io/validator
+          wait_for_package @agentique.io/action
+          wait_for_package @agentique.io/readback
+          wait_for_package @agentique.io/uploader
 
       - name: Verify published package set
         env:

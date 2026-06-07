@@ -51,11 +51,11 @@ The published companion packages are available on npm under the `@agentique.io` 
 npm install @agentique.io/schemas @agentique.io/validator @agentique.io/readback @agentique.io/uploader
 ```
 
-Published packages currently include `@agentique.io/schemas`, `@agentique.io/validator`, `@agentique.io/action`, `@agentique.io/readback`, and `@agentique.io/uploader` at version `0.1.0`.
+Published package pages currently include `@agentique.io/schemas`, `@agentique.io/validator`, `@agentique.io/action`, `@agentique.io/readback`, and `@agentique.io/uploader`. Registry readback currently shows schemas, validator, action, and readback at `0.2.0`; uploader remains published at `0.1.0` while uploader `0.2.0` is pending publish recovery.
 
-Parser/variant package surfaces in the current source branch are prepared for the next coordinated npm package release target, `0.2.0`. They are not part of a new advertised package release until the scoped release decision in [docs/release-go-no-go.md](docs/release-go-no-go.md) records pushed hosted CI, GitHub Actions publication, registry readback for `0.2.0`, clean install smoke, and rollback or unpublish evidence.
+Parser/variant package surfaces in the current source branch are prepared for the coordinated npm package release target, `0.2.0`. The package release is not a new advertised release until the scoped release decision in [docs/release-go-no-go.md](docs/release-go-no-go.md) records the recovery workflow on `main`, uploader `0.2.0` publication, full registry readback, clean install smoke, and rollback or unpublish evidence.
 
-Catalog/download CLI and SDK surfaces in the current source branch are also prepared for the next coordinated npm package release target, `0.2.0`. They are not a new advertised npm package capability until the scoped release decision records the same package-release evidence. Direct-download live availability remains a separate claim and is not advertised until owner-approved disposable byte-transfer evidence is recorded.
+Catalog/download CLI and SDK surfaces in the current source branch are also prepared for the coordinated npm package release target, `0.2.0`. They are not a new advertised npm package capability until the scoped release decision records the same package-release evidence. Direct-download live availability remains a separate claim and is not advertised until owner-approved disposable byte-transfer evidence is recorded.
 
 Use the validator package for local static checks:
 
@@ -154,9 +154,9 @@ The source repository, npm packages, action usage reference, badge/readback docu
 
 Current source repository, package registry, action usage, badge/readback documentation, and platform-link publication decision for existing advertised channels: **Go**.
 
-Parser/variant package changes in the current source branch are **No-Go** for a new package-release claim until hosted CI for the pushed candidate, GitHub Actions publication, registry readback for `0.2.0`, clean install smoke, and rollback or unpublish evidence are recorded. Owner approval to use the manual GitHub Actions package publishing workflow is recorded. Existing published package pages remain approved at version `0.1.0`.
+Parser/variant package changes in the current source branch are **No-Go** for a new package-release claim until the recovery workflow is merged to `main`, uploader `0.2.0` is published, full registry readback for `0.2.0`, clean install smoke, and rollback or unpublish evidence are recorded. Owner approval to use the manual GitHub Actions package publishing workflow is recorded. Schemas, validator, action, and readback are already readable from npm at `0.2.0`; uploader remains at `0.1.0` pending recovery.
 
-Catalog/download package changes in the current source branch are **No-Go** for a new package-release or direct-download live availability claim. Current metadata endpoint evidence is recorded, and owner approval to use the manual GitHub Actions package publishing workflow is recorded. No-Go remains until hosted CI for the pushed candidate, GitHub Actions publication, registry readback for `0.2.0`, clean install smoke, rollback or unpublish evidence, and owner-approved disposable direct-download evidence are recorded.
+Catalog/download package changes in the current source branch are **No-Go** for a new package-release or direct-download live availability claim. Current metadata endpoint evidence is recorded, and owner approval to use the manual GitHub Actions package publishing workflow is recorded. No-Go remains until the recovery workflow is merged to `main`, uploader `0.2.0` is published, full registry readback for `0.2.0`, clean install smoke, rollback or unpublish evidence, and owner-approved disposable direct-download evidence are recorded.
 
 Public-safe evidence currently recorded:
 
@@ -288,7 +288,7 @@ See [packages/validator/README.md](packages/validator/README.md).
 
 The uploader package is a published review-only CLI implementation. It is useful for local integration review because it can report redacted auth status, generate validator-backed upload plans, and exercise review-session submit/status flows when configured with platform API access.
 
-The current source branch also includes parser import and variant dry-runs, public catalog reads, download-metadata reads, and direct artifact byte download for local review. Owner approval to use the manual GitHub Actions package publishing workflow is recorded, but these parser/variant and catalog/download surfaces are not a new published package claim until the package release gate records pushed hosted CI, GitHub Actions publication, registry readback for `0.2.0`, clean install smoke, and rollback or unpublish evidence. Direct-download live availability remains unadvertised until owner-approved disposable byte-transfer evidence is recorded.
+The current source branch also includes parser import and variant dry-runs, public catalog reads, download-metadata reads, and direct artifact byte download for local review. Owner approval to use the manual GitHub Actions package publishing workflow is recorded, but these parser/variant and catalog/download surfaces are not a new advertised package claim until the package release gate records recovery workflow merge, uploader `0.2.0` publication, full registry readback for `0.2.0`, clean install smoke, and rollback or unpublish evidence. Direct-download live availability remains unadvertised until owner-approved disposable byte-transfer evidence is recorded.
 
 Install from npm:
 
@@ -315,7 +315,7 @@ node packages/uploader/src/cli.mjs download <resource-id> --output ./downloads/ 
 
 `upload plan` reports validator-backed package evidence and creator checkpoint readiness. From the source checkout, `upload import-plan` reports parser evidence, graph counts, and compatibility for local review, while `upload variant-plan` reports source-only variant states and review reasons for local review. `upload draft` and `upload patch` are local-only and unsubmitted. `upload submit` requires scoped token auth, an Agentique API origin, checkpoint-ready package metadata, and server completion verification.
 
-`catalog list`, `catalog get`, and `catalog download-metadata` are GET-only public readback commands and do not require uploader auth. `download` resolves public metadata, writes bytes to the explicit `--output` path, verifies SDK size/digest checks, and redacts signed URLs and absolute local paths from CLI output. It does not install, extract, open, execute, approve, certify, publish, host, or moderate content. Package installation is available from npm for the currently published version, while current source catalog/download changes require a completed package-release gate before advertising them as npm package capabilities.
+`catalog list`, `catalog get`, and `catalog download-metadata` are GET-only public readback commands and do not require uploader auth. `download` resolves public metadata, writes bytes to the explicit `--output` path, verifies SDK size/digest checks, and redacts signed URLs and absolute local paths from CLI output. It does not install, extract, open, execute, approve, certify, publish, host, or moderate content. Uploader package installation remains available from npm for the currently published `0.1.0` version; current source catalog/download changes require the completed `0.2.0` package-release gate before advertising them as npm package capabilities.
 
 See [packages/uploader/README.md](packages/uploader/README.md), [docs/release-go-no-go.md](docs/release-go-no-go.md), and [docs/package-release-provenance.md](docs/package-release-provenance.md).
 
@@ -471,7 +471,7 @@ npm --prefix packages/action audit --omit=dev
 npm --prefix packages/readback audit --omit=dev
 ```
 
-For prepublish candidates where `@agentique.io/uploader` depends on unpublished companion package versions, package-local uploader audit is a post-publish registry gate. The publish workflow verifies companion dependency versions before publishing uploader and then runs registry readback plus registry install smoke after the full package set is published.
+For publish-recovery candidates where `@agentique.io/uploader` depends on companion package versions that were just published, package-local uploader dependency verification runs after companion registry readback and before publishing uploader. The publish workflow then runs full registry readback plus registry install smoke after the full package set is published.
 
 Release status and follow-up boundaries are documented in [docs/release-go-no-go.md](docs/release-go-no-go.md). Package release expectations are documented in [docs/package-release-provenance.md](docs/package-release-provenance.md).
 

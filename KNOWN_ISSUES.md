@@ -481,24 +481,26 @@ according to owner review.
 | **Severity** | Medium |
 | **Module** | `@agentique.io/uploader` — Release and Registry State |
 | **File** | `packages/uploader`; `docs/package-release-provenance.md`; `docs/public-url-inventory.json`; `docs/release-go-no-go.json` |
-| **Status** | Open — source implementation and local tarball smoke exist, but npm registry publication remains No-Go until owner-approved publish evidence, registry readback, and install smoke from npm are recorded |
+| **Status** | Open — source implementation and local tarball smoke exist, but uploader `0.2.0` npm registry publication remains No-Go until publish-recovery evidence, registry readback, and install smoke from npm are recorded |
 
 ### Description
 
 The uploader package is implemented in source and included in local tests,
 package dry-run, workflow posture checks, and production dependency audit.
-However, npm registry readback currently reports `@agentique.io/uploader` as
-not found. Users should not expect `npm install @agentique.io/uploader` to work
+npm registry readback currently reports `@agentique.io/uploader` as published
+at `0.1.0`, while uploader `0.2.0` remains pending publish recovery. Users
+should not expect the `0.2.0` uploader package surface to be available from npm
 until registry publication and install smoke evidence are recorded.
 
-The public URL inventory tracks the uploader package page as pending and
-non-advertised. Existing published package pages for schemas, validator, action,
-and readback remain approved advertised channels. The current uploader
-publication closeout is No-Go.
+The public URL inventory tracks the existing uploader package page as approved
+for the already published package. Existing published package pages for schemas,
+validator, action, and readback remain approved advertised channels and now
+read back at `0.2.0`. The current uploader `0.2.0` publication closeout is
+No-Go.
 
 ### Required Closeout
 
-Before advertising the uploader package page:
+Before advertising uploader `0.2.0` package capabilities:
 
 1. Publish the exact reviewed package version through the approved package
    publishing route.

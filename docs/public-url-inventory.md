@@ -2,7 +2,7 @@
 
 This inventory tracks public links that must exist before the companion repository, packages, action, schemas, docs, badges, or platform links are advertised.
 
-Current status: source repository, schema, documentation, package registry pages, action usage reference, badge/readback documentation, and existing `agentique.io` public links are approved for advertising after publication and smoke testing. The uploader package page is approved after owner-approved publication, registry readback, and clean install smoke. Current catalog/download package changes target `0.2.0` and have owner approval to use the manual GitHub Actions publishing workflow, but they are not newly advertised until the scoped package-release gate passes. Direct-download live availability is not advertised until owner-approved direct-download evidence passes.
+Current status: source repository, schema, documentation, package registry pages, action usage reference, badge/readback documentation, and existing `agentique.io` public links are approved for advertising after publication and smoke testing. The uploader package page is approved for the existing published package after owner-approved publication, registry readback, and clean install smoke. Current catalog/download package changes target `0.2.0` and have owner approval to use the manual GitHub Actions publishing workflow, but they are not newly advertised until the scoped package-release gate passes. Registry readback currently shows schemas, validator, action, and readback at `0.2.0`; uploader `0.2.0` remains pending publish recovery. Direct-download live availability is not advertised until owner-approved direct-download evidence passes.
 
 ## Approved URL Classes
 
