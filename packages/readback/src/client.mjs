@@ -238,6 +238,80 @@ export function normalizeTrustReadback(value) {
   });
 }
 
+export function normalizeParserVariantReadback(value) {
+  const normalized = normalizePublicReadback(value);
+  const parserVariant = isRecord(normalized?.parserVariant) ? normalized.parserVariant : normalized;
+
+  if (!isRecord(parserVariant)) {
+    return emptyParserVariantSummary();
+  }
+
+  const parserEvidence = isRecord(parserVariant.parserEvidence) ? parserVariant.parserEvidence : null;
+  const resourceGraphSummary = isRecord(parserVariant.resourceGraphSummary) ? parserVariant.resourceGraphSummary : null;
+  const compatibility = isRecord(parserVariant.compatibility) ? parserVariant.compatibility : null;
+  const platformVariants = Array.isArray(parserVariant.platformVariants) ? parserVariant.platformVariants.filter(isRecord) : [];
+
+  return Object.freeze({
+    parserEvidence: parserEvidence
+      ? Object.freeze({
+          sourceEcosystem: stringOrNull(parserEvidence.sourceEcosystem),
+          sourceFormat: stringOrNull(parserEvidence.sourceFormat),
+          parseStatus: normalizePublicState(parserEvidence.parseStatus),
+          parseConfidence: normalizePublicState(parserEvidence.parseConfidence),
+          sanitizerStatus: normalizePublicState(parserEvidence.sanitizerStatus),
+          noExecution: parserEvidence.noExecution === true,
+          inputDigestPresent: typeof parserEvidence.inputDigest === "string",
+          outputDigestPresent: typeof parserEvidence.outputDigest === "string",
+          issueCount: Array.isArray(parserEvidence.issues) ? parserEvidence.issues.filter(isRecord).length : 0
+        })
+      : null,
+    resourceGraphSummary: resourceGraphSummary
+      ? Object.freeze({
+          sanitized: resourceGraphSummary.sanitized === true,
+          nodeCount: numberOrNull(resourceGraphSummary.nodeCount),
+          edgeCount: numberOrNull(resourceGraphSummary.edgeCount),
+          capabilityCount: numberOrNull(resourceGraphSummary.capabilityCount),
+          sourceFileCount: numberOrNull(resourceGraphSummary.sourceFileCount),
+          summaryDigestPresent: typeof resourceGraphSummary.summaryDigest === "string"
+        })
+      : null,
+    compatibility: compatibility
+      ? Object.freeze({
+          status: normalizePublicState(compatibility.status),
+          reasons: arrayOfStrings(compatibility.reasons)
+        })
+      : null,
+    platformVariants: Object.freeze(
+      platformVariants.map((variant) => {
+        const download = isRecord(variant.download) ? variant.download : {};
+        return Object.freeze({
+          platformId: stringOrNull(variant.platformId),
+          artifactKind: stringOrNull(variant.artifactKind),
+          state: normalizePublicState(variant.state),
+          validationState: normalizePublicState(variant.validationState),
+          downloadAvailability: normalizePublicState(download.availability),
+          downloadUrl: stringOrNull(download.url),
+          variantDigestPresent: typeof variant.variantDigest === "string",
+          downloadDigestPresent: typeof download.digest === "string",
+          reasons: arrayOfStrings(variant.reasons),
+          observedAt: stringOrNull(variant.observedAt)
+        });
+      })
+    ),
+    observedAt: stringOrNull(parserVariant.observedAt ?? normalized?.observedAt ?? normalized?.updatedAt)
+  });
+}
+
+function emptyParserVariantSummary() {
+  return Object.freeze({
+    parserEvidence: null,
+    resourceGraphSummary: null,
+    compatibility: null,
+    platformVariants: Object.freeze([]),
+    observedAt: null
+  });
+}
+
 function isPrivateProjectionKey(key) {
   const normalized = key.replace(/[-_\s]/g, "").toLowerCase();
   return (
@@ -265,6 +339,10 @@ function arrayOfStrings(value) {
 
 function stringOrNull(value) {
   return typeof value === "string" ? value : null;
+}
+
+function numberOrNull(value) {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
 function normalizePublicState(value) {

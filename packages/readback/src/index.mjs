@@ -2,6 +2,7 @@ export {
   ReadbackError,
   assertReadOnlyClientSurface,
   createReadbackClient,
+  normalizeParserVariantReadback,
   normalizeTrustReadback,
   normalizeBaseUrl,
   normalizePublicReadback

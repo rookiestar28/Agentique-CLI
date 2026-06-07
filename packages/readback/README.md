@@ -15,15 +15,22 @@ npm install @agentique.io/readback
 ## Usage
 
 ```js
-import { createBadgeState, createReadbackClient, normalizeTrustReadback } from "@agentique.io/readback";
+import {
+  createBadgeState,
+  createReadbackClient,
+  normalizeParserVariantReadback,
+  normalizeTrustReadback
+} from "@agentique.io/readback";
 
 const client = createReadbackClient();
 const readback = await client.getReadback("resource-id");
 const trust = normalizeTrustReadback(readback);
+const parserVariant = normalizeParserVariantReadback(readback);
 const badge = createBadgeState(readback);
 
 console.log(badge.label);
 console.log(trust.trustPanel?.state ?? trust.platformState);
+console.log(parserVariant.parserEvidence?.parseStatus ?? "unavailable");
 ```
 
 ## Read-Only Client
@@ -48,11 +55,17 @@ Returned payloads are normalized with a defense-in-depth projection pass that re
 
 `normalizeTrustReadback()` projects public desired-state, scanner-policy, trust-panel, review-eligibility, report-action, and version-history fields into a stable readback summary when those fields are present.
 
+`normalizeParserVariantReadback()` projects public parser evidence and platform variant fields into a bounded summary when those fields are present. It reports digest presence instead of raw digests and keeps parser/variant state descriptive.
+
 ## Badge States
 
 Badge helpers return explicit states:
 
 - `published`
+- `parsed`
+- `partial`
+- `unsupported`
+- `variant-available`
 - `review-required`
 - `rescan-required`
 - `blocked`

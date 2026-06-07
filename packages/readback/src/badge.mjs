@@ -1,6 +1,30 @@
 const DEFAULT_STALE_AFTER_SECONDS = 15 * 60;
 
 const BADGE_STATES = Object.freeze({
+  parsed: {
+    state: "parsed",
+    label: "Parsed",
+    color: "0969da",
+    description: "Public readback includes parsed parser metadata."
+  },
+  partial: {
+    state: "partial",
+    label: "Parser partial",
+    color: "bf8700",
+    description: "Public readback shows parser metadata that needs review."
+  },
+  unsupported: {
+    state: "unsupported",
+    label: "Parser unsupported",
+    color: "6e7781",
+    description: "Public readback marks the parser or variant target as unsupported."
+  },
+  "variant-available": {
+    state: "variant-available",
+    label: "Variant available",
+    color: "0969da",
+    description: "Public readback includes a platform variant projection."
+  },
   published: {
     state: "published",
     label: "Published",
@@ -60,6 +84,11 @@ export function createBadgeState(readback, options = {}) {
 
   if (observedAt && isStale(observedAt, now, staleAfterSeconds)) {
     return badge("stale", { observedAt });
+  }
+
+  const parserVariantState = parserVariantBadgeState(readback);
+  if (parserVariantState) {
+    return badge(parserVariantState, { platformUrl: readback.platformUrl ?? readback.url ?? null });
   }
 
   const trustState = trustBadgeState(readback);
@@ -139,6 +168,54 @@ function trustBadgeState(readback) {
   return null;
 }
 
+function parserVariantBadgeState(readback) {
+  const parserVariant = readback?.parserVariant;
+  if (!parserVariant || typeof parserVariant !== "object" || Array.isArray(parserVariant)) {
+    return null;
+  }
+
+  const parserStatus = normalizeStatus(parserVariant.parserEvidence?.parseStatus);
+  const compatibilityStatus = normalizeStatus(parserVariant.compatibility?.status);
+  const platformVariants = Array.isArray(parserVariant.platformVariants) ? parserVariant.platformVariants : [];
+  const variantStates = platformVariants.map((variant) => normalizeStatus(variant?.state));
+  const validationStates = platformVariants.map((variant) => normalizeStatus(variant?.validationState));
+  const downloadStates = platformVariants.map((variant) => normalizeStatus(variant?.download?.availability));
+
+  if (
+    ["blocked", "failed"].includes(parserStatus) ||
+    compatibilityStatus === "blocked" ||
+    variantStates.includes("blocked")
+  ) {
+    return "blocked";
+  }
+
+  if (variantStates.includes("stale") || validationStates.includes("stale")) {
+    return "stale";
+  }
+
+  if (parserStatus === "unsupported" || compatibilityStatus === "unsupported" || variantStates.includes("unsupported")) {
+    return "unsupported";
+  }
+
+  if (parserStatus === "partial" || compatibilityStatus === "partial" || variantStates.includes("review-required")) {
+    return "partial";
+  }
+
+  if (
+    variantStates.includes("available") ||
+    downloadStates.includes("available") ||
+    downloadStates.includes("source-only")
+  ) {
+    return "variant-available";
+  }
+
+  if (parserStatus === "parsed") {
+    return "parsed";
+  }
+
+  return null;
+}
+
 function isStale(value, now, staleAfterSeconds) {
   const observedAt = toDate(value);
   const ageMs = now.getTime() - observedAt.getTime();
@@ -157,5 +234,6 @@ function normalizeStatus(value) {
   return String(value ?? "")
     .trim()
     .toLowerCase()
+    .replace(/_/g, "-")
     .replace(/\s+/g, "-");
 }

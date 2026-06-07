@@ -7,6 +7,7 @@ import {
   createBadgeState,
   createReadbackClient,
   listBadgeStates,
+  normalizeParserVariantReadback,
   normalizePublicReadback,
   normalizeTrustReadback
 } from "../src/index.mjs";
@@ -264,6 +265,10 @@ describe("read-only client", () => {
 describe("badge states", () => {
   it("covers expected state names", () => {
     assert.deepEqual(listBadgeStates(), [
+      "parsed",
+      "partial",
+      "unsupported",
+      "variant-available",
       "published",
       "review-required",
       "rescan-required",
@@ -301,8 +306,53 @@ describe("badge states", () => {
     assert.equal(createBadgeState({ code: "rate-limited", retryAfter: "60" }).state, "rate-limited");
   });
 
+  it("maps parser and variant projection states", () => {
+    assert.equal(createBadgeState({ parserVariant: parserVariantReadback({ platformVariants: [] }) }).state, "parsed");
+    assert.equal(createBadgeState({ parserVariant: parserVariantReadback() }).state, "variant-available");
+    assert.equal(
+      createBadgeState({
+        parserVariant: parserVariantReadback({
+          parseStatus: "partial",
+          compatibilityStatus: "partial"
+        })
+      }).state,
+      "partial"
+    );
+    assert.equal(
+      createBadgeState({
+        parserVariant: parserVariantReadback({
+          parseStatus: "unsupported",
+          compatibilityStatus: "unsupported",
+          platformVariants: [platformVariantReadback({ state: "unsupported", downloadAvailability: "unavailable" })]
+        })
+      }).state,
+      "unsupported"
+    );
+    assert.equal(
+      createBadgeState({
+        parserVariant: parserVariantReadback({
+          parseStatus: "blocked",
+          compatibilityStatus: "blocked",
+          platformVariants: [platformVariantReadback({ state: "blocked", downloadAvailability: "blocked" })]
+        })
+      }).state,
+      "blocked"
+    );
+    assert.equal(
+      createBadgeState({
+        parserVariant: parserVariantReadback({
+          platformVariants: [platformVariantReadback({ state: "stale", validationState: "stale" })]
+        })
+      }).state,
+      "stale"
+    );
+  });
+
   it("does not use strong safety or approval wording in badge output", () => {
     const states = [
+      createBadgeState({ parserVariant: parserVariantReadback() }),
+      createBadgeState({ parserVariant: parserVariantReadback({ parseStatus: "partial" }) }),
+      createBadgeState({ parserVariant: parserVariantReadback({ parseStatus: "unsupported" }) }),
       createBadgeState({ status: "published" }),
       createBadgeState({ status: "review required" }),
       createBadgeState({ scannerPolicy: { freshness: "rescan-required" } }),
@@ -401,6 +451,119 @@ describe("normalizer", () => {
     });
   });
 
+  it("normalizes parser variant readback without exposing raw evidence", () => {
+    const normalized = normalizeParserVariantReadback({
+      resourceId: "example-resource",
+      updatedAt: "2026-06-07T00:00:00.000Z",
+      parserVariant: {
+        observedAt: "2026-06-07T00:01:00.000Z",
+        parserEvidence: {
+          sourceEcosystem: "mcp",
+          sourceFormat: "json",
+          parseStatus: "parsed",
+          parseConfidence: "high",
+          sanitizerStatus: "passed",
+          noExecution: true,
+          inputDigest: "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          outputDigest: "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          privateReviewNotes: "hidden"
+        },
+        resourceGraphSummary: {
+          sanitized: true,
+          nodeCount: 2,
+          edgeCount: 1,
+          capabilityCount: 1,
+          sourceFileCount: 1,
+          summaryDigest: "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+          storageKey: "hidden"
+        },
+        compatibility: {
+          status: "compatible",
+          reasons: ["static-contract"]
+        },
+        platformVariants: [
+          {
+            platformId: "mcp",
+            artifactKind: "metadata",
+            state: "available",
+            validationState: "not-run",
+            variantDigest: "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            download: {
+              availability: "source-only",
+              url: "https://agentique.io/resources/example-resource/download",
+              digest: "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+              objectPath: "hidden"
+            },
+            reasons: ["source-only"],
+            observedAt: "2026-06-07T00:02:00.000Z"
+          }
+        ],
+        __proto__: {
+          polluted: true
+        }
+      }
+    });
+
+    assert.deepEqual(normalized, {
+      parserEvidence: {
+        sourceEcosystem: "mcp",
+        sourceFormat: "json",
+        parseStatus: "parsed",
+        parseConfidence: "high",
+        sanitizerStatus: "passed",
+        noExecution: true,
+        inputDigestPresent: true,
+        outputDigestPresent: true,
+        issueCount: 0
+      },
+      resourceGraphSummary: {
+        sanitized: true,
+        nodeCount: 2,
+        edgeCount: 1,
+        capabilityCount: 1,
+        sourceFileCount: 1,
+        summaryDigestPresent: true
+      },
+      compatibility: {
+        status: "compatible",
+        reasons: ["static-contract"]
+      },
+      platformVariants: [
+        {
+          platformId: "mcp",
+          artifactKind: "metadata",
+          state: "available",
+          validationState: "not-run",
+          downloadAvailability: "source-only",
+          downloadUrl: "https://agentique.io/resources/example-resource/download",
+          variantDigestPresent: true,
+          downloadDigestPresent: true,
+          reasons: ["source-only"],
+          observedAt: "2026-06-07T00:02:00.000Z"
+        }
+      ],
+      observedAt: "2026-06-07T00:01:00.000Z"
+    });
+    assert.equal(JSON.stringify(normalized).includes("sha256:"), false);
+    assert.equal(JSON.stringify(normalized).includes("hidden"), false);
+    assert.equal({}.polluted, undefined);
+  });
+
+  it("normalizes direct parser variant objects and unavailable parser variants", () => {
+    assert.equal(
+      normalizeParserVariantReadback(parserVariantReadback({ sourceEcosystem: "dify", sourceFormat: "yaml" })).parserEvidence
+        .sourceEcosystem,
+      "dify"
+    );
+    assert.deepEqual(normalizeParserVariantReadback({ status: "published" }), {
+      parserEvidence: null,
+      resourceGraphSummary: null,
+      compatibility: null,
+      platformVariants: [],
+      observedAt: null
+    });
+  });
+
   it("preserves public projection keys that contain formerly ambiguous terms", () => {
     assert.deepEqual(
       normalizePublicReadback({
@@ -484,3 +647,52 @@ describe("normalizer", () => {
     assert.equal(Object.prototype.polluted, undefined);
   });
 });
+
+function parserVariantReadback(overrides = {}) {
+  return {
+    observedAt: "2026-06-07T00:01:00.000Z",
+    parserEvidence: {
+      sourceEcosystem: overrides.sourceEcosystem ?? "mcp",
+      sourceFormat: overrides.sourceFormat ?? "json",
+      parseStatus: overrides.parseStatus ?? "parsed",
+      parseConfidence: overrides.parseConfidence ?? "high",
+      sanitizerStatus: "passed",
+      noExecution: true,
+      inputDigest: "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    },
+    resourceGraphSummary: {
+      sanitized: true,
+      nodeCount: 1,
+      edgeCount: 0,
+      capabilityCount: 1,
+      sourceFileCount: 1,
+      summaryDigest: "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    },
+    compatibility: {
+      status: overrides.compatibilityStatus ?? "compatible",
+      reasons: ["static-contract"]
+    },
+    platformVariants:
+      overrides.platformVariants ??
+      [
+        platformVariantReadback({
+          platformId: overrides.platformId ?? "mcp",
+          artifactKind: overrides.artifactKind ?? "metadata"
+        })
+      ]
+  };
+}
+
+function platformVariantReadback(overrides = {}) {
+  return {
+    platformId: overrides.platformId ?? "mcp",
+    artifactKind: overrides.artifactKind ?? "metadata",
+    state: overrides.state ?? "available",
+    validationState: overrides.validationState ?? "not-run",
+    download: {
+      availability: overrides.downloadAvailability ?? "source-only"
+    },
+    reasons: overrides.reasons ?? ["source-only"],
+    observedAt: "2026-06-07T00:02:00.000Z"
+  };
+}
