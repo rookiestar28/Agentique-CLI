@@ -328,6 +328,116 @@ test("rejects generated draft and patch delta registry trust boundary violations
   assert.equal(JSON.stringify(report).includes(tempDir), false);
 });
 
+test("accepts parser variant metadata across supported ecosystems and emits a public-safe summary", async () => {
+  const cases = [
+    ["mcp", "json", "mcp", "metadata"],
+    ["dify", "yaml", "dify", "workflow"],
+    ["flowise", "json", "flowise", "workflow"],
+    ["n8n", "json", "n8n", "workflow"],
+    ["langgraph", "python", "langgraph", "graph"],
+    ["autogen", "json", "autogen", "graph"],
+    ["llamaindex", "python", "llamaindex", "graph"],
+    ["codex", "markdown", "codex-skill", "skill"],
+    ["claude-code", "markdown", "claude-code-skill", "skill"],
+    ["claude-code", "markdown", "claude-code-subagent", "subagent"]
+  ];
+
+  for (const [sourceEcosystem, sourceFormat, platformId, artifactKind] of cases) {
+    const tempDir = await copyFixture("valid-package");
+    const manifest = await readManifest(tempDir);
+    manifest.parserVariant = parserVariantFixture({ sourceEcosystem, sourceFormat, platformId, artifactKind });
+    await writeManifest(tempDir, manifest);
+
+    const report = await validatePackage({ command: "validate", packageDir: tempDir, schemasDir });
+
+    assert.equal(report.ok, true, `${sourceEcosystem}/${platformId} should pass: ${JSON.stringify(report.findings)}`);
+    assert.equal(report.manifest.parserVariant.parserEvidence.sourceEcosystem, sourceEcosystem);
+    assert.equal(report.manifest.parserVariant.parserEvidence.sourceFormat, sourceFormat);
+    assert.equal(report.manifest.parserVariant.parserEvidence.noExecution, true);
+    assert.equal(report.manifest.parserVariant.resourceGraphSummary.sanitized, true);
+    assert.equal(report.manifest.parserVariant.platformVariants[0].platformId, platformId);
+    assert.equal(report.manifest.parserVariant.platformVariants[0].downloadAvailability, "source-only");
+    assert.equal(JSON.stringify(report.manifest.parserVariant).includes("sha256:"), false);
+    assert.equal(JSON.stringify(report).includes(tempDir), false);
+  }
+});
+
+test("flags parser evidence review states without leaking source data", async () => {
+  const tempDir = await copyFixture("valid-package");
+  const manifest = await readManifest(tempDir);
+  manifest.parserVariant = parserVariantFixture({
+    parseStatus: "partial",
+    parseConfidence: "low",
+    compatibilityStatus: "partial"
+  });
+  await writeManifest(tempDir, manifest);
+
+  const report = await validatePackage({ command: "validate", packageDir: tempDir, schemasDir });
+
+  assert.equal(report.ok, false);
+  assertFindings(report, ["parser-evidence-review-required"]);
+  assert.equal(JSON.stringify(report).includes(tempDir), false);
+  assert.equal(JSON.stringify(report).includes("sha256:aaaaaaaa"), false);
+});
+
+test("flags unsupported and stale platform variants distinctly", async () => {
+  const tempDir = await copyFixture("valid-package");
+  const manifest = await readManifest(tempDir);
+  manifest.parserVariant = parserVariantFixture({
+    platformVariants: [
+      parserVariantEntry({
+        platformId: "langgraph",
+        artifactKind: "graph",
+        state: "unsupported",
+        validationState: "not-run",
+        downloadAvailability: "unavailable",
+        reasons: ["code-first-static-only"]
+      }),
+      parserVariantEntry({
+        platformId: "codex-skill",
+        artifactKind: "skill",
+        state: "stale",
+        validationState: "stale",
+        downloadAvailability: "unavailable",
+        reasons: ["source-changed"]
+      })
+    ]
+  });
+  await writeManifest(tempDir, manifest);
+
+  const report = await validatePackage({ command: "validate", packageDir: tempDir, schemasDir });
+
+  assert.equal(report.ok, false);
+  assertFindings(report, ["variant-unsupported", "variant-stale"]);
+  assert.equal(JSON.stringify(report).includes(tempDir), false);
+});
+
+test("rejects creator-authored platform parser variant overclaims", async () => {
+  const tempDir = await copyFixture("valid-package");
+  const manifest = await readManifest(tempDir);
+  manifest.parserVariant = parserVariantFixture({
+    platformVariants: [
+      parserVariantEntry({
+        platformId: "codex-skill",
+        artifactKind: "skill",
+        state: "available",
+        validationState: "passed",
+        managedBy: "platform",
+        downloadAvailability: "available",
+        downloadUrl: "https://agentique.io/downloads/example-variant"
+      })
+    ]
+  });
+  await writeManifest(tempDir, manifest);
+
+  const report = await validatePackage({ command: "validate", packageDir: tempDir, schemasDir });
+
+  assert.equal(report.ok, false);
+  assertFindings(report, ["platform-variant-overclaim"]);
+  assert.equal(JSON.stringify(report).includes("example-variant"), false);
+  assert.equal(JSON.stringify(report).includes(tempDir), false);
+});
+
 test("validates packaged tool listing contracts", async () => {
   const tempDir = await copyFixture("valid-package");
   await addPackageFile(
@@ -1244,6 +1354,68 @@ function registryTrustFixture(overrides = {}) {
   return {
     ...base,
     ...overrides
+  };
+}
+
+function parserVariantFixture(overrides = {}) {
+  const platformVariants =
+    overrides.platformVariants ??
+    [
+      parserVariantEntry({
+        platformId: overrides.platformId ?? "mcp",
+        artifactKind: overrides.artifactKind ?? "metadata"
+      })
+    ];
+
+  return {
+    contractVersion: "1.0",
+    parserEvidence: {
+      sourceEcosystem: overrides.sourceEcosystem ?? "mcp",
+      sourceFormat: overrides.sourceFormat ?? "json",
+      parserId: "agentique-parser",
+      parserVersion: "1.0.0",
+      inputDigest: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      outputDigest: "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      parseStatus: overrides.parseStatus ?? "parsed",
+      parseConfidence: overrides.parseConfidence ?? "high",
+      sanitizerStatus: "passed",
+      noExecution: true,
+      metadataOnly: true,
+      observedAt: "2026-06-07T00:00:00.000Z"
+    },
+    resourceGraphSummary: {
+      sanitized: true,
+      nodeCount: 2,
+      edgeCount: 1,
+      capabilityCount: 1,
+      sourceFileCount: 1,
+      summaryDigest: "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    },
+    compatibility: {
+      status: overrides.compatibilityStatus ?? "compatible",
+      reasons: overrides.compatibilityReasons ?? ["static-contract"]
+    },
+    platformVariants
+  };
+}
+
+function parserVariantEntry(overrides = {}) {
+  const download = {
+    availability: overrides.downloadAvailability ?? "source-only"
+  };
+  if (overrides.downloadUrl) {
+    download.url = overrides.downloadUrl;
+  }
+
+  return {
+    platformId: overrides.platformId ?? "mcp",
+    artifactKind: overrides.artifactKind ?? "metadata",
+    state: overrides.state ?? "available",
+    validationState: overrides.validationState ?? "not-run",
+    managedBy: overrides.managedBy ?? "creator",
+    download,
+    reasons: overrides.reasons ?? ["source-only"],
+    observedAt: "2026-06-07T00:01:00.000Z"
   };
 }
 

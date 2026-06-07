@@ -346,6 +346,7 @@ function validateManifestContracts(manifest, findings) {
   }
 
   validateRegistryTrustContracts(manifest.registryTrust, findings);
+  validateParserVariantContracts(manifest.parserVariant, findings);
 }
 
 function validateRegistryTrustContracts(registryTrust, findings) {
@@ -419,6 +420,76 @@ function validateRegistryTrustContracts(registryTrust, findings) {
   }
 }
 
+function validateParserVariantContracts(parserVariant, findings) {
+  if (!isRecord(parserVariant)) return;
+
+  const parserEvidence = parserVariant.parserEvidence;
+  if (isRecord(parserEvidence)) {
+    const parseStatus = typeof parserEvidence.parseStatus === "string" ? parserEvidence.parseStatus : "";
+    const parseConfidence = typeof parserEvidence.parseConfidence === "string" ? parserEvidence.parseConfidence : "";
+
+    if (parserEvidence.noExecution !== true) {
+      findings.push(
+        finding(
+          "parser-evidence-review-required",
+          "Parser evidence must include a no-execution proof before public use.",
+          "manifest.parserVariant.parserEvidence"
+        )
+      );
+    }
+
+    if (
+      ["partial", "unsupported", "blocked", "failed"].includes(parseStatus) ||
+      ["low", "unknown"].includes(parseConfidence)
+    ) {
+      findings.push(
+        finding(
+          "parser-evidence-review-required",
+          "Parser evidence requires review before parser or variant availability claims.",
+          "manifest.parserVariant.parserEvidence"
+        )
+      );
+    }
+  }
+
+  const platformVariants = Array.isArray(parserVariant.platformVariants) ? parserVariant.platformVariants : [];
+  platformVariants.forEach((variant, index) => {
+    if (!isRecord(variant)) return;
+    const location = `manifest.parserVariant.platformVariants[${index}]`;
+    const download = isRecord(variant.download) ? variant.download : {};
+
+    if (variant.managedBy === "platform" || download.availability === "available") {
+      findings.push(
+        finding(
+          "platform-variant-overclaim",
+          "Creator manifests cannot claim platform-managed variant state or platform download availability.",
+          location
+        )
+      );
+    }
+
+    if (variant.state === "unsupported") {
+      findings.push(
+        finding(
+          "variant-unsupported",
+          "Variant metadata declares an unsupported platform target.",
+          location
+        )
+      );
+    }
+
+    if (variant.state === "stale" || variant.validationState === "stale") {
+      findings.push(
+        finding(
+          "variant-stale",
+          "Variant metadata declares stale parser or platform evidence.",
+          location
+        )
+      );
+    }
+  });
+}
+
 function collectPlatformManagedCreatorKeys(value, location, findings) {
   if (Array.isArray(value)) {
     value.forEach((item, index) => collectPlatformManagedCreatorKeys(item, `${location}[${index}]`, findings));
@@ -446,7 +517,55 @@ function summarizeManifest(manifest) {
   return {
     name: typeof manifest.name === "string" ? manifest.name : null,
     formatVersion: typeof manifest.formatVersion === "string" ? manifest.formatVersion : null,
+    ...(isRecord(manifest.parserVariant) ? { parserVariant: summarizeParserVariant(manifest.parserVariant) } : {}),
     ...(isRecord(manifest.registryTrust) ? { registryTrust: summarizeRegistryTrust(manifest.registryTrust) } : {})
+  };
+}
+
+function summarizeParserVariant(parserVariant) {
+  const parserEvidence = isRecord(parserVariant.parserEvidence) ? parserVariant.parserEvidence : null;
+  const resourceGraphSummary = isRecord(parserVariant.resourceGraphSummary) ? parserVariant.resourceGraphSummary : null;
+  const compatibility = isRecord(parserVariant.compatibility) ? parserVariant.compatibility : null;
+  const platformVariants = Array.isArray(parserVariant.platformVariants) ? parserVariant.platformVariants : [];
+
+  return {
+    parserEvidence: parserEvidence
+      ? {
+          sourceEcosystem: typeof parserEvidence.sourceEcosystem === "string" ? parserEvidence.sourceEcosystem : null,
+          sourceFormat: typeof parserEvidence.sourceFormat === "string" ? parserEvidence.sourceFormat : null,
+          parseStatus: typeof parserEvidence.parseStatus === "string" ? parserEvidence.parseStatus : null,
+          parseConfidence: typeof parserEvidence.parseConfidence === "string" ? parserEvidence.parseConfidence : null,
+          sanitizerStatus: typeof parserEvidence.sanitizerStatus === "string" ? parserEvidence.sanitizerStatus : null,
+          noExecution: parserEvidence.noExecution === true,
+          outputDigestPresent: typeof parserEvidence.outputDigest === "string"
+        }
+      : null,
+    resourceGraphSummary: resourceGraphSummary
+      ? {
+          sanitized: resourceGraphSummary.sanitized === true,
+          nodeCount: numberOrNull(resourceGraphSummary.nodeCount),
+          edgeCount: numberOrNull(resourceGraphSummary.edgeCount),
+          capabilityCount: numberOrNull(resourceGraphSummary.capabilityCount),
+          sourceFileCount: numberOrNull(resourceGraphSummary.sourceFileCount)
+        }
+      : null,
+    compatibility: compatibility
+      ? {
+          status: typeof compatibility.status === "string" ? compatibility.status : null,
+          reasonCount: Array.isArray(compatibility.reasons) ? compatibility.reasons.length : 0
+        }
+      : null,
+    platformVariants: platformVariants.filter(isRecord).map((variant) => {
+      const download = isRecord(variant.download) ? variant.download : {};
+      return {
+        platformId: typeof variant.platformId === "string" ? variant.platformId : null,
+        artifactKind: typeof variant.artifactKind === "string" ? variant.artifactKind : null,
+        state: typeof variant.state === "string" ? variant.state : null,
+        validationState: typeof variant.validationState === "string" ? variant.validationState : null,
+        downloadAvailability: typeof download.availability === "string" ? download.availability : null,
+        reasonCount: Array.isArray(variant.reasons) ? variant.reasons.length : 0
+      };
+    })
   };
 }
 
@@ -481,6 +600,10 @@ function summarizeRegistryTrust(registryTrust) {
         }
       : null
   };
+}
+
+function numberOrNull(value) {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
 function inspectStructuredPackageFile({ rel, text, findings, ajv }) {
