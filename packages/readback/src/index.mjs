@@ -5,6 +5,7 @@ export {
   normalizeDownloadMetadata,
   normalizeParserVariantReadback,
   normalizeResourceList,
+  normalizeResourceDetail,
   normalizeTrustReadback,
   normalizeBaseUrl,
   normalizePublicReadback

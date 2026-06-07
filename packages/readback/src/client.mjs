@@ -212,16 +212,46 @@ export function normalizeResourceList(value) {
     return emptyResourceList();
   }
 
-  const sourceItems = Array.isArray(normalized.items)
-    ? normalized.items
-    : Array.isArray(normalized.resources)
-      ? normalized.resources
-      : [];
+  const source = unwrapResourceCollection(normalized);
+  const sourceItems = Array.isArray(source.items) ? source.items : [];
+  const pageSource = isRecord(source.pageInfo) ? source.pageInfo : normalized.pageInfo;
+  const observedSource = source.observedAt ?? source.updatedAt ?? normalized.observedAt ?? normalized.updatedAt;
 
   return Object.freeze({
     items: Object.freeze(sourceItems.filter(isRecord).map(projectResourceListItem)),
-    pageInfo: projectPageInfo(normalized.pageInfo),
-    observedAt: stringOrNull(normalized.observedAt ?? normalized.updatedAt)
+    pageInfo: projectPageInfo(pageSource),
+    observedAt: stringOrNull(observedSource)
+  });
+}
+
+export function normalizeResourceDetail(value) {
+  const normalized = normalizePublicReadback(value);
+  const detail = unwrapResourceDetail(normalized);
+  if (!isRecord(detail)) {
+    return Object.freeze({
+      resourceId: null,
+      slug: null,
+      title: null,
+      summary: null,
+      type: null,
+      status: "unavailable",
+      platformUrl: null,
+      downloadAvailability: "unknown",
+      updatedAt: null
+    });
+  }
+
+  return Object.freeze({
+    ...detail,
+    resourceId: stringOrNull(detail.resourceId ?? detail.id),
+    slug: stringOrNull(detail.slug),
+    title: stringOrNull(detail.title ?? detail.name),
+    summary: stringOrNull(detail.summary ?? detail.description),
+    type: stringOrNull(detail.type ?? detail.resourceType),
+    status: normalizePublicState(detail.status ?? detail.state ?? detail.publicationStatus ?? detail.publicationState),
+    platformUrl: stringOrNull(detail.platformUrl ?? detail.resourceUrl ?? detail.url),
+    downloadAvailability: normalizePublicState(detail.downloadAvailability ?? detail.download?.availability),
+    updatedAt: stringOrNull(detail.updatedAt ?? detail.observedAt)
   });
 }
 
@@ -418,6 +448,45 @@ function emptyDownloadMetadata() {
     observedAt: null,
     expiresAt: null
   });
+}
+
+function unwrapResourceCollection(normalized) {
+  if (Array.isArray(normalized)) {
+    return { items: normalized, pageInfo: null, observedAt: null, updatedAt: null };
+  }
+  if (!isRecord(normalized)) {
+    return { items: [], pageInfo: null, observedAt: null, updatedAt: null };
+  }
+  if (Array.isArray(normalized.items)) {
+    return normalized;
+  }
+  if (Array.isArray(normalized.resources)) {
+    return { ...normalized, items: normalized.resources };
+  }
+  const data = normalized.data;
+  if (Array.isArray(data)) {
+    return { ...normalized, items: data };
+  }
+  if (isRecord(data)) {
+    if (Array.isArray(data.items)) {
+      return { ...data, items: data.items, pageInfo: data.pageInfo ?? normalized.pageInfo };
+    }
+    if (Array.isArray(data.resources)) {
+      return { ...data, items: data.resources, pageInfo: data.pageInfo ?? normalized.pageInfo };
+    }
+  }
+  return { ...normalized, items: [] };
+}
+
+function unwrapResourceDetail(normalized) {
+  if (!isRecord(normalized)) {
+    return normalized;
+  }
+  const data = normalized.data;
+  if (isRecord(data) && !Array.isArray(data)) {
+    return data;
+  }
+  return normalized;
 }
 
 function projectResourceListItem(item) {

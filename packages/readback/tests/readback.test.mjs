@@ -10,6 +10,7 @@ import {
   normalizeDownloadMetadata,
   normalizeParserVariantReadback,
   normalizePublicReadback,
+  normalizeResourceDetail,
   normalizeResourceList,
   normalizeTrustReadback
 } from "../src/index.mjs";
@@ -514,6 +515,122 @@ describe("normalizer", () => {
         observedAt: "2026-06-07T01:01:00.000Z"
       }
     );
+  });
+
+  it("unwraps live top-level data array resource lists", () => {
+    assert.deepEqual(
+      normalizeResourceList({
+        ok: true,
+        version: "public-v1",
+        data: [
+          {
+            id: "resource-1",
+            title: "Resource One",
+            summary: "Visible summary.",
+            resourceType: "agent",
+            status: "published",
+            privateReviewNotes: "hidden",
+            observedAt: "2026-06-07T01:03:00.000Z"
+          }
+        ],
+        pageInfo: {
+          page: 1,
+          pageSize: 3,
+          total: 84,
+          nextCursor: "cursor-next",
+          hasNextPage: true
+        },
+        observedAt: "2026-06-07T01:04:00.000Z"
+      }),
+      {
+        items: [
+          {
+            resourceId: "resource-1",
+            slug: null,
+            title: "Resource One",
+            summary: "Visible summary.",
+            type: "agent",
+            status: "published",
+            platformUrl: null,
+            downloadAvailability: "unknown",
+            updatedAt: "2026-06-07T01:03:00.000Z"
+          }
+        ],
+        pageInfo: {
+          page: 1,
+          pageSize: 3,
+          total: 84,
+          cursor: null,
+          nextCursor: "cursor-next",
+          hasNextPage: true
+        },
+        observedAt: "2026-06-07T01:04:00.000Z"
+      }
+    );
+  });
+
+  it("unwraps nested data.items and data.resources resource lists", () => {
+    assert.equal(
+      normalizeResourceList({
+        data: {
+          items: [{ id: "item-1", title: "Item One", status: "published" }]
+        }
+      }).items[0].resourceId,
+      "item-1"
+    );
+    assert.equal(
+      normalizeResourceList({
+        data: {
+          resources: [{ resourceId: "resource-2", name: "Resource Two", state: "published" }]
+        }
+      }).items[0].title,
+      "Resource Two"
+    );
+  });
+
+  it("unwraps live top-level data object resource details without leaking private fields", () => {
+    const detail = normalizeResourceDetail({
+      ok: true,
+      data: {
+        id: "resource-detail",
+        title: "Resource Detail",
+        summary: "Visible detail.",
+        resourceType: "agent",
+        publicationStatus: "published",
+        platformUrl: "https://agentique.example/resources/resource-detail",
+        storageKey: "hidden",
+        nested: {
+          credential: "hidden",
+          visible: true
+        },
+        observedAt: "2026-06-07T01:05:00.000Z"
+      },
+      privateReviewNotes: "hidden"
+    });
+
+    assert.equal(detail.resourceId, "resource-detail");
+    assert.equal(detail.title, "Resource Detail");
+    assert.equal(detail.type, "agent");
+    assert.equal(detail.status, "published");
+    assert.equal(detail.platformUrl, "https://agentique.example/resources/resource-detail");
+    assert.deepEqual(detail.nested, { visible: true });
+    assert.equal(JSON.stringify(detail).includes("hidden"), false);
+  });
+
+  it("returns fail-closed resource summaries for malformed live envelopes", () => {
+    assert.deepEqual(normalizeResourceList({ data: { unexpected: true } }), {
+      items: [],
+      pageInfo: {
+        page: null,
+        pageSize: null,
+        total: null,
+        cursor: null,
+        nextCursor: null,
+        hasNextPage: false
+      },
+      observedAt: null
+    });
+    assert.equal(normalizeResourceDetail({ data: [] }).status, "unknown");
   });
 
   it("normalizes download metadata without leaking private storage fields", () => {
