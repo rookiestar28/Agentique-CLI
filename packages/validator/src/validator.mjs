@@ -9,8 +9,10 @@ const schemaFiles = [
   "context-bundle.schema.json",
   "output-contract.schema.json",
   "package-manifest.schema.json",
+  "parser-variant.schema.json",
   "permission-risk.schema.json",
   "public-readback.schema.json",
+  "registry-trust.schema.json",
   "resource-manifest.schema.json",
   "skill-metadata.schema.json",
   "surfacing-metadata.schema.json",
@@ -86,6 +88,19 @@ const safeSecretExamplePatterns = [
   }
 ];
 
+const platformManagedCreatorKeys = new Set([
+  "approved",
+  "listed",
+  "latestVersion",
+  "platformManaged",
+  "platformProjection",
+  "platformTrustScore",
+  "publishedAt",
+  "publicationState",
+  "scanPassed",
+  "verifiedBadge"
+]);
+
 export async function validatePackage(options) {
   const command = options.command ?? "validate";
   const packageDir = path.resolve(options.packageDir);
@@ -150,12 +165,7 @@ export async function validatePackage(options) {
     ok: findings.length === 0,
     command,
     packageDir,
-    manifest: manifest
-      ? {
-          name: typeof manifest.name === "string" ? manifest.name : null,
-          formatVersion: typeof manifest.formatVersion === "string" ? manifest.formatVersion : null
-        }
-      : null,
+    manifest: summarizeManifest(manifest),
     inventory,
     findings
   });
@@ -334,6 +344,272 @@ function validateManifestContracts(manifest, findings) {
       )
     );
   }
+
+  validateRegistryTrustContracts(manifest.registryTrust, findings);
+  validateParserVariantContracts(manifest.parserVariant, findings);
+}
+
+function validateRegistryTrustContracts(registryTrust, findings) {
+  if (!isRecord(registryTrust)) return;
+
+  collectPlatformManagedCreatorKeys(registryTrust, "manifest.registryTrust", findings);
+
+  const packageContext = registryTrust.packageContext;
+  if (isRecord(packageContext)) {
+    const version = typeof packageContext.version === "string" ? packageContext.version : "";
+    const sourceUrl = typeof packageContext.sourceUrl === "string" ? packageContext.sourceUrl : "";
+
+    if (/[\s<>=*xX]/.test(version) || version.startsWith("^") || version.startsWith("~") || !sourceUrl.startsWith("https://")) {
+      findings.push(
+        finding(
+          "package-context-unsafe",
+          "Package context must use an exact public version and HTTPS source URL.",
+          "manifest.registryTrust.packageContext"
+        )
+      );
+    }
+
+    if (typeof packageContext.packageDigest !== "string") {
+      findings.push(
+        finding(
+          "desired-state-fingerprint-missing",
+          "Registry trust package context must include a public package digest for desired-state comparison.",
+          "manifest.registryTrust.packageContext.packageDigest"
+        )
+      );
+    }
+
+    if (typeof packageContext.ownershipEvidenceVersion !== "string") {
+      findings.push(
+        finding(
+          "scanner-policy-missing",
+          "Registry trust package context must include an ownership evidence version for policy freshness comparison.",
+          "manifest.registryTrust.packageContext.ownershipEvidenceVersion"
+        )
+      );
+    }
+  }
+
+  if (isRecord(registryTrust.generatedDraft) && registryTrust.generatedDraft.draftOnly !== true) {
+    findings.push(
+      finding(
+        "generated-draft-boundary",
+        "Generated draft metadata must remain draft-only.",
+        "manifest.registryTrust.generatedDraft"
+      )
+    );
+  }
+
+  if (isRecord(registryTrust.patchDelta)) {
+    const operations = Array.isArray(registryTrust.patchDelta.operations) ? registryTrust.patchDelta.operations : [];
+    const ambiguousOperation = operations.find(
+      (operation) =>
+        !isRecord(operation) ||
+        operation.path === "/" ||
+        (["add", "replace"].includes(operation.op) && typeof operation.valueSummary !== "string")
+    );
+    if (ambiguousOperation || operations.length === 0) {
+      findings.push(
+        finding(
+          "patch-delta-ambiguous",
+          "Patch and delta metadata must describe explicit partial-update operations.",
+          "manifest.registryTrust.patchDelta"
+        )
+      );
+    }
+  }
+}
+
+function validateParserVariantContracts(parserVariant, findings) {
+  if (!isRecord(parserVariant)) return;
+
+  const parserEvidence = parserVariant.parserEvidence;
+  if (isRecord(parserEvidence)) {
+    const parseStatus = typeof parserEvidence.parseStatus === "string" ? parserEvidence.parseStatus : "";
+    const parseConfidence = typeof parserEvidence.parseConfidence === "string" ? parserEvidence.parseConfidence : "";
+
+    if (parserEvidence.noExecution !== true) {
+      findings.push(
+        finding(
+          "parser-evidence-review-required",
+          "Parser evidence must include a no-execution proof before public use.",
+          "manifest.parserVariant.parserEvidence"
+        )
+      );
+    }
+
+    if (
+      ["partial", "unsupported", "blocked", "failed"].includes(parseStatus) ||
+      ["low", "unknown"].includes(parseConfidence)
+    ) {
+      findings.push(
+        finding(
+          "parser-evidence-review-required",
+          "Parser evidence requires review before parser or variant availability claims.",
+          "manifest.parserVariant.parserEvidence"
+        )
+      );
+    }
+  }
+
+  const platformVariants = Array.isArray(parserVariant.platformVariants) ? parserVariant.platformVariants : [];
+  platformVariants.forEach((variant, index) => {
+    if (!isRecord(variant)) return;
+    const location = `manifest.parserVariant.platformVariants[${index}]`;
+    const download = isRecord(variant.download) ? variant.download : {};
+
+    if (variant.managedBy === "platform" || download.availability === "available") {
+      findings.push(
+        finding(
+          "platform-variant-overclaim",
+          "Creator manifests cannot claim platform-managed variant state or platform download availability.",
+          location
+        )
+      );
+    }
+
+    if (variant.state === "unsupported") {
+      findings.push(
+        finding(
+          "variant-unsupported",
+          "Variant metadata declares an unsupported platform target.",
+          location
+        )
+      );
+    }
+
+    if (variant.state === "stale" || variant.validationState === "stale") {
+      findings.push(
+        finding(
+          "variant-stale",
+          "Variant metadata declares stale parser or platform evidence.",
+          location
+        )
+      );
+    }
+  });
+}
+
+function collectPlatformManagedCreatorKeys(value, location, findings) {
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => collectPlatformManagedCreatorKeys(item, `${location}[${index}]`, findings));
+    return;
+  }
+  if (!isRecord(value)) return;
+
+  for (const [key, nested] of Object.entries(value)) {
+    if (platformManagedCreatorKeys.has(key)) {
+      findings.push(
+        finding(
+          "platform-managed-overclaim",
+          "Creator manifests cannot set platform-managed trust, scan, publication, or badge state.",
+          location
+        )
+      );
+    }
+    collectPlatformManagedCreatorKeys(nested, `${location}.${key}`, findings);
+  }
+}
+
+function summarizeManifest(manifest) {
+  if (!isRecord(manifest)) return null;
+
+  return {
+    name: typeof manifest.name === "string" ? manifest.name : null,
+    formatVersion: typeof manifest.formatVersion === "string" ? manifest.formatVersion : null,
+    ...(isRecord(manifest.parserVariant) ? { parserVariant: summarizeParserVariant(manifest.parserVariant) } : {}),
+    ...(isRecord(manifest.registryTrust) ? { registryTrust: summarizeRegistryTrust(manifest.registryTrust) } : {})
+  };
+}
+
+function summarizeParserVariant(parserVariant) {
+  const parserEvidence = isRecord(parserVariant.parserEvidence) ? parserVariant.parserEvidence : null;
+  const resourceGraphSummary = isRecord(parserVariant.resourceGraphSummary) ? parserVariant.resourceGraphSummary : null;
+  const compatibility = isRecord(parserVariant.compatibility) ? parserVariant.compatibility : null;
+  const platformVariants = Array.isArray(parserVariant.platformVariants) ? parserVariant.platformVariants : [];
+
+  return {
+    parserEvidence: parserEvidence
+      ? {
+          sourceEcosystem: typeof parserEvidence.sourceEcosystem === "string" ? parserEvidence.sourceEcosystem : null,
+          sourceFormat: typeof parserEvidence.sourceFormat === "string" ? parserEvidence.sourceFormat : null,
+          parseStatus: typeof parserEvidence.parseStatus === "string" ? parserEvidence.parseStatus : null,
+          parseConfidence: typeof parserEvidence.parseConfidence === "string" ? parserEvidence.parseConfidence : null,
+          sanitizerStatus: typeof parserEvidence.sanitizerStatus === "string" ? parserEvidence.sanitizerStatus : null,
+          noExecution: parserEvidence.noExecution === true,
+          outputDigestPresent: typeof parserEvidence.outputDigest === "string"
+        }
+      : null,
+    resourceGraphSummary: resourceGraphSummary
+      ? {
+          sanitized: resourceGraphSummary.sanitized === true,
+          nodeCount: numberOrNull(resourceGraphSummary.nodeCount),
+          edgeCount: numberOrNull(resourceGraphSummary.edgeCount),
+          capabilityCount: numberOrNull(resourceGraphSummary.capabilityCount),
+          sourceFileCount: numberOrNull(resourceGraphSummary.sourceFileCount)
+        }
+      : null,
+    compatibility: compatibility
+      ? {
+          status: typeof compatibility.status === "string" ? compatibility.status : null,
+          reasons: stringArrayOrEmpty(compatibility.reasons),
+          reasonCount: Array.isArray(compatibility.reasons) ? compatibility.reasons.length : 0
+        }
+      : null,
+    platformVariants: platformVariants.filter(isRecord).map((variant) => {
+      const download = isRecord(variant.download) ? variant.download : {};
+      return {
+        platformId: typeof variant.platformId === "string" ? variant.platformId : null,
+        artifactKind: typeof variant.artifactKind === "string" ? variant.artifactKind : null,
+        state: typeof variant.state === "string" ? variant.state : null,
+        validationState: typeof variant.validationState === "string" ? variant.validationState : null,
+        downloadAvailability: typeof download.availability === "string" ? download.availability : null,
+        reasons: stringArrayOrEmpty(variant.reasons),
+        reasonCount: Array.isArray(variant.reasons) ? variant.reasons.length : 0
+      };
+    })
+  };
+}
+
+function summarizeRegistryTrust(registryTrust) {
+  const packageContext = isRecord(registryTrust.packageContext) ? registryTrust.packageContext : null;
+  const generatedDraft = isRecord(registryTrust.generatedDraft) ? registryTrust.generatedDraft : null;
+  const patchDelta = isRecord(registryTrust.patchDelta) ? registryTrust.patchDelta : null;
+  const creatorCheckpoints = Array.isArray(registryTrust.creatorCheckpoints) ? registryTrust.creatorCheckpoints : [];
+
+  return {
+    packageContext: packageContext
+      ? {
+          packageName: typeof packageContext.packageName === "string" ? packageContext.packageName : null,
+          version: typeof packageContext.version === "string" ? packageContext.version : null,
+          sourceUrl: typeof packageContext.sourceUrl === "string" ? packageContext.sourceUrl : null,
+          packageDigestPresent: typeof packageContext.packageDigest === "string"
+        }
+      : null,
+    desiredStateFingerprintPresent: packageContext ? typeof packageContext.packageDigest === "string" : false,
+    scannerPolicyVersionExpectation: "platform-managed-readback",
+    creatorCheckpointCount: creatorCheckpoints.length,
+    generatedDraft: generatedDraft
+      ? {
+          draftOnly: generatedDraft.draftOnly === true,
+          kind: typeof generatedDraft.kind === "string" ? generatedDraft.kind : null
+        }
+      : null,
+    patchDelta: patchDelta
+      ? {
+          mode: typeof patchDelta.mode === "string" ? patchDelta.mode : null,
+          operationCount: Array.isArray(patchDelta.operations) ? patchDelta.operations.length : 0
+        }
+      : null
+  };
+}
+
+function numberOrNull(value) {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function stringArrayOrEmpty(value) {
+  return Array.isArray(value) ? value.filter((entry) => typeof entry === "string") : [];
 }
 
 function inspectStructuredPackageFile({ rel, text, findings, ajv }) {

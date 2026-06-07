@@ -1,6 +1,6 @@
 export const UPLOADER_PACKAGE_BOUNDARY = Object.freeze({
   packageName: "@agentique.io/uploader",
-  version: "0.1.0",
+  version: "0.2.0",
   commandName: "agentique",
   status: "boundary-only",
   submissionMode: "review-only",
@@ -17,6 +17,9 @@ export const UPLOADER_PACKAGE_BOUNDARY = Object.freeze({
 });
 
 export const UPLOADER_PACKAGE_VERSION = UPLOADER_PACKAGE_BOUNDARY.version;
+
+export { createGeneratedDraftOutput, createPatchDeltaOutput } from "./draft.mjs";
+export { createImportPlan, createUploadPlan, createVariantPlan } from "./plan.mjs";
 
 export function createUploaderBoundaryStatus() {
   return {

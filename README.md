@@ -17,11 +17,12 @@ This repository is for creators and integrators before and after platform submis
 - Prepare static resource packages with public manifests.
 - Validate package shape, hashes, paths, bounded file reads, contract-bearing JSON files, and secret-like content locally.
 - Run the same validation in GitHub Actions with read-only permissions.
-- Use the review-only uploader CLI before a platform-owned submission.
-- Consume public readback status and badge states for resources that are already published by `agentique.io`.
+- Use the review-only uploader CLI for upload plans, parser import dry-runs, variant dry-runs, creator checkpoint readiness, local draft output, local patch/delta output, and authenticated review-session checks before a platform-owned submission.
+- Consume public readback status, trust projection summaries, parser/variant summaries, and badge states for resources that are already published by `agentique.io`.
+- From a source checkout, exercise public catalog list/detail/download-metadata reads and direct artifact byte downloads when an approved public readback endpoint and resource id are available.
 - Use public tools to prepare, validate, and display resource status before entering the Agentique website upload flow.
 
-Local tools in this repository do not publish, approve, certify, edit, delete, or moderate resources.
+Local tools in this repository do not publish, approve, certify, edit, delete, moderate, install, extract, open, or execute resources.
 
 ## Table Of Contents
 
@@ -52,6 +53,10 @@ npm install @agentique.io/schemas @agentique.io/validator @agentique.io/readback
 
 Published packages currently include `@agentique.io/schemas`, `@agentique.io/validator`, `@agentique.io/action`, `@agentique.io/readback`, and `@agentique.io/uploader` at version `0.1.0`.
 
+Parser/variant package surfaces in the current source branch are prepared for the next coordinated npm package release target, `0.2.0`. They are not part of a new advertised package release until the scoped release decision in [docs/release-go-no-go.md](docs/release-go-no-go.md) records pushed hosted CI, GitHub Actions publication, registry readback for `0.2.0`, clean install smoke, and rollback or unpublish evidence.
+
+Catalog/download CLI and SDK surfaces in the current source branch are also prepared for the next coordinated npm package release target, `0.2.0`. They are not a new advertised npm package capability until the scoped release decision records the same package-release evidence. Direct-download live availability remains a separate claim and is not advertised until owner-approved disposable byte-transfer evidence is recorded.
+
 Use the validator package for local static checks:
 
 ```bash
@@ -61,13 +66,19 @@ npx agentique-validator validate <package-dir> --schemas-dir node_modules/@agent
 Use readback helpers for public resource state exposed by `agentique.io`:
 
 ```js
-import { createBadgeState, createReadbackClient } from "@agentique.io/readback";
+import {
+  createBadgeState,
+  createReadbackClient,
+  normalizeTrustReadback
+} from "@agentique.io/readback";
 
 const client = createReadbackClient();
 const readback = await client.getReadback("resource-id");
+const trust = normalizeTrustReadback(readback);
 const badge = createBadgeState(readback);
 
 console.log(`${badge.label}: ${badge.message}`);
+console.log(trust.platformState);
 ```
 
 ## Quick Start From Source
@@ -113,9 +124,17 @@ Review uploader source behavior locally:
 ```bash
 node packages/uploader/src/cli.mjs auth status --json
 node packages/uploader/src/cli.mjs upload plan starters/agent-assistant --schemas-dir schemas --json
+node packages/uploader/src/cli.mjs upload import-plan starters/parser-variant-import-review --schemas-dir schemas --json
+node packages/uploader/src/cli.mjs upload variant-plan starters/parser-variant-import-review --schemas-dir schemas --json
+node packages/uploader/src/cli.mjs upload draft starters/agent-assistant --schemas-dir schemas --draft-kind manifest --json
+node packages/uploader/src/cli.mjs upload patch starters/agent-assistant --schemas-dir schemas --json
+node packages/uploader/src/cli.mjs catalog list --api-url https://www.agentique.io --json
+node packages/uploader/src/cli.mjs catalog get <resource-id> --api-url https://www.agentique.io --json
+node packages/uploader/src/cli.mjs catalog download-metadata <resource-id> --api-url https://www.agentique.io --json
+node packages/uploader/src/cli.mjs download <resource-id> --output ./downloads/ --api-url https://www.agentique.io --json
 ```
 
-The uploader can create review-only upload sessions when configured with platform API access. It does not publish, approve, certify, host, or moderate resources.
+The uploader can create review-only upload sessions when configured with platform API access and checkpoint-ready package metadata. Import-plan and variant-plan commands are local dry-runs from validator evidence. Local draft and patch commands are unsubmitted helper outputs. Catalog commands are read-only public readback requests. Direct download writes bytes only to the explicit output path and does not install, extract, open, or execute content. The uploader does not publish, approve, certify, host, or moderate resources.
 
 Run release-readiness checks locally:
 
@@ -133,7 +152,11 @@ The source repository, npm packages, action usage reference, badge/readback docu
 
 ## Current Release Status
 
-Current source repository, package registry, action usage, badge/readback documentation, and platform-link publication decision: **Go**.
+Current source repository, package registry, action usage, badge/readback documentation, and platform-link publication decision for existing advertised channels: **Go**.
+
+Parser/variant package changes in the current source branch are **No-Go** for a new package-release claim until hosted CI for the pushed candidate, GitHub Actions publication, registry readback for `0.2.0`, clean install smoke, and rollback or unpublish evidence are recorded. Owner approval to use the manual GitHub Actions package publishing workflow is recorded. Existing published package pages remain approved at version `0.1.0`.
+
+Catalog/download package changes in the current source branch are **No-Go** for a new package-release or direct-download live availability claim. Current metadata endpoint evidence is recorded, and owner approval to use the manual GitHub Actions package publishing workflow is recorded. No-Go remains until hosted CI for the pushed candidate, GitHub Actions publication, registry readback for `0.2.0`, clean install smoke, rollback or unpublish evidence, and owner-approved disposable direct-download evidence are recorded.
 
 Public-safe evidence currently recorded:
 
@@ -144,7 +167,7 @@ Public-safe evidence currently recorded:
 - Hosted Release Check evidence is recorded for the latest pushed public release candidate; later branch changes require a fresh hosted run before downstream release claims.
 - Public `main` branch protection is enabled.
 - Final public repository, package, docs, schema, action usage, badge/readback documentation, and platform URLs are approved.
-- The `agentique.io` public URL and public readback endpoint respond successfully to command-line smoke checks.
+- Existing `agentique.io` public links remain approved through the recorded URL inventory; current source catalog/download metadata evidence is recorded, while direct-download live availability claims require owner-approved disposable byte-transfer evidence before advertising.
 - Owner go/no-go approval is recorded.
 
 Approved and separate channels:
@@ -163,7 +186,7 @@ Release evidence and approved public channels are tracked in [docs/release-evide
 |---|---|
 | `docs/` | Public concepts, manifests, governance, support, release, URL, and go/no-go guidance. |
 | `schemas/` | JSON Schema contracts for public resource manifests, package manifests, distribution modes, and readback projections. |
-| `starters/` | Static example packages for agents, skills, workflows, tool listings, and bundles. |
+| `starters/` | Static example packages for agents, skills, workflows, tool listings, bundles, and parser/variant metadata. |
 | `packages/validator` | No-execution CLI and library for local package validation and upload preparation. |
 | `packages/action` | Least-privilege GitHub Action wrapper around local validation. |
 | `packages/readback` | Read-only client and badge helpers for public resource status. |
@@ -176,9 +199,12 @@ Release evidence and approved public channels are tracked in [docs/release-evide
 2. Edit `manifest.json` with public metadata.
 3. Add inspectable Markdown or JSON content files.
 4. Keep secrets, credentials, private paths, generated archives, dependency folders, executable payloads, and personal data out of the package.
-5. Validate locally with the validator CLI.
-6. Submit through the platform-owned upload flow.
-7. Use readback helpers only after `agentique.io` exposes public resource status.
+5. Add optional `registryTrust` metadata only for public-safe creator checkpoints, package context, generated draft metadata, or patch/delta metadata.
+6. Add optional `parserVariant` metadata only for static parser evidence, sanitized graph summaries, compatibility reasons, and source-only platform variant descriptions.
+7. Validate locally with the validator CLI.
+8. Use uploader plan, draft, or patch commands for local review-only preparation when useful; use source-checkout import-plan and variant-plan dry-runs only as unpublished parser/variant package-release evidence until the package-release gate records the published version.
+9. Submit through the platform-owned upload flow or an authenticated review-only uploader session when configured.
+10. Use readback helpers only after `agentique.io` exposes public resource status.
 
 Package concepts are documented in [docs/resource-manifest.md](docs/resource-manifest.md).
 
@@ -192,6 +218,7 @@ Available examples:
 - `starters/tool-mcp-listing` - public listing metadata for a tool or MCP-style endpoint.
 - `starters/resource-bundle-curation` - bundled guide and manifest example.
 - `starters/non-static-lane-descriptors` - static descriptors for agent cards, external endpoints, downloadable packages, tool-enabled packages, static skill/workflow resources, and hosted-deferred readback records.
+- `starters/parser-variant-import-review` - static parser evidence and source-only variant metadata for local review.
 
 Validate every starter:
 
@@ -206,6 +233,12 @@ See [starters/README.md](starters/README.md) for starter-specific guidance.
 The public examples in [docs/non-static-lane-examples.md](docs/non-static-lane-examples.md) show how to describe non-static resource lanes with static, inspectable package metadata. The examples cover agent cards/descriptors, external endpoint registrations, downloadable packages, tool-enabled packages, static skills/workflows, and hosted-deferred records.
 
 These examples validate package shape and metadata only. They do not route live endpoint work, run package content, provide hosting, publish resources, approve submissions, provide safety guarantees, or decide moderation outcomes.
+
+## Parser Variant Examples
+
+The parser/variant starter in [starters/parser-variant-import-review](starters/parser-variant-import-review) shows synthetic parser evidence, sanitized graph counts, compatibility reasons, and source-only variant metadata. Blocked, unsupported, stale, and public readback parser/variant cases are covered in `schemas/fixtures/schema-fixtures.json` and checked by repository tests.
+
+Parser/variant examples are metadata for local review. They do not execute imported content, prove runtime compatibility, create platform downloads, publish resources, approve submissions, or replace platform review.
 
 ## Validator CLI
 
@@ -255,6 +288,8 @@ See [packages/validator/README.md](packages/validator/README.md).
 
 The uploader package is a published review-only CLI implementation. It is useful for local integration review because it can report redacted auth status, generate validator-backed upload plans, and exercise review-session submit/status flows when configured with platform API access.
 
+The current source branch also includes parser import and variant dry-runs, public catalog reads, download-metadata reads, and direct artifact byte download for local review. Owner approval to use the manual GitHub Actions package publishing workflow is recorded, but these parser/variant and catalog/download surfaces are not a new published package claim until the package release gate records pushed hosted CI, GitHub Actions publication, registry readback for `0.2.0`, clean install smoke, and rollback or unpublish evidence. Direct-download live availability remains unadvertised until owner-approved disposable byte-transfer evidence is recorded.
+
 Install from npm:
 
 ```bash
@@ -266,11 +301,21 @@ Source commands:
 ```bash
 node packages/uploader/src/cli.mjs auth status --json
 node packages/uploader/src/cli.mjs upload plan <package-dir> --schemas-dir schemas --json
+node packages/uploader/src/cli.mjs upload import-plan <package-dir> --schemas-dir schemas --json
+node packages/uploader/src/cli.mjs upload variant-plan <package-dir> --schemas-dir schemas --json
+node packages/uploader/src/cli.mjs upload draft <package-dir> --schemas-dir schemas --draft-kind manifest --json
+node packages/uploader/src/cli.mjs upload patch <package-dir> --schemas-dir schemas --json
 node packages/uploader/src/cli.mjs upload submit <package-dir> --schemas-dir schemas --token <token> --api-url https://www.agentique.io --json
 node packages/uploader/src/cli.mjs upload status <submission-id> --token <token> --api-url https://www.agentique.io --json
+node packages/uploader/src/cli.mjs catalog list --api-url https://www.agentique.io --json
+node packages/uploader/src/cli.mjs catalog get <resource-id> --api-url https://www.agentique.io --json
+node packages/uploader/src/cli.mjs catalog download-metadata <resource-id> --api-url https://www.agentique.io --json
+node packages/uploader/src/cli.mjs download <resource-id> --output ./downloads/ --api-url https://www.agentique.io --json
 ```
 
-The uploader does not publish, approve, certify, host, or moderate resources. Package installation is available from npm, while authenticated review-session access and final resource publication remain platform-owned and account/token gated.
+`upload plan` reports validator-backed package evidence and creator checkpoint readiness. From the source checkout, `upload import-plan` reports parser evidence, graph counts, and compatibility for local review, while `upload variant-plan` reports source-only variant states and review reasons for local review. `upload draft` and `upload patch` are local-only and unsubmitted. `upload submit` requires scoped token auth, an Agentique API origin, checkpoint-ready package metadata, and server completion verification.
+
+`catalog list`, `catalog get`, and `catalog download-metadata` are GET-only public readback commands and do not require uploader auth. `download` resolves public metadata, writes bytes to the explicit `--output` path, verifies SDK size/digest checks, and redacts signed URLs and absolute local paths from CLI output. It does not install, extract, open, execute, approve, certify, publish, host, or moderate content. Package installation is available from npm for the currently published version, while current source catalog/download changes require a completed package-release gate before advertising them as npm package capabilities.
 
 See [packages/uploader/README.md](packages/uploader/README.md), [docs/release-go-no-go.md](docs/release-go-no-go.md), and [docs/package-release-provenance.md](docs/package-release-provenance.md).
 
@@ -315,13 +360,26 @@ The readback package is read-only. It targets versioned public resource paths un
 Example:
 
 ```js
-import { createBadgeState, createReadbackClient } from "@agentique.io/readback";
+import {
+  createBadgeState,
+  createReadbackClient,
+  downloadResourceArtifact,
+  normalizeDownloadMetadata,
+  normalizeResourceList,
+  normalizeTrustReadback
+} from "@agentique.io/readback";
 
 const client = createReadbackClient();
+const catalog = normalizeResourceList(await client.listResources({ limit: 10 }));
+const metadata = normalizeDownloadMetadata(await client.getDownloadMetadata("resource-id"));
 const readback = await client.getReadback("resource-id");
+const trust = normalizeTrustReadback(readback);
 const badge = createBadgeState(readback);
 
 console.log(`${badge.label}: ${badge.message}`);
+console.log(trust.trustPanel?.state ?? trust.platformState);
+console.log(`${catalog.items.length} catalog entries`);
+console.log(metadata.availability);
 ```
 
 Read-only methods:
@@ -334,16 +392,23 @@ Read-only methods:
 - `getContextBundle(resourceId, params)`
 - `getSelectionReadback(resourceId, params)`
 
+`downloadResourceArtifact()` can write available artifact bytes to an explicit output path with HTTPS or loopback URL validation, manual redirect handling, no-overwrite default, temp-file cleanup, size checks, and digest checks. It does not install, extract, open, execute, approve, certify, publish, host, or moderate content. Callers should treat downloaded bytes as untrusted until they perform their own review.
+
 Badge states:
 
 - `published`
+- `parsed`
+- `partial`
+- `unsupported`
+- `variant-available`
 - `review-required`
+- `rescan-required`
 - `blocked`
 - `stale`
 - `unavailable`
 - `rate-limited`
 
-Badge output is a public readback summary, not a safety guarantee. See [packages/readback/README.md](packages/readback/README.md).
+Trust normalization projects public desired-state, scanner-policy, trust-panel, review-eligibility, report-action, and version-history fields when the platform exposes them. Catalog/download normalizers and the direct download utility in the current source branch remain unpublished package-release evidence until a new package version is published and verified through registry readback and clean install smoke. Parser/variant normalization in the current source branch projects public parser evidence and variant state while reporting digest presence instead of raw digests; it remains unpublished package-release evidence until a new package version is published and verified. Badge output is a public readback summary, not a safety guarantee. See [packages/readback/README.md](packages/readback/README.md).
 
 ## Schemas
 
@@ -354,7 +419,9 @@ Schemas are stored in `schemas/` and can be used by local tooling or external va
 - `skill-metadata.schema.json`
 - `workflow-metadata.schema.json`
 - `distribution-mode.schema.json`
+- `parser-variant.schema.json`
 - `public-readback.schema.json`
+- `registry-trust.schema.json`
 - `surfacing-metadata.schema.json`
 - `permission-risk.schema.json`
 - `output-contract.schema.json`
@@ -362,6 +429,8 @@ Schemas are stored in `schemas/` and can be used by local tooling or external va
 - `context-bundle.schema.json`
 
 The validator CLI uses these schemas through `--schemas-dir schemas`.
+
+`parser-variant.schema.json` in the current source branch defines public parser evidence, sanitized resource graph summaries, compatibility reasons, and platform variant states. Creator manifests may describe source-only variant metadata, but they must not claim platform-managed validation, platform download availability, publication, approval, or runtime compatibility. This schema remains unpublished package-release evidence until a new package version is published and verified.
 
 ## Contract Evaluation Fixtures
 
@@ -372,6 +441,8 @@ scripts/fixtures/surfacing-contract-matrix/matrix.json
 ```
 
 The matrix covers overlapping tools or resources, relevant candidates with declared risk, stale or off-topic resources, invalid outputs, and context budget overflow. It is baseline release evidence for companion docs, schemas, validators, and readback helpers. It is not a production review rule set and does not expose platform scoring, quarantine criteria, internal review procedures, moderation disposition logic, or operational playbooks.
+
+Parser/variant fixture coverage includes supported parsed/source-only metadata, blocked parser sources, unsupported and stale platform variant states, and public readback parserVariant projection. These fixtures are local contract evidence only.
 
 See [docs/contract-evaluation-fixtures.md](docs/contract-evaluation-fixtures.md).
 
@@ -398,8 +469,9 @@ Package-level audits:
 npm --prefix packages/validator audit --omit=dev
 npm --prefix packages/action audit --omit=dev
 npm --prefix packages/readback audit --omit=dev
-npm --prefix packages/uploader audit --omit=dev
 ```
+
+For prepublish candidates where `@agentique.io/uploader` depends on unpublished companion package versions, package-local uploader audit is a post-publish registry gate. The publish workflow verifies companion dependency versions before publishing uploader and then runs registry readback plus registry install smoke after the full package set is published.
 
 Release status and follow-up boundaries are documented in [docs/release-go-no-go.md](docs/release-go-no-go.md). Package release expectations are documented in [docs/package-release-provenance.md](docs/package-release-provenance.md).
 

@@ -1,6 +1,6 @@
 {
   "name": "agentique",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Public companion monorepo for Agentique resource preparation and readback tooling.",
   "license": "Apache-2.0",
   "type": "module",

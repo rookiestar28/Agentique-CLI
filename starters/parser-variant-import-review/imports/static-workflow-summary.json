@@ -1,0 +1,32 @@
+{
+  "exampleId": "static-workflow-summary",
+  "sourceEcosystem": "dify",
+  "sourceFormat": "yaml",
+  "summary": "Synthetic workflow metadata for parser and variant review.",
+  "nodes": [
+    {
+      "id": "collect-public-topic",
+      "kind": "input",
+      "description": "Collects a public topic string supplied for local review."
+    },
+    {
+      "id": "draft-public-summary",
+      "kind": "llm-step",
+      "description": "Drafts a public-source summary without credentials or restricted data."
+    },
+    {
+      "id": "return-summary",
+      "kind": "output",
+      "description": "Returns a bounded markdown summary."
+    }
+  ],
+  "edges": [
+    ["collect-public-topic", "draft-public-summary"],
+    ["draft-public-summary", "return-summary"]
+  ],
+  "boundaries": {
+    "noExecution": true,
+    "metadataOnly": true,
+    "sourceOnlyVariant": true
+  }
+}

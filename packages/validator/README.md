@@ -2,7 +2,7 @@
 
 Static local upload-preparation validator for Agentique resource packages.
 
-`agentique-validator` is a no-execution checker that validates public manifests, package inventory, path safety, and upload-prep metadata without uploading, publishing, installing dependencies, or executing submitted code.
+`agentique-validator` is a no-execution checker that validates public manifests, package inventory, path safety, registry trust metadata, parser/variant metadata, and upload-prep metadata without uploading, publishing, installing dependencies, or executing submitted code.
 
 Local validation is not platform approval and is not safety certification. `agentique.io` remains the source of truth for upload, scan, review, moderation, publication, distribution state, and readback.
 
@@ -28,6 +28,8 @@ Exit codes:
 - Blocked executable extension rejection.
 - Secret-like value detection with redacted findings.
 - Forbidden public-content path and term checks.
+- Registry trust checks for creator-safe package context, creator checkpoints, generated draft boundaries, and explicit patch/delta metadata.
+- Parser/variant checks for static parser evidence, sanitized resource graph summaries, compatibility reasons, and source-only variant states.
 
 ## External Intake
 
@@ -49,7 +51,7 @@ The report includes:
 - Secret findings with redacted previews and stable fingerprints.
 - License inventory with missing, unknown, and conflict findings.
 
-External intake output is advisory review evidence. It is not publication approval, safety assurance, moderation status, or legal review.
+External intake output is advisory review evidence. Registry trust and parser/variant findings are local preparation findings. Neither output is publication approval, safety assurance, moderation status, runtime compatibility proof, platform download availability, or legal review.
 
 ## Status
 

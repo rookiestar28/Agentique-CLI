@@ -2,7 +2,7 @@
 
 This inventory tracks public links that must exist before the companion repository, packages, action, schemas, docs, badges, or platform links are advertised.
 
-Current status: source repository, schema, documentation, package registry pages, action usage reference, badge/readback documentation, and `agentique.io` public links are approved for advertising after publication and smoke testing. The uploader package page is approved after owner-approved publication, registry readback, and clean install smoke.
+Current status: source repository, schema, documentation, package registry pages, action usage reference, badge/readback documentation, and existing `agentique.io` public links are approved for advertising after publication and smoke testing. The uploader package page is approved after owner-approved publication, registry readback, and clean install smoke. Current catalog/download package changes target `0.2.0` and have owner approval to use the manual GitHub Actions publishing workflow, but they are not newly advertised until the scoped package-release gate passes. Direct-download live availability is not advertised until owner-approved direct-download evidence passes.
 
 ## Approved URL Classes
 
@@ -10,7 +10,7 @@ Current status: source repository, schema, documentation, package registry pages
 - Public schema URL base: approved.
 - Public documentation URL: approved.
 - `agentique.io` companion landing link: approved.
-- `agentique.io` read-only public readback endpoint: approved.
+- `agentique.io` read-only public readback endpoint: approved for existing inventory; current catalog and download-metadata smoke evidence is recorded, but direct-download live availability is not advertised for current source changes.
 - Package registry pages for `@agentique.io/schemas`, `@agentique.io/validator`, `@agentique.io/action`, `@agentique.io/readback`, and `@agentique.io/uploader`: approved.
 - Action usage reference: approved.
 - Badge example URL: approved.
@@ -35,4 +35,4 @@ Example content files may still show obviously non-production example URLs when 
 
 When package, action, badge, or platform URLs are advertised, release checks must fail until every advertised URL is a final owner-approved HTTPS URL.
 
-The stricter all-public-url mode applies when every public channel is approved for advertising. The uploader package page is now approved in the URL inventory, while authenticated review-session access and final resource publication remain platform-owned and account/token gated.
+The stricter all-public-url mode applies when every public channel is approved for advertising. The uploader package page is now approved in the URL inventory, while authenticated review-session access, direct-download live availability claims, next package-release claims, and final resource publication remain platform-owned and account/token gated until the relevant evidence gates pass.

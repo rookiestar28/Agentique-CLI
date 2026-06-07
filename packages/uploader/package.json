@@ -1,6 +1,6 @@
 {
   "name": "@agentique.io/uploader",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Review-only Agentique uploader CLI boundary.",
   "license": "Apache-2.0",
   "type": "module",
@@ -29,7 +29,8 @@
     "test": "node --test tests/*.test.mjs"
   },
   "dependencies": {
-    "@agentique.io/validator": "^0.1.0"
+    "@agentique.io/readback": "^0.2.0",
+    "@agentique.io/validator": "^0.2.0"
   },
   "keywords": [
     "agentique",

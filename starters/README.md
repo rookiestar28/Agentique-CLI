@@ -6,7 +6,9 @@ Each starter includes a `manifest.json` plus Markdown or JSON files that can be 
 
 Upload, platform scan, moderation, publication, distribution state, and readback are handled by `agentique.io`. Local starter validation only checks package shape and does not approve a resource for publication.
 
-Newer starters include contract examples for surfacing hints, permission and risk declarations, output shape boundaries, and bounded context bundles. These fields are descriptive package metadata so reviewers and integrators can see why a resource should be selected, what it can access, and how much context it is expected to consume.
+Newer starters include contract examples for surfacing hints, permission and risk declarations, output shape boundaries, and bounded context bundles. Public manifests may also include registry trust metadata for creator checkpoints, package context, generated draft metadata, explicit patch/delta metadata, or parser and variant metadata. These fields are descriptive package metadata so reviewers and integrators can see why a resource should be selected, what it can access, and how much context it is expected to consume.
+
+Parser and variant starters use static parser evidence and source-only variant metadata for local review. Blocked, unsupported, and stale parser/variant cases stay in the schema fixture corpus so the validating starter set remains green.
 
 ## Starters
 
@@ -16,8 +18,11 @@ Newer starters include contract examples for surfacing hints, permission and ris
 - `tool-mcp-listing` - public listing metadata for a tool or MCP-style endpoint.
 - `resource-bundle-curation` - bundled guide and manifest example.
 - `non-static-lane-descriptors` - static descriptors for agent cards, external endpoints, downloadable packages, tool-enabled packages, static skills/workflows, and hosted-deferred records.
+- `parser-variant-import-review` - static parser evidence and source-only variant metadata for local review.
 
 Keep starter files static and inspectable. Do not add restricted auth material, personal data, local machine paths, generated archives, or executable payloads.
+
+Generated draft and patch/delta metadata should stay local and unsubmitted until a user confirms the change and the platform validates it through the review flow.
 
 ## Non-Static Lane Descriptors
 

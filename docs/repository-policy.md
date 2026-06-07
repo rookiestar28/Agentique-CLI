@@ -14,4 +14,6 @@ Source repository, approved npm package registry pages, action usage reference, 
 
 Package registry pages, badge/readback documentation, and action usage documentation are approved after publication and smoke testing. `@agentique.io/uploader` is published at version `0.1.0` after owner-approved publication, hosted CI evidence, registry readback, and clean install smoke. GitHub Marketplace-style promotion remains a separate future channel.
 
+Parser/variant package changes in the current source branch target `0.2.0` and are No-Go for a new package-release claim. Existing package pages remain approved at version `0.1.0`; owner approval to use the manual GitHub Actions publishing workflow is recorded. A new parser/variant package claim requires hosted CI for the pushed candidate, GitHub Actions publication, registry readback for `0.2.0`, clean install smoke, and rollback or unpublish evidence.
+
 Public history must remain public-safe. Do not add private planning material, private platform evidence, local workspace paths, generated archives, dependency folders, credentials, or unpublished operational procedures.

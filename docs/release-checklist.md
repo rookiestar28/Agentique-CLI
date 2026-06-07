@@ -19,10 +19,16 @@ Use this checklist before any public release, package publish, repository link c
 - Public docs describe external-intake output as advisory review evidence only.
 - Surfacing contract fixture matrix exists and covers overlapping, risky, stale, off-topic, invalid-output, and budget-overflow cases.
 - Public docs describe context bundle and selection readback helpers as read-only baseline projections.
-- Uploader package status is documented separately from platform publication and live resource availability.
+- Public docs describe registry trust metadata, creator checkpoints, trust readback, generated drafts, and patch/delta output as preparation/readback contracts only.
+- Public docs describe parser/variant schemas, fixtures, starters, readback helpers, and uploader import/variant dry-runs as static local preparation or read-only projection contracts only.
+- Parser/variant docs do not claim platform download availability, hosted execution, runtime compatibility, publication, approval, or safety outcomes.
+- Public docs describe catalog list/detail/download-metadata, direct download, and SDK download helpers as unpublished readback/download preparation only until package-release and live evidence gates pass.
+- Catalog/download docs do not claim new package availability, live endpoint availability, hosted execution, package installation, archive extraction, runtime compatibility, publication, approval, or safety outcomes.
+- Uploader package status, local draft/patch output, and review-only submit are documented separately from platform publication and live resource availability.
 - Any pending package pages are marked non-advertised in the URL inventory.
 - Registry readback passed with expected published package states.
 - Package install smoke passed from locally packed tarballs with lifecycle scripts disabled.
+- Parser/variant and catalog/download package surface smoke passed from locally packed tarballs: parser-variant schema file, readback parser/variant export, readback catalog/download exports, uploader import-plan / variant-plan help, uploader catalog help, and uploader direct-download help are present.
 
 ## Package Evidence
 
@@ -30,7 +36,7 @@ Packages must not use long-lived credentials when OIDC registry provenance is av
 
 Provenance and attestations help consumers trace where an artifact came from. They do not prove that the artifact is risk-free.
 
-Before advertising any newly published package, run `npm run registry:readback`, run `npm run install:smoke`, and record version, dist-tag, tarball contents, clean install smoke, and package CLI/import smoke evidence for the exact version being advertised.
+Before advertising any newly published package, run `npm run registry:readback`, run `npm run install:smoke`, and record version, dist-tag, tarball contents, clean install smoke, package CLI/import smoke, parser/variant package surface evidence, and catalog/download package surface evidence for the exact version being advertised.
 
 ## Launch Boundary
 
@@ -39,3 +45,9 @@ Passing this checklist means the release candidate is ready for owner review. It
 External-intake output does not approve a candidate, certify safety, replace platform moderation, or provide legal clearance.
 
 Surfacing contract fixtures and readback helper output are release-review inputs only. They do not replace `agentique.io` review, moderation, publication state, distribution state, or public readback.
+
+Parser/variant helper output is local preparation output only. It does not prove runtime compatibility, create a platform download, publish a converted artifact, or replace platform parser/readback decisions.
+
+Generated draft and patch/delta helper output is local preparation output only. It remains unsubmitted until the user confirms the change and the platform validates it through the review flow.
+
+Catalog/download helper output is local preparation and readback output only. Direct download writes bytes to the explicit output path and does not install, extract, open, execute, approve, certify, publish, host, moderate, or prove live endpoint availability.

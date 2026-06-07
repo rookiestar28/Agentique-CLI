@@ -1,0 +1,343 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.agentique.io/registry-trust.schema.json",
+  "title": "Agentique Public Registry Trust Contracts",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractVersion"],
+  "properties": {
+    "contractVersion": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "creatorMetadata": {
+      "$ref": "#/$defs/creatorMetadata"
+    },
+    "packageContext": {
+      "$ref": "#/$defs/packageContext"
+    },
+    "desiredState": {
+      "$ref": "#/$defs/desiredState"
+    },
+    "scannerPolicy": {
+      "$ref": "#/$defs/scannerPolicy"
+    },
+    "reviewEligibility": {
+      "$ref": "#/$defs/reviewEligibility"
+    },
+    "creatorCheckpoints": {
+      "$ref": "#/$defs/creatorCheckpoints"
+    },
+    "generatedDraft": {
+      "$ref": "#/$defs/generatedDraft"
+    },
+    "patchDelta": {
+      "$ref": "#/$defs/patchDelta"
+    },
+    "platformProjection": {
+      "$ref": "#/$defs/platformProjection"
+    }
+  },
+  "$defs": {
+    "fingerprint": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "reasonCode": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 80,
+      "pattern": "^[a-z0-9][a-z0-9._-]*$"
+    },
+    "httpsUrl": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://"
+    },
+    "creatorMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["declaredBy", "declaredAt"],
+      "properties": {
+        "declaredBy": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 80,
+          "pattern": "^[a-z0-9][a-z0-9._-]*$"
+        },
+        "declaredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "notes": {
+          "type": "string",
+          "minLength": 12,
+          "maxLength": 400
+        }
+      }
+    },
+    "packageContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["packageName", "version", "sourceUrl"],
+      "properties": {
+        "packageName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120,
+          "pattern": "^(?:@[a-z0-9][a-z0-9._-]*/)?[a-z0-9][a-z0-9._-]*$"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[0-9A-Za-z][0-9A-Za-z.+_-]*$"
+        },
+        "sourceUrl": {
+          "$ref": "#/$defs/httpsUrl"
+        },
+        "ownershipEvidenceVersion": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 80,
+          "pattern": "^[a-z0-9][a-z0-9._:-]*$"
+        },
+        "packageDigest": {
+          "$ref": "#/$defs/fingerprint"
+        }
+      }
+    },
+    "desiredState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fingerprint", "readbackState"],
+      "properties": {
+        "fingerprint": {
+          "$ref": "#/$defs/fingerprint"
+        },
+        "readbackState": {
+          "type": "string",
+          "enum": ["unchanged", "stale", "rescan-required", "review-required"]
+        },
+        "contentHash": {
+          "$ref": "#/$defs/fingerprint"
+        },
+        "scannerPolicyVersion": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 80,
+          "pattern": "^[a-z0-9][a-z0-9._:-]*$"
+        },
+        "reasons": {
+          "type": "array",
+          "maxItems": 12,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/reasonCode"
+          }
+        }
+      }
+    },
+    "scannerPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policyVersion"],
+      "properties": {
+        "policyVersion": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 80,
+          "pattern": "^[a-z0-9][a-z0-9._:-]*$"
+        },
+        "analyzerManifestVersion": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 80,
+          "pattern": "^[a-z0-9][a-z0-9._:-]*$"
+        },
+        "ruleManifestVersion": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 80,
+          "pattern": "^[a-z0-9][a-z0-9._:-]*$"
+        },
+        "freshness": {
+          "type": "string",
+          "enum": ["current", "stale", "rescan-required", "unknown"]
+        }
+      }
+    },
+    "reviewEligibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state"],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": ["eligible", "needs-evidence", "creator-blocked", "blocked", "unknown"]
+        },
+        "evidenceTypes": {
+          "type": "array",
+          "maxItems": 10,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "download",
+              "cli-install",
+              "hosted-demo-use",
+              "external-endpoint-use",
+              "collection-maintainer",
+              "moderator-issued",
+              "existing-primary-review"
+            ]
+          }
+        },
+        "reasons": {
+          "type": "array",
+          "maxItems": 12,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/reasonCode"
+          }
+        }
+      }
+    },
+    "creatorCheckpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "acknowledged"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "lane-selection",
+            "source-upload",
+            "manifest-inspection",
+            "scan-ownership-evidence",
+            "data-flow-disclosure",
+            "card-fields",
+            "public-draft-preview",
+            "review-only-confirmation",
+            "readback-acknowledgement"
+          ]
+        },
+        "acknowledged": {
+          "type": "boolean",
+          "const": true
+        },
+        "completedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "evidenceHash": {
+          "$ref": "#/$defs/fingerprint"
+        }
+      }
+    },
+    "creatorCheckpoints": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 9,
+      "items": {
+        "$ref": "#/$defs/creatorCheckpoint"
+      }
+    },
+    "generatedDraft": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["draftOnly", "kind", "generatedAt"],
+      "properties": {
+        "draftOnly": {
+          "type": "boolean",
+          "const": true
+        },
+        "kind": {
+          "type": "string",
+          "enum": ["card", "manifest"]
+        },
+        "generatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "schemaVersion": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 80,
+          "pattern": "^[a-z0-9][a-z0-9._:-]*$"
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 12,
+          "maxLength": 240
+        }
+      }
+    },
+    "patchDelta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "operations"],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["patch", "delta"]
+        },
+        "operations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 30,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["op", "path"],
+            "properties": {
+              "op": {
+                "type": "string",
+                "enum": ["add", "replace", "remove"]
+              },
+              "path": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160,
+                "pattern": "^/[A-Za-z0-9_/-]+$"
+              },
+              "valueSummary": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              }
+            }
+          }
+        }
+      }
+    },
+    "platformProjection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "publicationState"],
+      "properties": {
+        "source": {
+          "type": "string",
+          "const": "agentique.io"
+        },
+        "publicationState": {
+          "type": "string",
+          "enum": ["draft", "review-required", "published", "blocked", "unavailable", "stale"]
+        },
+        "currentVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "observedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "publishedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    }
+  }
+}

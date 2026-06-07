@@ -1,0 +1,336 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.agentique.io/parser-variant.schema.json",
+  "title": "Agentique Public Parser And Variant Metadata",
+  "$ref": "#/$defs/parserVariantMetadata",
+  "$defs": {
+    "fingerprint": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "reasonCode": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 80,
+      "pattern": "^[a-z0-9][a-z0-9._-]*$"
+    },
+    "boundedText": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240
+    },
+    "parserIssue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "severity", "message"],
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/reasonCode"
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["info", "warning", "error"]
+        },
+        "message": {
+          "$ref": "#/$defs/boundedText"
+        }
+      }
+    },
+    "parserEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceEcosystem",
+        "sourceFormat",
+        "parserId",
+        "parserVersion",
+        "inputDigest",
+        "parseStatus",
+        "parseConfidence",
+        "sanitizerStatus",
+        "noExecution",
+        "observedAt"
+      ],
+      "properties": {
+        "sourceEcosystem": {
+          "type": "string",
+          "enum": [
+            "mcp",
+            "dify",
+            "flowise",
+            "n8n",
+            "langgraph",
+            "autogen",
+            "llamaindex",
+            "codex",
+            "claude-code",
+            "generic"
+          ]
+        },
+        "sourceFormat": {
+          "type": "string",
+          "enum": ["json", "yaml", "python", "notebook", "markdown", "directory", "unknown"]
+        },
+        "parserId": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 80,
+          "pattern": "^[a-z0-9][a-z0-9._-]*$"
+        },
+        "parserVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[0-9A-Za-z][0-9A-Za-z.+_-]*$"
+        },
+        "inputDigest": {
+          "$ref": "#/$defs/fingerprint"
+        },
+        "outputDigest": {
+          "$ref": "#/$defs/fingerprint"
+        },
+        "parseStatus": {
+          "type": "string",
+          "enum": ["parsed", "partial", "unsupported", "blocked", "failed"]
+        },
+        "parseConfidence": {
+          "type": "string",
+          "enum": ["high", "medium", "low", "unknown"]
+        },
+        "sanitizerStatus": {
+          "type": "string",
+          "enum": ["passed", "redacted", "blocked", "not-applicable"]
+        },
+        "noExecution": {
+          "type": "boolean",
+          "const": true
+        },
+        "metadataOnly": {
+          "type": "boolean"
+        },
+        "observedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "issues": {
+          "type": "array",
+          "maxItems": 16,
+          "items": {
+            "$ref": "#/$defs/parserIssue"
+          }
+        }
+      }
+    },
+    "resourceGraphSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sanitized", "nodeCount", "edgeCount", "capabilityCount", "sourceFileCount", "summaryDigest"],
+      "properties": {
+        "sanitized": {
+          "type": "boolean",
+          "const": true
+        },
+        "nodeCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "edgeCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 50000
+        },
+        "capabilityCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "sourceFileCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "entrypointCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "summaryDigest": {
+          "$ref": "#/$defs/fingerprint"
+        },
+        "redaction": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["secrets", "privatePaths", "rawSource"],
+          "properties": {
+            "secrets": {
+              "type": "boolean",
+              "const": true
+            },
+            "privatePaths": {
+              "type": "boolean",
+              "const": true
+            },
+            "rawSource": {
+              "type": "boolean",
+              "const": true
+            }
+          }
+        }
+      }
+    },
+    "parserCompatibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["compatible", "partial", "unsupported", "blocked", "unknown"]
+        },
+        "reasons": {
+          "type": "array",
+          "maxItems": 12,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/reasonCode"
+          }
+        }
+      }
+    },
+    "variantDownload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["availability"],
+      "properties": {
+        "availability": {
+          "type": "string",
+          "enum": ["available", "source-only", "unavailable", "blocked"]
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://"
+        },
+        "digest": {
+          "$ref": "#/$defs/fingerprint"
+        }
+      }
+    },
+    "platformVariant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["platformId", "artifactKind", "state", "validationState", "download"],
+      "properties": {
+        "platformId": {
+          "type": "string",
+          "enum": [
+            "source-package",
+            "codex-skill",
+            "claude-code-skill",
+            "claude-code-subagent",
+            "mcp",
+            "dify",
+            "flowise",
+            "n8n",
+            "langgraph",
+            "autogen",
+            "llamaindex"
+          ]
+        },
+        "artifactKind": {
+          "type": "string",
+          "enum": ["source-package", "skill", "subagent", "workflow", "graph", "metadata", "download"]
+        },
+        "state": {
+          "type": "string",
+          "enum": ["available", "unavailable", "unsupported", "stale", "blocked", "review-required", "not-generated"]
+        },
+        "validationState": {
+          "type": "string",
+          "enum": ["not-run", "passed", "failed", "stale", "blocked"]
+        },
+        "managedBy": {
+          "type": "string",
+          "enum": ["creator", "platform", "unknown"]
+        },
+        "variantDigest": {
+          "$ref": "#/$defs/fingerprint"
+        },
+        "download": {
+          "$ref": "#/$defs/variantDownload"
+        },
+        "reasons": {
+          "type": "array",
+          "maxItems": 12,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/reasonCode"
+          }
+        },
+        "observedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "parserVariantMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "parserEvidence", "resourceGraphSummary", "compatibility", "platformVariants"],
+      "properties": {
+        "contractVersion": {
+          "type": "string",
+          "const": "1.0"
+        },
+        "parserEvidence": {
+          "$ref": "#/$defs/parserEvidence"
+        },
+        "resourceGraphSummary": {
+          "$ref": "#/$defs/resourceGraphSummary"
+        },
+        "compatibility": {
+          "$ref": "#/$defs/parserCompatibility"
+        },
+        "platformVariants": {
+          "type": "array",
+          "maxItems": 16,
+          "items": {
+            "$ref": "#/$defs/platformVariant"
+          }
+        }
+      }
+    },
+    "parserVariantReadback": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "parserEvidence", "compatibility", "platformVariants", "observedAt"],
+      "properties": {
+        "contractVersion": {
+          "type": "string",
+          "const": "1.0"
+        },
+        "parserEvidence": {
+          "$ref": "#/$defs/parserEvidence"
+        },
+        "resourceGraphSummary": {
+          "$ref": "#/$defs/resourceGraphSummary"
+        },
+        "compatibility": {
+          "$ref": "#/$defs/parserCompatibility"
+        },
+        "platformVariants": {
+          "type": "array",
+          "maxItems": 16,
+          "items": {
+            "$ref": "#/$defs/platformVariant"
+          }
+        },
+        "observedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    }
+  }
+}

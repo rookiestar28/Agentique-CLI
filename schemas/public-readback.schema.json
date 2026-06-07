@@ -70,6 +70,79 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 80
+    },
+    "platformProjection": {
+      "$ref": "https://schemas.agentique.io/registry-trust.schema.json#/$defs/platformProjection"
+    },
+    "desiredState": {
+      "$ref": "https://schemas.agentique.io/registry-trust.schema.json#/$defs/desiredState"
+    },
+    "scannerPolicy": {
+      "$ref": "https://schemas.agentique.io/registry-trust.schema.json#/$defs/scannerPolicy"
+    },
+    "packageContext": {
+      "$ref": "https://schemas.agentique.io/registry-trust.schema.json#/$defs/packageContext"
+    },
+    "reviewEligibility": {
+      "$ref": "https://schemas.agentique.io/registry-trust.schema.json#/$defs/reviewEligibility"
+    },
+    "trustPanel": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": ["current", "review-required", "blocked", "stale", "unavailable"]
+        },
+        "messages": {
+          "type": "array",
+          "maxItems": 8,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 180
+          }
+        },
+        "versionHistoryUrl": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://agentique\\.io/"
+        }
+      }
+    },
+    "versionHistory": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["version", "observedAt", "state"],
+        "properties": {
+          "version": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "observedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "state": {
+            "type": "string",
+            "enum": ["current", "stale", "review-required", "blocked", "unavailable"]
+          },
+          "desiredStateFingerprint": {
+            "$ref": "https://schemas.agentique.io/registry-trust.schema.json#/$defs/fingerprint"
+          }
+        }
+      }
+    },
+    "parserVariant": {
+      "$ref": "https://schemas.agentique.io/parser-variant.schema.json#/$defs/parserVariantReadback"
+    },
+    "reportActionState": {
+      "type": "string",
+      "enum": ["available", "submitted", "rate-limited", "unavailable"]
     }
   }
 }

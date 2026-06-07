@@ -35,7 +35,6 @@ jobs:
           npm --prefix packages/validator ci --ignore-scripts
           npm --prefix packages/action ci --ignore-scripts
           npm --prefix packages/readback ci --ignore-scripts
-          npm --prefix packages/uploader ci --ignore-scripts
 
       - name: Run package tests
         run: |
@@ -44,7 +43,6 @@ jobs:
           npm --prefix packages/validator audit --omit=dev
           npm --prefix packages/action audit --omit=dev
           npm --prefix packages/readback audit --omit=dev
-          npm --prefix packages/uploader audit --omit=dev
 
       - name: Run release allowlist and content checks
         run: |

@@ -52,6 +52,30 @@
     },
     "permissionRisk": {
       "$ref": "https://schemas.agentique.io/permission-risk.schema.json"
+    },
+    "parserVariant": {
+      "$ref": "https://schemas.agentique.io/parser-variant.schema.json#/$defs/parserVariantMetadata"
+    },
+    "registryTrust": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "creatorMetadata": {
+          "$ref": "https://schemas.agentique.io/registry-trust.schema.json#/$defs/creatorMetadata"
+        },
+        "packageContext": {
+          "$ref": "https://schemas.agentique.io/registry-trust.schema.json#/$defs/packageContext"
+        },
+        "creatorCheckpoints": {
+          "$ref": "https://schemas.agentique.io/registry-trust.schema.json#/$defs/creatorCheckpoints"
+        },
+        "generatedDraft": {
+          "$ref": "https://schemas.agentique.io/registry-trust.schema.json#/$defs/generatedDraft"
+        },
+        "patchDelta": {
+          "$ref": "https://schemas.agentique.io/registry-trust.schema.json#/$defs/patchDelta"
+        }
+      }
     }
   }
 }

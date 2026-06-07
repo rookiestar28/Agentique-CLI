@@ -70,6 +70,9 @@ export function validateToken(token) {
   }
 
   const trimmed = token.trim();
+  if (looksLikeWrongSurfaceCredential(trimmed)) {
+    return { ok: false, code: "auth.wrong_surface_credential" };
+  }
   if (trimmed.length < 8 || /\s/.test(trimmed)) {
     return { ok: false, code: "auth.invalid_token" };
   }
@@ -94,4 +97,13 @@ function readConfigToken({ env, readFile }) {
   } catch {
     return { token: null, configError: true };
   }
+}
+
+function looksLikeWrongSurfaceCredential(value) {
+  return (
+    /^https?:\/\//i.test(value) ||
+    /^(?:bearer|basic)\s+/i.test(value) ||
+    /(?:^|[;&])\s*(?:cookie|session|csrf|xsrf|next-auth\.session-token)=/i.test(value) ||
+    /(?:x-amz-signature|x-amz-credential|x-goog-signature|awsaccesskeyid|signature=|sig=)/i.test(value)
+  );
 }

@@ -1,0 +1,101 @@
+{
+  "formatVersion": "1.0",
+  "name": "parser-variant-import-review",
+  "summary": "A static parser and platform variant metadata example for local review.",
+  "source": {
+    "type": "git",
+    "url": "https://github.com/rookiestar28/Agentique/tree/main/starters/parser-variant-import-review"
+  },
+  "distribution": {
+    "mode": "metadata_view",
+    "notes": "Prepared as static parser and variant metadata for platform upload review."
+  },
+  "surfacing": {
+    "taskIntents": ["parser-review", "variant-review", "package-preparation"],
+    "audience": ["developer", "integrator", "reviewer", "agent"],
+    "priority": 0.74,
+    "recency": {
+      "lastReviewedAt": "2026-06-07T00:00:00Z",
+      "reviewCadenceDays": 90
+    },
+    "compatibility": {
+      "runtimeFamilies": ["json", "yaml", "workflow-metadata"],
+      "protocols": ["https"]
+    },
+    "contextBudget": {
+      "maxTokens": 1800,
+      "maxBytes": 16384,
+      "preferredSummaryBytes": 2048
+    },
+    "notes": "Surface this starter when creators need a static parser or variant metadata example."
+  },
+  "permissionRisk": {
+    "readOnly": true,
+    "destructive": false,
+    "idempotent": true,
+    "openWorld": false,
+    "externalNetwork": false,
+    "credentialed": false,
+    "approvalRequired": false,
+    "dataSensitivity": "public",
+    "capabilities": ["read-public-content"],
+    "reviewNotes": "Synthetic metadata only; the example does not execute, authenticate, proxy, or mutate state."
+  },
+  "package": {
+    "formatVersion": "1.0",
+    "files": ["README.md", "imports/static-workflow-summary.json"],
+    "hashes": {
+      "README.md": "sha256:85952b332c043924967e38fefedefedc488301e04e8a344d7758a602450bf63a",
+      "imports/static-workflow-summary.json": "sha256:2cfc38a73bfb70467f62f347639875cbf97437cb7fb09cc315371231a1609ad3"
+    }
+  },
+  "parserVariant": {
+    "contractVersion": "1.0",
+    "parserEvidence": {
+      "sourceEcosystem": "dify",
+      "sourceFormat": "yaml",
+      "parserId": "agentique-dify-static-parser",
+      "parserVersion": "1.0.0",
+      "inputDigest": "sha256:5d33ad0a11111111111111111111111111111111111111111111111111111111",
+      "outputDigest": "sha256:7b21ce0f22222222222222222222222222222222222222222222222222222222",
+      "parseStatus": "parsed",
+      "parseConfidence": "high",
+      "sanitizerStatus": "passed",
+      "noExecution": true,
+      "metadataOnly": true,
+      "observedAt": "2026-06-07T00:00:00.000Z"
+    },
+    "resourceGraphSummary": {
+      "sanitized": true,
+      "nodeCount": 3,
+      "edgeCount": 2,
+      "capabilityCount": 1,
+      "sourceFileCount": 1,
+      "entrypointCount": 1,
+      "summaryDigest": "sha256:8f44ab3333333333333333333333333333333333333333333333333333333333",
+      "redaction": {
+        "secrets": true,
+        "privatePaths": true,
+        "rawSource": true
+      }
+    },
+    "compatibility": {
+      "status": "compatible",
+      "reasons": ["static-contract"]
+    },
+    "platformVariants": [
+      {
+        "platformId": "dify",
+        "artifactKind": "workflow",
+        "state": "available",
+        "validationState": "not-run",
+        "managedBy": "creator",
+        "download": {
+          "availability": "source-only"
+        },
+        "reasons": ["source-only"],
+        "observedAt": "2026-06-07T00:01:00.000Z"
+      }
+    ]
+  }
+}

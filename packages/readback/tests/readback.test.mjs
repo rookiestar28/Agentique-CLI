@@ -7,7 +7,11 @@ import {
   createBadgeState,
   createReadbackClient,
   listBadgeStates,
-  normalizePublicReadback
+  normalizeDownloadMetadata,
+  normalizeParserVariantReadback,
+  normalizePublicReadback,
+  normalizeResourceList,
+  normalizeTrustReadback
 } from "../src/index.mjs";
 
 function jsonResponse(payload, options = {}) {
@@ -75,6 +79,53 @@ describe("read-only client", () => {
     assert.equal(calls[0].url, "https://agentique.example/base/api/public/v1/resources?q=agent&limit=10");
   });
 
+  it("uses the full resource list query allowlist and validates limits before network access", async () => {
+    const calls = [];
+    const client = createReadbackClient({
+      baseUrl: "https://agentique.example/base/",
+      fetchImpl: async (url, options) => {
+        calls.push({ url: String(url), options });
+        return jsonResponse({ items: [] });
+      }
+    });
+
+    await client.listResources({
+      q: "assistant",
+      type: "skill",
+      cursor: "next-page",
+      limit: "25",
+      status: "published",
+      token: "ignored"
+    });
+
+    assert.equal(calls[0].options.method, "GET");
+    assert.equal(
+      calls[0].url,
+      "https://agentique.example/base/api/public/v1/resources?q=assistant&type=skill&cursor=next-page&limit=25&status=published"
+    );
+
+    assert.throws(
+      () => client.listResources({ limit: 0 }),
+      (error) => error instanceof ReadbackError && error.code === "invalid-list-limit"
+    );
+    assert.equal(calls.length, 1);
+  });
+
+  it("omits empty resource list query params before request construction", async () => {
+    const calls = [];
+    const client = createReadbackClient({
+      baseUrl: "https://agentique.example",
+      fetchImpl: async (url) => {
+        calls.push(String(url));
+        return jsonResponse({ items: [] });
+      }
+    });
+
+    await client.listResources({ q: "", type: null, status: undefined, cursor: "", limit: null });
+
+    assert.deepEqual(calls, ["https://agentique.example/api/public/v1/resources"]);
+  });
+
   it("uses versioned public resource paths for every method", async () => {
     const calls = [];
     const client = createReadbackClient({
@@ -106,6 +157,25 @@ describe("read-only client", () => {
     for (const url of calls) {
       assert.doesNotMatch(url, /\/api\/public\/resources(?:\/|\?|$)/);
     }
+  });
+
+  it("preserves the base URL host when the base path is root", async () => {
+    const calls = [];
+    const client = createReadbackClient({
+      baseUrl: "https://agentique.example",
+      fetchImpl: async (url) => {
+        calls.push(String(url));
+        return jsonResponse({ items: [] });
+      }
+    });
+
+    await client.listResources();
+    await client.getResource("agent-1");
+
+    assert.deepEqual(calls, [
+      "https://agentique.example/api/public/v1/resources",
+      "https://agentique.example/api/public/v1/resources/agent-1"
+    ]);
   });
 
   it("uses GET requests and query allowlists for context and selection helpers", async () => {
@@ -246,6 +316,30 @@ describe("read-only client", () => {
       (error) => error instanceof ReadbackError && error.code === "rate-limited" && error.retryAfter === "30"
     );
 
+    const notFound = createReadbackClient({
+      baseUrl: "https://agentique.example",
+      fetchImpl: async () => jsonResponse({}, { ok: false, status: 404 })
+    });
+
+    await assert.rejects(
+      () => notFound.getDownloadMetadata("missing-agent"),
+      (error) => error instanceof ReadbackError && error.code === "not-found" && error.status === 404
+    );
+
+    const serverUnavailable = createReadbackClient({
+      baseUrl: "https://agentique.example",
+      fetchImpl: async () => jsonResponse({}, { ok: false, status: 503, headers: { "retry-after": "60" } })
+    });
+
+    await assert.rejects(
+      () => serverUnavailable.listResources(),
+      (error) =>
+        error instanceof ReadbackError &&
+        error.code === "unavailable" &&
+        error.status === 503 &&
+        error.retryAfter === "60"
+    );
+
     const unavailable = createReadbackClient({
       baseUrl: "https://agentique.example",
       fetchImpl: async () => {
@@ -263,8 +357,13 @@ describe("read-only client", () => {
 describe("badge states", () => {
   it("covers expected state names", () => {
     assert.deepEqual(listBadgeStates(), [
+      "parsed",
+      "partial",
+      "unsupported",
+      "variant-available",
       "published",
       "review-required",
+      "rescan-required",
       "blocked",
       "stale",
       "unavailable",
@@ -276,6 +375,15 @@ describe("badge states", () => {
     assert.equal(createBadgeState({ status: "published" }).state, "published");
     assert.equal(createBadgeState({ status: "review required" }).state, "review-required");
     assert.equal(createBadgeState({ status: "quarantined" }).state, "blocked");
+    assert.equal(createBadgeState({ platformProjection: { publicationState: "published" } }).state, "published");
+    assert.equal(createBadgeState({ desiredState: { readbackState: "review-required" } }).state, "review-required");
+    assert.equal(createBadgeState({ trustPanel: { state: "blocked" } }).state, "blocked");
+  });
+
+  it("maps trust projection rescan and review eligibility states", () => {
+    assert.equal(createBadgeState({ desiredState: { readbackState: "rescan-required" } }).state, "rescan-required");
+    assert.equal(createBadgeState({ scannerPolicy: { freshness: "rescan-required" } }).state, "rescan-required");
+    assert.equal(createBadgeState({ reviewEligibility: { state: "needs-evidence" } }).state, "review-required");
   });
 
   it("maps stale, unavailable, and rate-limited states", () => {
@@ -290,10 +398,56 @@ describe("badge states", () => {
     assert.equal(createBadgeState({ code: "rate-limited", retryAfter: "60" }).state, "rate-limited");
   });
 
+  it("maps parser and variant projection states", () => {
+    assert.equal(createBadgeState({ parserVariant: parserVariantReadback({ platformVariants: [] }) }).state, "parsed");
+    assert.equal(createBadgeState({ parserVariant: parserVariantReadback() }).state, "variant-available");
+    assert.equal(
+      createBadgeState({
+        parserVariant: parserVariantReadback({
+          parseStatus: "partial",
+          compatibilityStatus: "partial"
+        })
+      }).state,
+      "partial"
+    );
+    assert.equal(
+      createBadgeState({
+        parserVariant: parserVariantReadback({
+          parseStatus: "unsupported",
+          compatibilityStatus: "unsupported",
+          platformVariants: [platformVariantReadback({ state: "unsupported", downloadAvailability: "unavailable" })]
+        })
+      }).state,
+      "unsupported"
+    );
+    assert.equal(
+      createBadgeState({
+        parserVariant: parserVariantReadback({
+          parseStatus: "blocked",
+          compatibilityStatus: "blocked",
+          platformVariants: [platformVariantReadback({ state: "blocked", downloadAvailability: "blocked" })]
+        })
+      }).state,
+      "blocked"
+    );
+    assert.equal(
+      createBadgeState({
+        parserVariant: parserVariantReadback({
+          platformVariants: [platformVariantReadback({ state: "stale", validationState: "stale" })]
+        })
+      }).state,
+      "stale"
+    );
+  });
+
   it("does not use strong safety or approval wording in badge output", () => {
     const states = [
+      createBadgeState({ parserVariant: parserVariantReadback() }),
+      createBadgeState({ parserVariant: parserVariantReadback({ parseStatus: "partial" }) }),
+      createBadgeState({ parserVariant: parserVariantReadback({ parseStatus: "unsupported" }) }),
       createBadgeState({ status: "published" }),
       createBadgeState({ status: "review required" }),
+      createBadgeState({ scannerPolicy: { freshness: "rescan-required" } }),
       createBadgeState({ status: "blocked" }),
       createBadgeState(null),
       createBadgeState({ code: "rate-limited" })
@@ -305,6 +459,321 @@ describe("badge states", () => {
 });
 
 describe("normalizer", () => {
+  it("normalizes resource list payloads into a stable catalog summary", () => {
+    assert.deepEqual(
+      normalizeResourceList({
+        items: [
+          {
+            id: "agent-1",
+            slug: "agent-one",
+            title: "Agent One",
+            description: "Visible summary.",
+            type: "skill",
+            state: "published",
+            resourceUrl: "https://agentique.io/resources/agent-one",
+            download: {
+              availability: "source-only"
+            },
+            storageKey: "hidden",
+            updatedAt: "2026-06-07T01:00:00.000Z"
+          }
+        ],
+        pageInfo: {
+          page: 1,
+          pageSize: 1,
+          total: 60,
+          cursor: "cursor-1",
+          nextCursor: "cursor-2",
+          hasNextPage: true
+        },
+        privateReviewNotes: "hidden",
+        observedAt: "2026-06-07T01:01:00.000Z"
+      }),
+      {
+        items: [
+          {
+            resourceId: "agent-1",
+            slug: "agent-one",
+            title: "Agent One",
+            summary: "Visible summary.",
+            type: "skill",
+            status: "published",
+            platformUrl: "https://agentique.io/resources/agent-one",
+            downloadAvailability: "source-only",
+            updatedAt: "2026-06-07T01:00:00.000Z"
+          }
+        ],
+        pageInfo: {
+          page: 1,
+          pageSize: 1,
+          total: 60,
+          cursor: "cursor-1",
+          nextCursor: "cursor-2",
+          hasNextPage: true
+        },
+        observedAt: "2026-06-07T01:01:00.000Z"
+      }
+    );
+  });
+
+  it("normalizes download metadata without leaking private storage fields", () => {
+    const normalized = normalizeDownloadMetadata({
+      resourceId: "agent-1",
+      platformId: "codex",
+      artifactKind: "skill",
+      download: {
+        availability: "available",
+        url: "https://agentique.io/downloads/agent-1.zip",
+        filename: "agent-1.zip",
+        mediaType: "application/zip",
+        sizeBytes: 42,
+        digest: `sha256:${"a".repeat(64)}`,
+        reasons: ["published"],
+        objectPath: "hidden",
+        observedAt: "2026-06-07T01:02:00.000Z",
+        expiresAt: "2026-06-07T02:02:00.000Z"
+      },
+      privateUrl: "hidden"
+    });
+
+    assert.deepEqual(normalized, {
+      resourceId: "agent-1",
+      platformId: "codex",
+      artifactKind: "skill",
+      availability: "available",
+      url: "https://agentique.io/downloads/agent-1.zip",
+      filename: "agent-1.zip",
+      mediaType: "application/zip",
+      sizeBytes: 42,
+      digest: {
+        algorithm: "sha256",
+        value: "a".repeat(64)
+      },
+      digestPresent: true,
+      digestValid: true,
+      reasons: ["published"],
+      observedAt: "2026-06-07T01:02:00.000Z",
+      expiresAt: "2026-06-07T02:02:00.000Z"
+    });
+    assert.equal(JSON.stringify(normalized).includes("hidden"), false);
+  });
+
+  it("normalizes unavailable and malformed download metadata as fail-closed summaries", () => {
+    assert.deepEqual(normalizeDownloadMetadata({ download: { availability: "unavailable", digest: "bad-digest" } }), {
+      resourceId: null,
+      platformId: null,
+      artifactKind: null,
+      availability: "unavailable",
+      url: null,
+      filename: null,
+      mediaType: null,
+      sizeBytes: null,
+      digest: null,
+      digestPresent: true,
+      digestValid: false,
+      reasons: [],
+      observedAt: null,
+      expiresAt: null
+    });
+  });
+
+  it("normalizes public trust readback fields into a stable summary", () => {
+    assert.deepEqual(
+      normalizeTrustReadback({
+        platformProjection: {
+          publicationState: "published"
+        },
+        desiredState: {
+          fingerprint: "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          readbackState: "unchanged",
+          reasons: ["current"]
+        },
+        scannerPolicy: {
+          policyVersion: "policy-v1",
+          freshness: "current",
+          rawScanResults: "hidden"
+        },
+        reviewEligibility: {
+          state: "eligible",
+          evidenceTypes: ["download"],
+          privateReviewNotes: "hidden"
+        },
+        trustPanel: {
+          state: "current",
+          messages: ["Public readback shows current platform state."],
+          versionHistoryUrl: "https://agentique.io/resources/example-resource/versions",
+          privateOperatorNote: "hidden"
+        },
+        versionHistory: [
+          {
+            version: "1.0.0",
+            observedAt: "2026-06-06T00:00:00.000Z",
+            state: "current",
+            desiredStateFingerprint: "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+            storageKey: "hidden"
+          }
+        ],
+        reportActionState: "available"
+      }),
+      {
+        platformState: "published",
+        desiredState: {
+          state: "unchanged",
+          fingerprintPresent: true,
+          reasons: ["current"]
+        },
+        scannerPolicy: {
+          policyVersion: "policy-v1",
+          freshness: "current"
+        },
+        trustPanel: {
+          state: "current",
+          messages: ["Public readback shows current platform state."],
+          versionHistoryUrl: "https://agentique.io/resources/example-resource/versions"
+        },
+        reviewEligibility: {
+          state: "eligible",
+          evidenceTypes: ["download"],
+          reasons: []
+        },
+        reportActionState: "available",
+        versionHistory: [
+          {
+            version: "1.0.0",
+            observedAt: "2026-06-06T00:00:00.000Z",
+            state: "current",
+            desiredStateFingerprintPresent: true
+          }
+        ]
+      }
+    );
+  });
+
+  it("keeps legacy trust readback payloads compatible", () => {
+    assert.deepEqual(normalizeTrustReadback({ status: "review required" }), {
+      platformState: "review-required",
+      desiredState: null,
+      scannerPolicy: null,
+      trustPanel: null,
+      reviewEligibility: null,
+      reportActionState: null,
+      versionHistory: []
+    });
+  });
+
+  it("normalizes parser variant readback without exposing raw evidence", () => {
+    const normalized = normalizeParserVariantReadback({
+      resourceId: "example-resource",
+      updatedAt: "2026-06-07T00:00:00.000Z",
+      parserVariant: {
+        observedAt: "2026-06-07T00:01:00.000Z",
+        parserEvidence: {
+          sourceEcosystem: "mcp",
+          sourceFormat: "json",
+          parseStatus: "parsed",
+          parseConfidence: "high",
+          sanitizerStatus: "passed",
+          noExecution: true,
+          inputDigest: "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          outputDigest: "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          privateReviewNotes: "hidden"
+        },
+        resourceGraphSummary: {
+          sanitized: true,
+          nodeCount: 2,
+          edgeCount: 1,
+          capabilityCount: 1,
+          sourceFileCount: 1,
+          summaryDigest: "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+          storageKey: "hidden"
+        },
+        compatibility: {
+          status: "compatible",
+          reasons: ["static-contract"]
+        },
+        platformVariants: [
+          {
+            platformId: "mcp",
+            artifactKind: "metadata",
+            state: "available",
+            validationState: "not-run",
+            variantDigest: "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            download: {
+              availability: "source-only",
+              url: "https://agentique.io/resources/example-resource/download",
+              digest: "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+              objectPath: "hidden"
+            },
+            reasons: ["source-only"],
+            observedAt: "2026-06-07T00:02:00.000Z"
+          }
+        ],
+        __proto__: {
+          polluted: true
+        }
+      }
+    });
+
+    assert.deepEqual(normalized, {
+      parserEvidence: {
+        sourceEcosystem: "mcp",
+        sourceFormat: "json",
+        parseStatus: "parsed",
+        parseConfidence: "high",
+        sanitizerStatus: "passed",
+        noExecution: true,
+        inputDigestPresent: true,
+        outputDigestPresent: true,
+        issueCount: 0
+      },
+      resourceGraphSummary: {
+        sanitized: true,
+        nodeCount: 2,
+        edgeCount: 1,
+        capabilityCount: 1,
+        sourceFileCount: 1,
+        summaryDigestPresent: true
+      },
+      compatibility: {
+        status: "compatible",
+        reasons: ["static-contract"]
+      },
+      platformVariants: [
+        {
+          platformId: "mcp",
+          artifactKind: "metadata",
+          state: "available",
+          validationState: "not-run",
+          downloadAvailability: "source-only",
+          downloadUrl: "https://agentique.io/resources/example-resource/download",
+          variantDigestPresent: true,
+          downloadDigestPresent: true,
+          reasons: ["source-only"],
+          observedAt: "2026-06-07T00:02:00.000Z"
+        }
+      ],
+      observedAt: "2026-06-07T00:01:00.000Z"
+    });
+    assert.equal(JSON.stringify(normalized).includes("sha256:"), false);
+    assert.equal(JSON.stringify(normalized).includes("hidden"), false);
+    assert.equal({}.polluted, undefined);
+  });
+
+  it("normalizes direct parser variant objects and unavailable parser variants", () => {
+    assert.equal(
+      normalizeParserVariantReadback(parserVariantReadback({ sourceEcosystem: "dify", sourceFormat: "yaml" })).parserEvidence
+        .sourceEcosystem,
+      "dify"
+    );
+    assert.deepEqual(normalizeParserVariantReadback({ status: "published" }), {
+      parserEvidence: null,
+      resourceGraphSummary: null,
+      compatibility: null,
+      platformVariants: [],
+      observedAt: null
+    });
+  });
+
   it("preserves public projection keys that contain formerly ambiguous terms", () => {
     assert.deepEqual(
       normalizePublicReadback({
@@ -388,3 +857,52 @@ describe("normalizer", () => {
     assert.equal(Object.prototype.polluted, undefined);
   });
 });
+
+function parserVariantReadback(overrides = {}) {
+  return {
+    observedAt: "2026-06-07T00:01:00.000Z",
+    parserEvidence: {
+      sourceEcosystem: overrides.sourceEcosystem ?? "mcp",
+      sourceFormat: overrides.sourceFormat ?? "json",
+      parseStatus: overrides.parseStatus ?? "parsed",
+      parseConfidence: overrides.parseConfidence ?? "high",
+      sanitizerStatus: "passed",
+      noExecution: true,
+      inputDigest: "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    },
+    resourceGraphSummary: {
+      sanitized: true,
+      nodeCount: 1,
+      edgeCount: 0,
+      capabilityCount: 1,
+      sourceFileCount: 1,
+      summaryDigest: "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    },
+    compatibility: {
+      status: overrides.compatibilityStatus ?? "compatible",
+      reasons: ["static-contract"]
+    },
+    platformVariants:
+      overrides.platformVariants ??
+      [
+        platformVariantReadback({
+          platformId: overrides.platformId ?? "mcp",
+          artifactKind: overrides.artifactKind ?? "metadata"
+        })
+      ]
+  };
+}
+
+function platformVariantReadback(overrides = {}) {
+  return {
+    platformId: overrides.platformId ?? "mcp",
+    artifactKind: overrides.artifactKind ?? "metadata",
+    state: overrides.state ?? "available",
+    validationState: overrides.validationState ?? "not-run",
+    download: {
+      availability: overrides.downloadAvailability ?? "source-only"
+    },
+    reasons: overrides.reasons ?? ["source-only"],
+    observedAt: "2026-06-07T00:02:00.000Z"
+  };
+}
