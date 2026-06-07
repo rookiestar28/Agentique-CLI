@@ -22,8 +22,8 @@ Use this checklist before any public release, package publish, repository link c
 - Public docs describe registry trust metadata, creator checkpoints, trust readback, generated drafts, and patch/delta output as preparation/readback contracts only.
 - Public docs describe parser/variant schemas, fixtures, starters, readback helpers, and uploader import/variant dry-runs as static local preparation or read-only projection contracts only.
 - Parser/variant docs do not claim platform download availability, hosted execution, runtime compatibility, publication, approval, or safety outcomes.
-- Public docs describe catalog list/detail/download-metadata, direct download, and SDK download helpers as unpublished readback/download preparation only until package-release and live evidence gates pass.
-- Catalog/download docs do not claim new package availability, live endpoint availability, hosted execution, package installation, archive extraction, runtime compatibility, publication, approval, or safety outcomes.
+- Public docs describe catalog list/detail/download-metadata, direct download, and SDK download helpers as published `0.2.0` package surfaces with bounded owner-approved disposable byte-transfer evidence.
+- Catalog/download docs do not claim hosted execution, package installation, archive extraction, runtime compatibility, publication, approval, safety outcomes, or universal direct-download availability for every public resource.
 - Uploader package status, local draft/patch output, and review-only submit are documented separately from platform publication and live resource availability.
 - Any pending package pages are marked non-advertised in the URL inventory.
 - Registry readback passed with expected published package states.
@@ -35,6 +35,8 @@ Use this checklist before any public release, package publish, repository link c
 Packages must not use long-lived credentials when OIDC registry provenance is available. Prefer staged publishing with maintainer review before public availability.
 
 Provenance and attestations help consumers trace where an artifact came from. They do not prove that the artifact is risk-free.
+
+The first public npm release used an owner-approved maintainer-approved publication path after local and hosted validation passed. The coordinated `0.2.0` package release used the checked-in manual GitHub Actions package publication workflow and passed registry readback plus clean install smoke for the full package set.
 
 Before advertising any newly published package, run `npm run registry:readback`, run `npm run install:smoke`, and record version, dist-tag, tarball contents, clean install smoke, package CLI/import smoke, parser/variant package surface evidence, and catalog/download package surface evidence for the exact version being advertised.
 
@@ -50,4 +52,4 @@ Parser/variant helper output is local preparation output only. It does not prove
 
 Generated draft and patch/delta helper output is local preparation output only. It remains unsubmitted until the user confirms the change and the platform validates it through the review flow.
 
-Catalog/download helper output is local preparation and readback output only. Direct download writes bytes to the explicit output path and does not install, extract, open, execute, approve, certify, publish, host, moderate, or prove live endpoint availability.
+Catalog/download helper output is local preparation and readback output only. Direct download writes bytes to the explicit output path and does not install, extract, open, execute, approve, certify, publish, host, moderate, or guarantee live byte-transfer availability for every public resource.
