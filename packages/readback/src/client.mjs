@@ -212,16 +212,46 @@ export function normalizeResourceList(value) {
     return emptyResourceList();
   }
 
-  const sourceItems = Array.isArray(normalized.items)
-    ? normalized.items
-    : Array.isArray(normalized.resources)
-      ? normalized.resources
-      : [];
+  const source = unwrapResourceCollection(normalized);
+  const sourceItems = Array.isArray(source.items) ? source.items : [];
+  const pageSource = isRecord(source.pageInfo) ? source.pageInfo : normalized.pageInfo;
+  const observedSource = source.observedAt ?? source.updatedAt ?? normalized.observedAt ?? normalized.updatedAt;
 
   return Object.freeze({
     items: Object.freeze(sourceItems.filter(isRecord).map(projectResourceListItem)),
-    pageInfo: projectPageInfo(normalized.pageInfo),
-    observedAt: stringOrNull(normalized.observedAt ?? normalized.updatedAt)
+    pageInfo: projectPageInfo(pageSource),
+    observedAt: stringOrNull(observedSource)
+  });
+}
+
+export function normalizeResourceDetail(value) {
+  const normalized = normalizePublicReadback(value);
+  const detail = unwrapResourceDetail(normalized);
+  if (!isRecord(detail)) {
+    return Object.freeze({
+      resourceId: null,
+      slug: null,
+      title: null,
+      summary: null,
+      type: null,
+      status: "unavailable",
+      platformUrl: null,
+      downloadAvailability: "unknown",
+      updatedAt: null
+    });
+  }
+
+  return Object.freeze({
+    ...detail,
+    resourceId: stringOrNull(detail.resourceId ?? detail.id),
+    slug: stringOrNull(detail.slug),
+    title: stringOrNull(detail.title ?? detail.name),
+    summary: stringOrNull(detail.summary ?? detail.description),
+    type: stringOrNull(detail.type ?? detail.resourceType),
+    status: normalizePublicState(detail.status ?? detail.state ?? detail.publicationStatus ?? detail.publicationState),
+    platformUrl: stringOrNull(detail.platformUrl ?? detail.resourceUrl ?? detail.url),
+    downloadAvailability: normalizePublicState(detail.downloadAvailability ?? detail.download?.availability),
+    updatedAt: stringOrNull(detail.updatedAt ?? detail.observedAt)
   });
 }
 
@@ -231,25 +261,61 @@ export function normalizeDownloadMetadata(value) {
     return emptyDownloadMetadata();
   }
 
-  const download = isRecord(normalized.download) ? normalized.download : {};
-  const digestValue = firstString(download.digest, normalized.digest, download.sha256, normalized.sha256);
+  const body = unwrapDownloadMetadataEnvelope(normalized);
+  const download = isRecord(body.download) ? body.download : {};
+  const file = firstRecord(download.file, body.file, download.files?.[0], body.files?.[0], body.sourcePackage);
+  const endpointValue = firstString(
+    download.ticketEndpoint,
+    body.ticketEndpoint,
+    download.downloadEndpoint,
+    body.downloadEndpoint,
+    download.endpoint,
+    body.endpoint,
+    download.path,
+    body.path
+  );
+  const rawUrl = firstString(download.url, body.downloadUrl, body.url, file?.url, file?.downloadUrl);
+  const projectedUrl = projectPublicDownloadUrl(rawUrl);
+  const ticketEndpoint = projectTicketEndpoint(endpointValue);
+  const digestValue = firstString(download.digest, body.digest, file?.digest, download.sha256, body.sha256, file?.sha256);
   const digest = projectDigest(digestValue);
+  const availability = normalizePublicState(
+    download.availability ?? body.availability ?? file?.availability ?? body.status ?? normalized.availability ?? normalized.status ?? normalized.state
+  );
+  const method = normalizeDownloadMethod(download.method ?? body.method ?? (ticketEndpoint ? "POST" : null));
+  const downloadKind = projectDownloadKind({
+    availability,
+    url: projectedUrl,
+    ticketEndpoint,
+    method
+  });
 
   return Object.freeze({
-    resourceId: stringOrNull(normalized.resourceId ?? normalized.id),
-    platformId: stringOrNull(download.platformId ?? normalized.platformId),
-    artifactKind: stringOrNull(download.artifactKind ?? normalized.artifactKind),
-    availability: normalizePublicState(download.availability ?? normalized.availability ?? normalized.status ?? normalized.state),
-    url: stringOrNull(download.url ?? normalized.downloadUrl ?? normalized.url),
-    filename: stringOrNull(download.filename ?? download.fileName ?? normalized.filename ?? normalized.fileName),
-    mediaType: stringOrNull(download.mediaType ?? normalized.mediaType ?? download.contentType ?? normalized.contentType),
-    sizeBytes: numberOrNull(download.sizeBytes ?? download.size ?? normalized.sizeBytes ?? normalized.size ?? normalized.contentLength),
+    resourceId: stringOrNull(body.resourceId ?? body.id ?? normalized.resourceId ?? normalized.id),
+    platformId: stringOrNull(download.platformId ?? body.platformId ?? body.selectedPlatform ?? normalized.platformId),
+    artifactKind: stringOrNull(download.artifactKind ?? body.artifactKind ?? file?.artifactKind ?? normalized.artifactKind),
+    availability,
+    downloadKind,
+    method,
+    ticketEndpoint,
+    url: projectedUrl,
+    urlRedacted: typeof rawUrl === "string" && projectedUrl === null,
+    filename: stringOrNull(download.filename ?? download.fileName ?? body.filename ?? body.fileName ?? file?.filename ?? file?.fileName),
+    mediaType: stringOrNull(
+      download.mediaType ?? body.mediaType ?? file?.mediaType ?? download.contentType ?? body.contentType ?? file?.contentType
+    ),
+    sizeBytes: numberOrNull(
+      download.sizeBytes ?? download.size ?? body.sizeBytes ?? body.size ?? file?.sizeBytes ?? file?.size ?? body.contentLength
+    ),
     digest,
     digestPresent: typeof digestValue === "string",
     digestValid: typeof digestValue !== "string" || digest !== null,
-    reasons: arrayOfStrings(download.reasons ?? normalized.reasons),
-    observedAt: stringOrNull(download.observedAt ?? normalized.observedAt ?? normalized.updatedAt),
-    expiresAt: stringOrNull(download.expiresAt ?? normalized.expiresAt)
+    reasons: arrayOfStrings(download.reasons ?? body.reasons ?? file?.reasons ?? normalized.reasons),
+    unavailableReason: stringOrNull(
+      firstString(download.unavailableReason, body.unavailableReason, file?.unavailableReason, download.reason, body.reason)
+    ),
+    observedAt: stringOrNull(download.observedAt ?? body.observedAt ?? file?.observedAt ?? normalized.observedAt ?? normalized.updatedAt),
+    expiresAt: stringOrNull(download.expiresAt ?? body.expiresAt ?? file?.expiresAt ?? normalized.expiresAt)
   });
 }
 
@@ -407,7 +473,11 @@ function emptyDownloadMetadata() {
     platformId: null,
     artifactKind: null,
     availability: "unavailable",
+    downloadKind: "unavailable",
+    method: null,
+    ticketEndpoint: null,
     url: null,
+    urlRedacted: false,
     filename: null,
     mediaType: null,
     sizeBytes: null,
@@ -415,9 +485,143 @@ function emptyDownloadMetadata() {
     digestPresent: false,
     digestValid: true,
     reasons: Object.freeze([]),
+    unavailableReason: null,
     observedAt: null,
     expiresAt: null
   });
+}
+
+function unwrapDownloadMetadataEnvelope(normalized) {
+  if (!isRecord(normalized)) {
+    return normalized;
+  }
+  const data = normalized.data;
+  if (isRecord(data) && !Array.isArray(data)) {
+    return { ...data, availability: data.availability ?? normalized.availability };
+  }
+  return normalized;
+}
+
+function firstRecord(...values) {
+  return values.find(isRecord) ?? {};
+}
+
+function normalizeDownloadMethod(value) {
+  if (typeof value !== "string" || value.trim() === "") {
+    return null;
+  }
+  const method = value.trim().toUpperCase();
+  return /^[A-Z]+$/.test(method) ? method : null;
+}
+
+function projectDownloadKind({ availability, url, ticketEndpoint, method }) {
+  if (availability !== "available") {
+    return "unavailable";
+  }
+  if (url) {
+    return "direct";
+  }
+  if (ticketEndpoint && method) {
+    return "ticket";
+  }
+  return "unknown";
+}
+
+function projectPublicDownloadUrl(value) {
+  if (typeof value !== "string") {
+    return null;
+  }
+  let parsed;
+  try {
+    parsed = new URL(value);
+  } catch {
+    return null;
+  }
+  if (parsed.protocol !== "https:" && !(parsed.protocol === "http:" && isLoopbackHost(parsed.hostname))) {
+    return null;
+  }
+  if (hasSensitiveQuery(parsed)) {
+    return null;
+  }
+  parsed.hash = "";
+  return parsed.href;
+}
+
+function projectTicketEndpoint(value) {
+  if (typeof value !== "string" || value.trim() === "") {
+    return null;
+  }
+  const trimmed = value.trim();
+  if (trimmed.startsWith("/")) {
+    return trimmed.split("#")[0].split("?")[0];
+  }
+  let parsed;
+  try {
+    parsed = new URL(trimmed);
+  } catch {
+    return null;
+  }
+  if (parsed.protocol !== "https:" && !(parsed.protocol === "http:" && isLoopbackHost(parsed.hostname))) {
+    return null;
+  }
+  if (hasSensitiveQuery(parsed)) {
+    return null;
+  }
+  parsed.search = "";
+  parsed.hash = "";
+  return parsed.href;
+}
+
+function hasSensitiveQuery(url) {
+  for (const key of url.searchParams.keys()) {
+    if (/^(sig|signature|token|expires|x-amz-|x-goog-|authorization|credential|policy)/i.test(key)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function isLoopbackHost(hostname) {
+  return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
+}
+
+function unwrapResourceCollection(normalized) {
+  if (Array.isArray(normalized)) {
+    return { items: normalized, pageInfo: null, observedAt: null, updatedAt: null };
+  }
+  if (!isRecord(normalized)) {
+    return { items: [], pageInfo: null, observedAt: null, updatedAt: null };
+  }
+  if (Array.isArray(normalized.items)) {
+    return normalized;
+  }
+  if (Array.isArray(normalized.resources)) {
+    return { ...normalized, items: normalized.resources };
+  }
+  const data = normalized.data;
+  if (Array.isArray(data)) {
+    return { ...normalized, items: data };
+  }
+  if (isRecord(data)) {
+    if (Array.isArray(data.items)) {
+      return { ...data, items: data.items, pageInfo: data.pageInfo ?? normalized.pageInfo };
+    }
+    if (Array.isArray(data.resources)) {
+      return { ...data, items: data.resources, pageInfo: data.pageInfo ?? normalized.pageInfo };
+    }
+  }
+  return { ...normalized, items: [] };
+}
+
+function unwrapResourceDetail(normalized) {
+  if (!isRecord(normalized)) {
+    return normalized;
+  }
+  const data = normalized.data;
+  if (isRecord(data) && !Array.isArray(data)) {
+    return data;
+  }
+  return normalized;
 }
 
 function projectResourceListItem(item) {

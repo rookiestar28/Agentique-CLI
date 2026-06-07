@@ -268,7 +268,7 @@ test("catalog list reads public resources without uploader auth or secret forwar
         assert.equal(headerValue(init.headers, "authorization"), null);
         assert.equal(headerValue(init.headers, "cookie"), null);
         return jsonResponse({
-          items: [
+          data: [
             {
               id: "agent-1",
               slug: "agent-one",
@@ -312,24 +312,31 @@ test("catalog get and download-metadata return stable public readback envelopes"
 
     if (String(url).endsWith("/download")) {
       return jsonResponse({
-        resourceId: "agent-1",
-        download: {
-          availability: "available",
-          url: "https://downloads.agentique.example/agent-1.zip?sig=metadata",
-          filename: "agent-1.zip",
-          mediaType: "application/zip",
-          sizeBytes: 42,
-          digest: `sha256:${"a".repeat(64)}`,
-          objectPath: "hidden"
+        availability: "available",
+        data: {
+          resourceId: "agent-1",
+          method: "POST",
+          downloadEndpoint: "/api/agents/agent-1/download?ignored=true",
+          files: [
+            {
+              filename: "agent-1.zip",
+              mediaType: "application/zip",
+              sizeBytes: 42,
+              digest: `sha256:${"a".repeat(64)}`,
+              objectPath: "hidden"
+            }
+          ]
         }
       });
     }
 
     return jsonResponse({
-      resourceId: "agent-1",
-      title: "Agent One",
-      state: "published",
-      storageKey: "hidden"
+      data: {
+        resourceId: "agent-1",
+        title: "Agent One",
+        state: "published",
+        storageKey: "hidden"
+      }
     });
   };
 
@@ -349,6 +356,9 @@ test("catalog get and download-metadata return stable public readback envelopes"
   assert.equal(metadata.exitCode, EXIT_CODES.success);
   assert.equal(metadataStatus.code, "catalog.download_metadata.read");
   assert.equal(metadataStatus.data.availability, "available");
+  assert.equal(metadataStatus.data.downloadKind, "ticket");
+  assert.equal(metadataStatus.data.method, "POST");
+  assert.equal(metadataStatus.data.ticketEndpoint, "/api/agents/agent-1/download");
   assert.equal(metadataStatus.data.filename, "agent-1.zip");
   assert.equal(metadataStatus.data.digest.value, "a".repeat(64));
   assert.deepEqual(
@@ -386,7 +396,7 @@ test("catalog human output is stable and concise", async () => {
   assert.match(list.stdout, /^Catalog list read 1 resource\. Next cursor: cursor-2\.\n$/);
   assert.equal(metadata.exitCode, EXIT_CODES.success);
   assert.equal(metadata.stderr, "");
-  assert.match(metadata.stdout, /^Catalog download metadata read\. Availability: source-only\. Filename: agent-1\.zip\.\n$/);
+  assert.match(metadata.stdout, /^Catalog download metadata read\. Availability: source-only\. Kind: unavailable\. Filename: agent-1\.zip\.\n$/);
   assert.doesNotMatch(list.stdout + metadata.stdout, /https:\/\/downloads|sig=metadata/i);
 });
 
@@ -455,7 +465,7 @@ test("download writes artifact bytes without uploader auth or signed-url output"
               resourceId: "agent-1",
               download: {
                 availability: "available",
-                url: "https://storage.agentique.example/files/agent-1.txt?sig=private",
+                url: "https://storage.agentique.example/files/agent-1.txt",
                 filename: "agent-1.txt",
                 mediaType: "text/plain",
                 sizeBytes: Buffer.byteLength(body),
@@ -464,7 +474,7 @@ test("download writes artifact bytes without uploader auth or signed-url output"
             });
           }
 
-          assert.equal(String(url), "https://storage.agentique.example/files/agent-1.txt?sig=private");
+          assert.equal(String(url), "https://storage.agentique.example/files/agent-1.txt");
           assert.equal(init.method, "GET");
           assert.equal(init.redirect, "manual");
           assert.equal(Object.hasOwn(init, "headers"), false);
@@ -486,6 +496,94 @@ test("download writes artifact bytes without uploader auth or signed-url output"
     assert.equal(status.data.outputWritten, true);
     assert.equal(await readFile(path.join(tempDir, "agent-1.txt"), "utf8"), body);
     assert.equal(calls.length, 2);
+    assert.doesNotMatch(
+      result.stdout + result.stderr,
+        forbiddenLocalOutputPattern(["flag-token-value", "storage.agentique.example", tempDir])
+    );
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("download supports public ticket flow without auth forwarding or signed-url output", async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), "agentique-cli-ticket-download-"));
+  try {
+    const body = "ticket artifact";
+    const digest = createHash("sha256").update(body).digest("hex");
+    const calls = [];
+    const result = await executeUploaderCli(
+      [
+        "download",
+        "agent-ticket",
+        "--output",
+        tempDir + path.sep,
+        "--api-url",
+        "https://agentique.example",
+        "--token",
+        "flag-token-value",
+        "--json"
+      ],
+      {
+        fetchImpl: async (url, init = {}) => {
+          calls.push({ url: String(url), init });
+          if (String(url).endsWith("/api/public/v1/resources/agent-ticket/download")) {
+            assert.equal(init.method, "GET");
+            assert.equal(headerValue(init.headers, "authorization"), null);
+            assert.equal(headerValue(init.headers, "cookie"), null);
+            return jsonResponse({
+              availability: "available",
+              data: {
+                resourceId: "agent-ticket",
+                method: "POST",
+                downloadEndpoint: "/api/agents/agent-ticket/download",
+                files: [
+                  {
+                    filename: "agent-ticket.txt",
+                    mediaType: "text/plain",
+                    sizeBytes: Buffer.byteLength(body),
+                    digest: `sha256:${digest}`
+                  }
+                ]
+              }
+            });
+          }
+          if (String(url) === "https://agentique.example/api/agents/agent-ticket/download") {
+            assert.equal(init.method, "POST");
+            assert.equal(init.redirect, "manual");
+            assert.equal(headerValue(init.headers, "accept"), "application/json");
+            assert.equal(headerValue(init.headers, "authorization"), null);
+            assert.equal(headerValue(init.headers, "cookie"), null);
+            return jsonResponse({
+              data: {
+                transfer: {
+                  url: "https://storage.agentique.example/files/agent-ticket.txt?sig=private"
+                }
+              }
+            });
+          }
+
+          assert.equal(String(url), "https://storage.agentique.example/files/agent-ticket.txt?sig=private");
+          assert.equal(init.method, "GET");
+          assert.equal(init.redirect, "manual");
+          assert.equal(Object.hasOwn(init, "headers"), false);
+          return new Response(body, {
+            status: 200,
+            headers: { "content-length": String(Buffer.byteLength(body)) }
+          });
+        }
+      }
+    );
+    const status = JSON.parse(result.stdout);
+
+    assert.equal(result.exitCode, EXIT_CODES.success);
+    assert.equal(status.code, "download.completed");
+    assert.equal(status.data.resourceId, "agent-ticket");
+    assert.equal(status.data.filename, "agent-ticket.txt");
+    assert.equal(status.data.bytesWritten, Buffer.byteLength(body));
+    assert.equal(status.data.digest.value, digest);
+    assert.equal(status.data.outputWritten, true);
+    assert.equal(await readFile(path.join(tempDir, "agent-ticket.txt"), "utf8"), body);
+    assert.equal(calls.length, 3);
     assert.doesNotMatch(
       result.stdout + result.stderr,
       forbiddenLocalOutputPattern(["flag-token-value", "storage.agentique.example", "sig=private", tempDir])
@@ -662,7 +760,7 @@ test("download cleans temporary files for existing output, digest mismatch, and 
             resourceId: "agent-existing",
             download: {
               availability: "available",
-              url: "https://storage.agentique.example/files/existing.txt?sig=private",
+              url: "https://storage.agentique.example/files/existing.txt",
               filename: "existing.txt"
             }
           });
@@ -679,7 +777,7 @@ test("download cleans temporary files for existing output, digest mismatch, and 
               resourceId: "agent-digest",
               download: {
                 availability: "available",
-                url: "https://storage.agentique.example/files/digest.txt?sig=private",
+                url: "https://storage.agentique.example/files/digest.txt",
                 filename: "digest.txt",
                 sizeBytes: 6,
                 digest: `sha256:${"b".repeat(64)}`

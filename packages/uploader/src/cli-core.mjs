@@ -3,6 +3,7 @@ import {
   createReadbackClient,
   downloadResourceArtifact,
   normalizeDownloadMetadata,
+  normalizeResourceDetail,
   normalizeResourceList
 } from "@agentique.io/readback";
 import { createUploaderBoundaryStatus, UPLOADER_PACKAGE_VERSION } from "./index.mjs";
@@ -419,7 +420,7 @@ async function handleCatalogCommand(action, operand, parsed, options) {
     }
 
     if (action === "get") {
-      const resource = await client.getResource(operand);
+      const resource = normalizeResourceDetail(await client.getResource(operand));
 
       return formatResult({
         result: createResult({
@@ -489,8 +490,10 @@ function catalogGetMessage(resource) {
 
 function catalogDownloadMetadataMessage(metadata) {
   const availability = metadata.availability ?? "unknown";
+  const kind = metadata.downloadKind ? ` Kind: ${metadata.downloadKind}.` : "";
+  const method = metadata.method ? ` Method: ${metadata.method}.` : "";
   const filename = metadata.filename ? ` Filename: ${metadata.filename}.` : "";
-  return `Catalog download metadata read. Availability: ${availability}.${filename}`;
+  return `Catalog download metadata read. Availability: ${availability}.${kind}${method}${filename}`;
 }
 
 function catalogErrorCode(action, error) {
@@ -552,6 +555,7 @@ async function handleDownloadCommand(resourceId, parsed, options) {
       maxBytes: validation.maxBytes,
       allowedRedirectOrigins: validation.allowedRedirectOrigins,
       cwd: options.cwd,
+      baseUrl: parsed.apiUrl ?? "https://agentique.io",
       fetchImpl: options.fetchImpl
     });
 

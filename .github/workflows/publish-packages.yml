@@ -46,6 +46,7 @@ jobs:
           npm run install:smoke
           npm run urls:check
           npm run release:go-no-go
+          node -e "const d=require('./docs/release-go-no-go.json'); const scopes=['decision','uploaderPublicationDecision','parserVariantPublicationDecision','catalogDownloadPublicationDecision']; const blocked=scopes.filter((k)=>((k==='decision'?d:d[k])?.decision)!=='go'); if(blocked.length){throw new Error('publish requires GO decisions for: '+blocked.join(', '));}"
           npm audit --omit=dev
           npm --prefix packages/validator audit --omit=dev
           npm --prefix packages/action audit --omit=dev
@@ -58,26 +59,28 @@ jobs:
         run: |
           set -euo pipefail
 
-          VERSION="0.2.0"
-
           check_package() {
             local output_name="$1"
             local package_name="$2"
+            local package_dir="$3"
+            local version
 
-            if npm view "$package_name@$VERSION" version --json >/dev/null 2>&1; then
-              echo "$package_name@$VERSION already published."
+            version="$(node -p "require('./${package_dir}/package.json').version")"
+
+            if npm view "$package_name@$version" version --json >/dev/null 2>&1; then
+              echo "$package_name@$version already published."
               echo "${output_name}_exists=true" >> "$GITHUB_OUTPUT"
             else
-              echo "$package_name@$VERSION is not published yet."
+              echo "$package_name@$version is not published yet."
               echo "${output_name}_exists=false" >> "$GITHUB_OUTPUT"
             fi
           }
 
-          check_package schemas @agentique.io/schemas
-          check_package validator @agentique.io/validator
-          check_package action @agentique.io/action
-          check_package readback @agentique.io/readback
-          check_package uploader @agentique.io/uploader
+          check_package schemas @agentique.io/schemas schemas
+          check_package validator @agentique.io/validator packages/validator
+          check_package action @agentique.io/action packages/action
+          check_package readback @agentique.io/readback packages/readback
+          check_package uploader @agentique.io/uploader packages/uploader
 
       - name: Publish schemas package
         if: ${{ steps.package_status.outputs.schemas_exists != 'true' }}
@@ -105,23 +108,27 @@ jobs:
 
           wait_for_package() {
             local package_name="$1"
+            local package_dir="$2"
+            local version
+
+            version="$(node -p "require('./${package_dir}/package.json').version")"
 
             for attempt in {1..30}; do
-              if npm view "$package_name@0.2.0" version --json >/dev/null 2>&1; then
-                echo "$package_name@0.2.0 is readable from npm."
+              if npm view "$package_name@$version" version --json >/dev/null 2>&1; then
+                echo "$package_name@$version is readable from npm."
                 return 0
               fi
 
-              echo "Waiting for $package_name@0.2.0 npm readback ($attempt/30)."
+              echo "Waiting for $package_name@$version npm readback ($attempt/30)."
               sleep 10
             done
 
-            echo "$package_name@0.2.0 was not readable from npm after waiting." >&2
+            echo "$package_name@$version was not readable from npm after waiting." >&2
             return 1
           }
 
-          wait_for_package @agentique.io/readback
-          wait_for_package @agentique.io/validator
+          wait_for_package @agentique.io/readback packages/readback
+          wait_for_package @agentique.io/validator packages/validator
 
       - name: Verify uploader package dependencies
         run: |
@@ -139,26 +146,30 @@ jobs:
 
           wait_for_package() {
             local package_name="$1"
+            local package_dir="$2"
+            local version
+
+            version="$(node -p "require('./${package_dir}/package.json').version")"
 
             for attempt in {1..30}; do
-              if npm view "$package_name@0.2.0" version --json >/dev/null 2>&1; then
-                echo "$package_name@0.2.0 is readable from npm."
+              if npm view "$package_name@$version" version --json >/dev/null 2>&1; then
+                echo "$package_name@$version is readable from npm."
                 return 0
               fi
 
-              echo "Waiting for $package_name@0.2.0 npm readback ($attempt/30)."
+              echo "Waiting for $package_name@$version npm readback ($attempt/30)."
               sleep 10
             done
 
-            echo "$package_name@0.2.0 was not readable from npm after waiting." >&2
+            echo "$package_name@$version was not readable from npm after waiting." >&2
             return 1
           }
 
-          wait_for_package @agentique.io/schemas
-          wait_for_package @agentique.io/validator
-          wait_for_package @agentique.io/action
-          wait_for_package @agentique.io/readback
-          wait_for_package @agentique.io/uploader
+          wait_for_package @agentique.io/schemas schemas
+          wait_for_package @agentique.io/validator packages/validator
+          wait_for_package @agentique.io/action packages/action
+          wait_for_package @agentique.io/readback packages/readback
+          wait_for_package @agentique.io/uploader packages/uploader
 
       - name: Verify published package set
         env:

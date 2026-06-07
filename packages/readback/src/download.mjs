@@ -4,7 +4,7 @@ import { createHash } from "node:crypto";
 import path from "node:path";
 import { Readable, Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
-import { ReadbackError, normalizeDownloadMetadata } from "./client.mjs";
+import { ReadbackError, normalizeBaseUrl, normalizeDownloadMetadata } from "./client.mjs";
 
 const DEFAULT_MAX_REDIRECTS = 3;
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
@@ -24,11 +24,6 @@ export async function downloadResourceArtifact(options = {}) {
       code: "download-unavailable"
     });
   }
-  if (!normalized.url) {
-    throw new ReadbackError("Download metadata is missing a public URL.", {
-      code: "missing-download-url"
-    });
-  }
   if (normalized.digestPresent && !normalized.digestValid) {
     throw new ReadbackError("Download metadata includes an invalid digest.", {
       code: "invalid-download-digest"
@@ -41,22 +36,27 @@ export async function downloadResourceArtifact(options = {}) {
       code: "download-too-large"
     });
   }
+  validateOutputPathInput(options.outputPath);
 
-  const initialUrl = parseSafeDownloadUrl(normalized.url);
-  const target = await resolveOutputTarget({
-    cwd: options.cwd,
-    outputPath: options.outputPath,
-    filename: normalized.filename,
-    url: initialUrl,
-    force: options.force === true
-  });
-
-  let tempPath = target.tempPath;
+  let tempPath = null;
   try {
     const fetchImpl = options.fetchImpl ?? globalThis.fetch;
     if (typeof fetchImpl !== "function") {
       throw new ReadbackError("A fetch implementation is required.", { code: "missing-fetch" });
     }
+
+    const initialUrl = await resolveInitialDownloadUrl(normalized, {
+      baseUrl: options.baseUrl,
+      fetchImpl
+    });
+    const target = await resolveOutputTarget({
+      cwd: options.cwd,
+      outputPath: options.outputPath,
+      filename: normalized.filename,
+      url: initialUrl,
+      force: options.force === true
+    });
+    tempPath = target.tempPath;
 
     const { response } = await fetchWithSafeRedirects(initialUrl, {
       fetchImpl,
@@ -138,6 +138,105 @@ async function resolveMetadata(options) {
   return options.client.getDownloadMetadata(options.resourceId);
 }
 
+async function resolveInitialDownloadUrl(metadata, { baseUrl, fetchImpl }) {
+  if (metadata.url) {
+    return parseSafeDownloadUrl(metadata.url);
+  }
+  if (metadata.urlRedacted) {
+    throw new ReadbackError("Download URL is not safe for public projection.", {
+      code: "unsafe-download-url"
+    });
+  }
+  if (metadata.downloadKind !== "ticket") {
+    throw new ReadbackError("Download metadata is missing a public URL.", {
+      code: "missing-download-url"
+    });
+  }
+  if (metadata.method !== "POST") {
+    throw new ReadbackError("Download ticket method is not supported.", {
+      code: "unsupported-ticket-method"
+    });
+  }
+
+  const ticketUrl = resolveTicketEndpoint(metadata.ticketEndpoint, baseUrl);
+  const response = await fetchImpl(ticketUrl, {
+    method: "POST",
+    redirect: "manual",
+    headers: {
+      accept: "application/json"
+    }
+  });
+
+  if (isRedirect(response.status)) {
+    throw new ReadbackError("Download ticket endpoint redirected.", {
+      code: "unsafe-ticket-redirect",
+      status: response.status
+    });
+  }
+  if (!response.ok) {
+    throw new ReadbackError("Download ticket request failed.", {
+      code: "ticket-http-error",
+      status: response.status
+    });
+  }
+
+  let payload;
+  try {
+    payload = await response.json();
+  } catch (error) {
+    throw new ReadbackError("Download ticket endpoint returned invalid JSON.", {
+      code: "invalid-ticket-json",
+      status: response.status,
+      cause: error
+    });
+  }
+
+  const byteUrl = extractTicketByteUrl(payload);
+  if (!byteUrl) {
+    throw new ReadbackError("Download ticket response is missing a byte URL.", {
+      code: "missing-ticket-download-url"
+    });
+  }
+  return parseSafeDownloadUrl(byteUrl);
+}
+
+function resolveTicketEndpoint(endpoint, baseUrl) {
+  if (typeof endpoint !== "string" || endpoint.trim() === "") {
+    throw new ReadbackError("Download ticket endpoint is missing.", {
+      code: "missing-ticket-endpoint"
+    });
+  }
+
+  if (endpoint.startsWith("/")) {
+    if (typeof baseUrl !== "string" || baseUrl.trim() === "") {
+      throw new ReadbackError("A base URL is required for relative download ticket endpoints.", {
+        code: "missing-ticket-base-url"
+      });
+    }
+    return new URL(endpoint, normalizeBaseUrl(baseUrl));
+  }
+
+  return parseSafeDownloadUrl(endpoint);
+}
+
+function extractTicketByteUrl(payload) {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    return null;
+  }
+  const data = isRecord(payload.data) ? payload.data : {};
+  const transfer = isRecord(payload.transfer) ? payload.transfer : isRecord(data.transfer) ? data.transfer : {};
+  return firstString(
+    transfer.url,
+    transfer.downloadUrl,
+    payload.url,
+    payload.downloadUrl,
+    payload.byteUrl,
+    data.url,
+    data.downloadUrl,
+    data.byteUrl
+  );
+}
+
 function isNormalizedDownloadMetadata(value) {
   return Boolean(
     value &&
@@ -160,6 +259,17 @@ function normalizeMaxBytes(value) {
     });
   }
   return numeric;
+}
+
+function validateOutputPathInput(outputPath) {
+  if (typeof outputPath !== "string" || outputPath.trim() === "") {
+    throw new ReadbackError("An output path is required.", { code: "missing-output-path" });
+  }
+  if (hasParentPathSegment(outputPath)) {
+    throw new ReadbackError("Output path must not contain parent-directory traversal.", {
+      code: "unsafe-output-path"
+    });
+  }
 }
 
 function parseSafeDownloadUrl(value) {
@@ -325,6 +435,14 @@ function normalizeRedirectLimit(value) {
 
 function isRedirect(status) {
   return [301, 302, 303, 307, 308].includes(status);
+}
+
+function isRecord(value) {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function firstString(...values) {
+  return values.find((value) => typeof value === "string");
 }
 
 function validateContentLength(value, { expectedSize, maxBytes }) {

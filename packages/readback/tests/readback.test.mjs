@@ -10,6 +10,7 @@ import {
   normalizeDownloadMetadata,
   normalizeParserVariantReadback,
   normalizePublicReadback,
+  normalizeResourceDetail,
   normalizeResourceList,
   normalizeTrustReadback
 } from "../src/index.mjs";
@@ -516,6 +517,122 @@ describe("normalizer", () => {
     );
   });
 
+  it("unwraps live top-level data array resource lists", () => {
+    assert.deepEqual(
+      normalizeResourceList({
+        ok: true,
+        version: "public-v1",
+        data: [
+          {
+            id: "resource-1",
+            title: "Resource One",
+            summary: "Visible summary.",
+            resourceType: "agent",
+            status: "published",
+            privateReviewNotes: "hidden",
+            observedAt: "2026-06-07T01:03:00.000Z"
+          }
+        ],
+        pageInfo: {
+          page: 1,
+          pageSize: 3,
+          total: 84,
+          nextCursor: "cursor-next",
+          hasNextPage: true
+        },
+        observedAt: "2026-06-07T01:04:00.000Z"
+      }),
+      {
+        items: [
+          {
+            resourceId: "resource-1",
+            slug: null,
+            title: "Resource One",
+            summary: "Visible summary.",
+            type: "agent",
+            status: "published",
+            platformUrl: null,
+            downloadAvailability: "unknown",
+            updatedAt: "2026-06-07T01:03:00.000Z"
+          }
+        ],
+        pageInfo: {
+          page: 1,
+          pageSize: 3,
+          total: 84,
+          cursor: null,
+          nextCursor: "cursor-next",
+          hasNextPage: true
+        },
+        observedAt: "2026-06-07T01:04:00.000Z"
+      }
+    );
+  });
+
+  it("unwraps nested data.items and data.resources resource lists", () => {
+    assert.equal(
+      normalizeResourceList({
+        data: {
+          items: [{ id: "item-1", title: "Item One", status: "published" }]
+        }
+      }).items[0].resourceId,
+      "item-1"
+    );
+    assert.equal(
+      normalizeResourceList({
+        data: {
+          resources: [{ resourceId: "resource-2", name: "Resource Two", state: "published" }]
+        }
+      }).items[0].title,
+      "Resource Two"
+    );
+  });
+
+  it("unwraps live top-level data object resource details without leaking private fields", () => {
+    const detail = normalizeResourceDetail({
+      ok: true,
+      data: {
+        id: "resource-detail",
+        title: "Resource Detail",
+        summary: "Visible detail.",
+        resourceType: "agent",
+        publicationStatus: "published",
+        platformUrl: "https://agentique.example/resources/resource-detail",
+        storageKey: "hidden",
+        nested: {
+          credential: "hidden",
+          visible: true
+        },
+        observedAt: "2026-06-07T01:05:00.000Z"
+      },
+      privateReviewNotes: "hidden"
+    });
+
+    assert.equal(detail.resourceId, "resource-detail");
+    assert.equal(detail.title, "Resource Detail");
+    assert.equal(detail.type, "agent");
+    assert.equal(detail.status, "published");
+    assert.equal(detail.platformUrl, "https://agentique.example/resources/resource-detail");
+    assert.deepEqual(detail.nested, { visible: true });
+    assert.equal(JSON.stringify(detail).includes("hidden"), false);
+  });
+
+  it("returns fail-closed resource summaries for malformed live envelopes", () => {
+    assert.deepEqual(normalizeResourceList({ data: { unexpected: true } }), {
+      items: [],
+      pageInfo: {
+        page: null,
+        pageSize: null,
+        total: null,
+        cursor: null,
+        nextCursor: null,
+        hasNextPage: false
+      },
+      observedAt: null
+    });
+    assert.equal(normalizeResourceDetail({ data: [] }).status, "unknown");
+  });
+
   it("normalizes download metadata without leaking private storage fields", () => {
     const normalized = normalizeDownloadMetadata({
       resourceId: "agent-1",
@@ -541,7 +658,11 @@ describe("normalizer", () => {
       platformId: "codex",
       artifactKind: "skill",
       availability: "available",
+      downloadKind: "direct",
+      method: null,
+      ticketEndpoint: null,
       url: "https://agentique.io/downloads/agent-1.zip",
+      urlRedacted: false,
       filename: "agent-1.zip",
       mediaType: "application/zip",
       sizeBytes: 42,
@@ -552,10 +673,80 @@ describe("normalizer", () => {
       digestPresent: true,
       digestValid: true,
       reasons: ["published"],
+      unavailableReason: null,
       observedAt: "2026-06-07T01:02:00.000Z",
       expiresAt: "2026-06-07T02:02:00.000Z"
     });
     assert.equal(JSON.stringify(normalized).includes("hidden"), false);
+  });
+
+  it("normalizes live ticket download metadata without exposing raw URLs", () => {
+    const normalized = normalizeDownloadMetadata({
+      ok: true,
+      availability: "available",
+      data: {
+        resourceId: "agent-ticket",
+        selectedPlatform: "source-package",
+        status: "published",
+        method: "POST",
+        downloadEndpoint: "/api/agents/agent-ticket/download?ignored=true",
+        files: [
+          {
+            filename: "agent-ticket.zip",
+            mediaType: "application/zip",
+            sizeBytes: 64,
+            digest: `sha256:${"b".repeat(64)}`,
+            privateUrl: "hidden"
+          }
+        ],
+        sourcePackage: {
+          objectPath: "hidden"
+        }
+      }
+    });
+
+    assert.deepEqual(normalized, {
+      resourceId: "agent-ticket",
+      platformId: "source-package",
+      artifactKind: null,
+      availability: "available",
+      downloadKind: "ticket",
+      method: "POST",
+      ticketEndpoint: "/api/agents/agent-ticket/download",
+      url: null,
+      urlRedacted: false,
+      filename: "agent-ticket.zip",
+      mediaType: "application/zip",
+      sizeBytes: 64,
+      digest: {
+        algorithm: "sha256",
+        value: "b".repeat(64)
+      },
+      digestPresent: true,
+      digestValid: true,
+      reasons: [],
+      unavailableReason: null,
+      observedAt: null,
+      expiresAt: null
+    });
+    assert.equal(JSON.stringify(normalized).includes("hidden"), false);
+  });
+
+  it("redacts signed direct URLs from metadata projection", () => {
+    const normalized = normalizeDownloadMetadata({
+      resourceId: "agent-signed",
+      download: {
+        availability: "available",
+        url: "https://storage.agentique.example/files/agent.zip?sig=private",
+        filename: "agent.zip"
+      }
+    });
+
+    assert.equal(normalized.downloadKind, "unknown");
+    assert.equal(normalized.url, null);
+    assert.equal(normalized.urlRedacted, true);
+    assert.equal(normalized.filename, "agent.zip");
+    assert.doesNotMatch(JSON.stringify(normalized), /sig=private|storage\.agentique/i);
   });
 
   it("normalizes unavailable and malformed download metadata as fail-closed summaries", () => {
@@ -564,7 +755,11 @@ describe("normalizer", () => {
       platformId: null,
       artifactKind: null,
       availability: "unavailable",
+      downloadKind: "unavailable",
+      method: null,
+      ticketEndpoint: null,
       url: null,
+      urlRedacted: false,
       filename: null,
       mediaType: null,
       sizeBytes: null,
@@ -572,6 +767,7 @@ describe("normalizer", () => {
       digestPresent: true,
       digestValid: false,
       reasons: [],
+      unavailableReason: null,
       observedAt: null,
       expiresAt: null
     });

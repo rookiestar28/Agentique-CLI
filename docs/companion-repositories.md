@@ -10,7 +10,7 @@ Agentique's public companion work is consolidated in this repository. The monore
 - `packages/validator`: static no-execution local checks for package validation, parser/variant metadata, and upload preparation.
 - `packages/action`: least-privilege workflow wrapper around local validation.
 - `packages/readback`: read-only SDK, catalog/download metadata normalizers, direct byte-download utility, badge helpers, parser/variant normalizers, and trust projection normalizers for public status and readback projections.
-- `packages/uploader`: published review-only uploader CLI with plan, import-plan, variant-plan, local draft, patch/delta preparation, catalog read, and direct-download commands. Authenticated review-session access, final resource publication, and live catalog/download availability remain platform-owned and account/token gated.
+- `packages/uploader`: published review-only uploader CLI with plan, import-plan, variant-plan, local draft, patch/delta preparation, catalog read, and direct-download commands. Authenticated review-session access and final resource publication remain platform-owned and account/token gated. New catalog/download npm availability claims remain release-gated.
 - `scripts/`: repository release checks, starter validation, workflow posture checks, registry readback, install smoke, URL inventory checks, and package dry-runs.
 
 ## Link Readiness
@@ -30,4 +30,4 @@ Current approved advertised links include the public repository, approved npm pa
 
 Parser/variant package changes are Go for the coordinated `0.2.0` package-release claim. Registry readback shows schemas, validator, action, readback, and uploader at version `0.2.0`. Owner approval to use the manual GitHub Actions publishing workflow for target version `0.2.0` is recorded, and registry install smoke passed.
 
-Catalog/download package changes are Go for the coordinated `0.2.0` package-release claim. Registry readback shows schemas, validator, action, readback, and uploader at version `0.2.0`. Owner approval to use the manual GitHub Actions publishing workflow for target version `0.2.0` is recorded, registry install smoke passed, and owner-approved disposable byte-transfer evidence is recorded for a metadata-only public resource.
+Catalog/download behavior already published in `0.2.0` remains limited to the evidence recorded for that release. Canonical catalog envelope and ticket-backed byte-transfer fixes are part of the coordinated `0.2.1` patch candidate and are not yet published on npm. Registry readback shows the existing package set at version `0.2.0`, and owner-approved disposable byte-transfer evidence is recorded for a public catalog resource.

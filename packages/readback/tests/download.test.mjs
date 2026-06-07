@@ -85,6 +85,198 @@ test("can resolve metadata through a readback client and write to an explicit fi
   }
 });
 
+test("downloads ticket metadata through unauthenticated ticket POST and safe byte GET", async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), "agentique-download-ticket-"));
+  try {
+    const body = "ticket artifact";
+    const digest = sha256(body);
+    const calls = [];
+
+    const result = await downloadResourceArtifact({
+      metadata: {
+        resourceId: "agent-ticket",
+        availability: "available",
+        downloadKind: "ticket",
+        method: "POST",
+        ticketEndpoint: "/api/agents/agent-ticket/download",
+        filename: "agent-ticket.txt",
+        mediaType: "text/plain",
+        sizeBytes: Buffer.byteLength(body),
+        digest: `sha256:${digest}`
+      },
+      baseUrl: "https://agentique.example",
+      outputPath: tempDir + path.sep,
+      fetchImpl: async (url, options = {}) => {
+        calls.push({ url: String(url), options });
+        if (String(url) === "https://agentique.example/api/agents/agent-ticket/download") {
+          assert.equal(options.method, "POST");
+          assert.equal(options.redirect, "manual");
+          assert.equal(headerValue(options.headers, "accept"), "application/json");
+          assert.equal(headerValue(options.headers, "authorization"), null);
+          assert.equal(headerValue(options.headers, "cookie"), null);
+          return jsonResponse({
+            data: {
+              transfer: {
+                url: "https://storage.agentique.example/files/agent-ticket.txt?sig=private"
+              }
+            }
+          });
+        }
+
+        assert.equal(String(url), "https://storage.agentique.example/files/agent-ticket.txt?sig=private");
+        assert.equal(options.method, "GET");
+        assert.equal(options.redirect, "manual");
+        assert.equal(Object.hasOwn(options, "headers"), false);
+        return new Response(body, {
+          status: 200,
+          headers: {
+            "content-length": String(Buffer.byteLength(body))
+          }
+        });
+      }
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.resourceId, "agent-ticket");
+    assert.equal(result.filename, "agent-ticket.txt");
+    assert.equal(result.bytesWritten, Buffer.byteLength(body));
+    assert.deepEqual(result.digest, { algorithm: "sha256", value: digest });
+    assert.equal(JSON.stringify(result).includes("storage.agentique.example"), false);
+    assert.equal(await readFile(path.join(tempDir, "agent-ticket.txt"), "utf8"), body);
+    assert.equal(calls.length, 2);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("ticket metadata fails closed before unsafe or unsupported ticket requests", async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), "agentique-download-ticket-fail-"));
+  try {
+    let calls = 0;
+    const baseMetadata = {
+      availability: "available",
+      downloadKind: "ticket",
+      method: "POST",
+      ticketEndpoint: "/api/agents/agent-ticket/download",
+      filename: "agent-ticket.txt"
+    };
+
+    await assert.rejects(
+      () =>
+        downloadResourceArtifact({
+          metadata: baseMetadata,
+          outputPath: tempDir + path.sep,
+          fetchImpl: async () => {
+            calls += 1;
+            throw new Error("unexpected network call");
+          }
+        }),
+      (error) => error instanceof ReadbackError && error.code === "missing-ticket-base-url"
+    );
+
+    await assert.rejects(
+      () =>
+        downloadResourceArtifact({
+          metadata: {
+            ...baseMetadata,
+            method: "GET"
+          },
+          baseUrl: "https://agentique.example",
+          outputPath: tempDir + path.sep,
+          fetchImpl: async () => {
+            calls += 1;
+            throw new Error("unexpected network call");
+          }
+        }),
+      (error) => error instanceof ReadbackError && error.code === "unsupported-ticket-method"
+    );
+
+    await assert.rejects(
+      () =>
+        downloadResourceArtifact({
+          metadata: baseMetadata,
+          baseUrl: "https://agentique.example",
+          outputPath: `out${path.sep}..${path.sep}escape.txt`,
+          fetchImpl: async () => {
+            calls += 1;
+            throw new Error("unexpected network call");
+          }
+        }),
+      (error) => error instanceof ReadbackError && error.code === "unsafe-output-path"
+    );
+
+    assert.equal(calls, 0);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("ticket endpoint and ticket response failures clean up without writing artifacts", async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), "agentique-download-ticket-cleanup-"));
+  try {
+    const baseMetadata = {
+      resourceId: "agent-ticket",
+      availability: "available",
+      downloadKind: "ticket",
+      method: "POST",
+      ticketEndpoint: "/api/agents/agent-ticket/download",
+      filename: "agent-ticket.txt",
+      sizeBytes: 6,
+      digest: `sha256:${"b".repeat(64)}`
+    };
+
+    await assert.rejects(
+      () =>
+        downloadResourceArtifact({
+          metadata: baseMetadata,
+          baseUrl: "https://agentique.example",
+          outputPath: tempDir + path.sep,
+          fetchImpl: async () =>
+            new Response(null, {
+              status: 302,
+              headers: {
+                location: "https://agentique.example/redirected-ticket"
+              }
+            })
+        }),
+      (error) => error instanceof ReadbackError && error.code === "unsafe-ticket-redirect"
+    );
+
+    await assert.rejects(
+      () =>
+        downloadResourceArtifact({
+          metadata: baseMetadata,
+          baseUrl: "https://agentique.example",
+          outputPath: tempDir + path.sep,
+          fetchImpl: async () => jsonResponse({ data: { transfer: {} } })
+        }),
+      (error) => error instanceof ReadbackError && error.code === "missing-ticket-download-url"
+    );
+
+    await assert.rejects(
+      () =>
+        downloadResourceArtifact({
+          metadata: baseMetadata,
+          baseUrl: "https://agentique.example",
+          outputPath: tempDir + path.sep,
+          fetchImpl: async (url) => {
+            if (String(url) === "https://agentique.example/api/agents/agent-ticket/download") {
+              return jsonResponse({
+                downloadUrl: "https://storage.agentique.example/files/digest.txt?sig=private"
+              });
+            }
+            return new Response("digest", { status: 200, headers: { "content-length": "6" } });
+          }
+        }),
+      (error) => error instanceof ReadbackError && error.code === "download-digest-mismatch"
+    );
+
+    assert.deepEqual(await readdir(tempDir), []);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
 test("rejects unsafe metadata before fetching", async () => {
   let fetched = false;
 
@@ -358,4 +550,35 @@ test("allows loopback http for local tests only", async () => {
 
 function sha256(value) {
   return createHash("sha256").update(value).digest("hex");
+}
+
+function jsonResponse(payload, { ok = true, status = 200 } = {}) {
+  return {
+    ok,
+    status,
+    headers: {
+      get() {
+        return null;
+      }
+    },
+    async json() {
+      return payload;
+    }
+  };
+}
+
+function headerValue(headers, name) {
+  const lowered = name.toLowerCase();
+  if (!headers) {
+    return null;
+  }
+  if (typeof headers.get === "function") {
+    return headers.get(name);
+  }
+  for (const [key, value] of Object.entries(headers)) {
+    if (key.toLowerCase() === lowered) {
+      return value;
+    }
+  }
+  return null;
 }

@@ -1,8 +1,8 @@
 # Release Go/No-Go
 
-Current source repository, published package registry pages, action usage, badge/readback documentation, and platform-link publication decision: **Go** for advertised channels.
+Source repository, published package registry pages, action usage, badge/readback documentation, and platform-link publication decision: **Go** for advertised channels.
 
-Current source changes have local release-gate evidence only until they are pushed, hosted checks run, and the package publishing workflow completes on `main`. They do not publish a new package version by themselves.
+This source revision has local release-gate evidence only until it is pushed, hosted checks run, and the package publishing workflow completes on `main`. It does not publish a new package version by itself.
 
 The source repository is public. The public repository URL, package registry pages, action usage reference, badge/readback documentation, public documentation URL, schema URL base, `agentique.io` public URL, hosted CI evidence, branch protection evidence, and owner go/no-go approval are recorded.
 
@@ -38,18 +38,24 @@ Parser/variant schemas, validator findings, readback helpers, uploader dry-runs,
 
 ## Catalog And Download Package Release Decision
 
-Current catalog/download package release decision: **Go** for the coordinated `0.2.0` package-release claim. Owner-approved disposable direct byte-transfer smoke passed for a metadata-only public resource.
+Current catalog/download package release decision: **No-Go** for a new patch package-release claim.
 
-Reason: catalog/download CLI and SDK package changes are published in the coordinated package release `0.2.0`, and owner approval to use the manual GitHub Actions package publishing workflow is recorded. Hosted Release Check passed on `main`, GitHub Actions publication completed, registry readback confirms all companion packages at `0.2.0`, registry install smoke passed, and the public rollback/unpublish procedure is documented. A GET-only live metadata smoke on 2026-06-07 reached the canonical public list, first resource detail, and first resource download-metadata endpoints with 200 JSON responses. Owner-approved disposable direct byte-transfer smoke passed on 2026-06-07 for a metadata-only public resource without auth, signed URL output, opening, extraction, or execution.
+Existing catalog/download surfaces that were already published in the coordinated `0.2.0` package set remain advertised only within the evidence recorded for that release. The canonical-host live envelope compatibility and unauthenticated POST ticket byte-transfer path are source-revision changes in a coordinated `0.2.1` patch candidate. The behavior changes are concentrated in `@agentique.io/readback` and `@agentique.io/uploader`; the patch package set is not yet published on npm.
+
+Reason: local source validation, installed-tarball smoke, live metadata checks, and owner-approved disposable byte-transfer evidence passed for this source revision, but a new npm availability claim requires hosted Release Check evidence for the patch candidate, owner approval to publish, registry provenance completion, registry readback for the patch versions, clean install smoke for the patch versions, rollback/unpublish evidence, and branch cleanup.
 
 Current blockers:
 
-- None for the `0.2.0` package-release claim.
-- None for the bounded disposable direct byte-transfer smoke. This evidence is not a safety certification, content approval, or guarantee that every public resource is downloadable.
+- Hosted Release Check for the patch candidate is not yet recorded.
+- Owner approval to publish the patch candidate is not yet recorded.
+- registry provenance has not published the patch candidate.
+- Registry readback for the patch versions is not yet available.
+- Clean install smoke for the patch versions is not yet available.
+- Rollback and branch-cleanup evidence for the patch release is not yet recorded.
 
-Catalog list/detail/download-metadata commands, direct download command, readback catalog normalizers, direct download utility, live metadata smoke, disposable byte-transfer smoke, and release smoke coverage are package and local-preparation evidence. They do not approve resources, certify safety, install or execute downloaded content, or replace platform review.
+Catalog list/detail/download-metadata commands, download command behavior, readback catalog normalizers, ticket-flow byte transfer, live metadata smoke, disposable byte-transfer smoke, and release smoke coverage are package and local-preparation evidence for the patch candidate. They do not approve resources, certify safety, install or execute downloaded content, guarantee every public resource is downloadable, or replace platform review.
 
-Closeout evidence: source validation, installed-tarball smoke, hosted CI on `main`, GitHub Actions publication, registry readback for all companion packages at `0.2.0`, registry install smoke, live metadata smoke, disposable byte-transfer smoke, and owner approval to use the manual GitHub Actions publishing workflow are recorded.
+Closeout evidence for the patch candidate: source validation, installed-tarball smoke, live metadata checks, and owner-approved disposable byte-transfer smoke are recorded locally. New package-release evidence remains blocked until the patch release gates above pass.
 
 Current public-safe evidence is recorded in [release-evidence.md](release-evidence.md).
 
@@ -65,9 +71,9 @@ Current public-safe evidence is recorded in [release-evidence.md](release-eviden
 - Surfacing contract fixture matrix is covered by release checks.
 - Readback helper docs describe context bundle and selection projections as read-only public projections.
 - Hosted Release Check evidence is recorded for the latest pushed public release candidate; later branch changes require a fresh hosted run before downstream release claims.
-- Current source release gate refresh passed package tests, starter validation, release checks, workflow posture, package dry-run, URL inventory, registry readback, install smoke, go/no-go, content scan, diff check, and production dependency audits.
+- Current release gate refresh passed package tests, starter validation, release checks, workflow posture, package dry-run, URL inventory, registry readback, install smoke, go/no-go, content scan, diff check, and production dependency audits.
 - Parser/variant package surface smoke passes from locally packed tarballs, and registry readback plus registry install smoke verify the same surfaces are included in package version `0.2.0`.
-- Catalog/download package surface smoke passes from locally packed tarballs, live metadata smoke passed for public list/detail/download-metadata endpoints, registry install smoke passed for `0.2.0`, and owner-approved disposable byte-transfer evidence is recorded.
+- Catalog/download package surface smoke passes from locally packed tarballs, live metadata checks passed for public list/detail/download-metadata endpoints, registry install smoke passed for existing `0.2.0` packages, and owner-approved disposable byte-transfer evidence is recorded for the patch candidate.
 - Public `main` branch protection is enabled.
 - Final public URLs are approved.
 - `agentique.io` public links are approved.

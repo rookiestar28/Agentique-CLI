@@ -22,7 +22,7 @@ Use this checklist before any public release, package publish, repository link c
 - Public docs describe registry trust metadata, creator checkpoints, trust readback, generated drafts, and patch/delta output as preparation/readback contracts only.
 - Public docs describe parser/variant schemas, fixtures, starters, readback helpers, and uploader import/variant dry-runs as static local preparation or read-only projection contracts only.
 - Parser/variant docs do not claim platform download availability, hosted execution, runtime compatibility, publication, approval, or safety outcomes.
-- Public docs describe catalog list/detail/download-metadata, direct download, and SDK download helpers as published `0.2.0` package surfaces with bounded owner-approved disposable byte-transfer evidence.
+- Public docs describe already-published catalog/download behavior as `0.2.0` release evidence and canonical catalog envelope plus ticket-backed byte-transfer fixes as coordinated `0.2.1` patch-candidate changes that are not yet published.
 - Catalog/download docs do not claim hosted execution, package installation, archive extraction, runtime compatibility, publication, approval, safety outcomes, or universal direct-download availability for every public resource.
 - Uploader package status, local draft/patch output, and review-only submit are documented separately from platform publication and live resource availability.
 - Any pending package pages are marked non-advertised in the URL inventory.

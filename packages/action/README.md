@@ -25,4 +25,4 @@ The action writes a JSON report to `agentique-validation.json` by default.
 
 ## Status
 
-Published in this repository for direct workflow usage. GitHub Marketplace-style promotion remains a separate future channel.
+Published in this repository for direct workflow usage and on npm at `0.2.0`. This source revision is part of the coordinated `0.2.1` patch candidate and is not yet published. GitHub Marketplace-style promotion remains a separate future channel.

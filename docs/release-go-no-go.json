@@ -29,7 +29,13 @@
       "@agentique.io/readback": "0.2.0",
       "@agentique.io/uploader": "0.2.0"
     },
-    "pendingPackages": {}
+    "pendingPackages": {
+      "@agentique.io/schemas": "0.2.1",
+      "@agentique.io/validator": "0.2.1",
+      "@agentique.io/action": "0.2.1",
+      "@agentique.io/readback": "0.2.1",
+      "@agentique.io/uploader": "0.2.1"
+    }
   },
   "uploaderPublicationDecision": {
     "decision": "go",
@@ -47,38 +53,50 @@
     "blockers": []
   },
   "catalogDownloadPublicationDecision": {
-    "decision": "go",
-    "releaseBlocked": false,
-    "advertisePackageChanges": true,
-    "advertiseLiveAvailability": true,
+    "decision": "no_go",
+    "releaseBlocked": true,
+    "advertisePackageChanges": false,
+    "advertiseLiveAvailability": false,
     "closeoutEvidence": {
       "sourceBranchValidation": true,
       "installedTarballSmoke": true,
       "liveMetadataSmoke": true,
       "directByteDownloadSmoke": true,
-      "hostedCiForCandidate": true,
-      "ownerPackageReleaseApproval": true,
-      "newVersionRegistryReadback": true,
-      "rollbackEvidenceForNewRelease": true
+      "canonicalTicketByteDownloadSmoke": true,
+      "hostedCiForCandidate": false,
+      "ownerPackageReleaseApproval": false,
+      "newVersionRegistryReadback": false,
+      "rollbackEvidenceForNewRelease": false
     },
     "directDownloadEvidence": {
       "ownerApproved": true,
       "observedAt": "2026-06-07",
-      "resourceId": "cmpu0alp200m0lt0ax39rcb9o",
-      "resourceTitle": "Post Dev Recap Skill",
-      "resourceClass": "metadata-only static-skill",
-      "fileName": "post-dev-recap.zip",
-      "mediaType": "application/zip",
-      "sizeBytes": 1377,
-      "sha256Matched": true,
+      "resourceClass": "public catalog sample",
       "authUsed": false,
       "signedUrlOutput": false,
       "opened": false,
       "extracted": false,
       "executed": false
     },
-    "reason": "Catalog/download CLI and SDK package changes are published in the coordinated 0.2.0 package release. Hosted Release Check passed on main, GitHub Actions registry provenance completed, registry readback confirms all companion packages at 0.2.0, registry install smoke passed, and the public rollback/unpublish procedure is documented. Owner-approved disposable direct byte-transfer smoke passed on 2026-06-07 for a metadata-only public resource without auth, signed URL output, opening, extraction, or execution.",
-    "blockers": []
+    "canonicalTicketPatchCandidate": {
+      "targetPackages": {
+        "@agentique.io/schemas": "0.2.1",
+        "@agentique.io/validator": "0.2.1",
+        "@agentique.io/action": "0.2.1",
+        "@agentique.io/readback": "0.2.1",
+        "@agentique.io/uploader": "0.2.1"
+      },
+      "reason": "The canonical-host POST ticket flow and live envelope compatibility are source-revision patch changes after the published 0.2.0 package set. The coordinated 0.2.1 patch candidate keeps companion package versions aligned; the behavior changes are concentrated in readback and uploader."
+    },
+    "reason": "Existing catalog/download surfaces remain published at 0.2.0 where already released. The canonical-host POST ticket flow and live envelope compatibility are patch-candidate behavior changes in readback and uploader, carried by a coordinated 0.2.1 package candidate. Publishing those changes is blocked until hosted Release Check passes for the candidate, owner package-release approval is recorded, the package publication workflow completes, registry readback verifies the new versions, clean install smoke passes for the new versions, rollback/unpublish evidence is recorded, and branch cleanup is complete.",
+    "blockers": [
+      "Hosted Release Check for the patch candidate is not yet recorded.",
+      "Owner approval to publish the patch candidate is not yet recorded.",
+      "registry provenance has not published the patch candidate.",
+      "Registry readback for the patch versions is not yet available.",
+      "Clean install smoke for the patch versions is not yet available.",
+      "Rollback and branch-cleanup evidence for the patch release is not yet recorded."
+    ]
   },
   "blockers": []
 }
