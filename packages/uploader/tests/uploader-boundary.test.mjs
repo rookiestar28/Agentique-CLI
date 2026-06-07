@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -48,6 +48,10 @@ test("parser handles global flags and rejects unknown options", () => {
     status: null,
     limit: null,
     cursor: null,
+    outputPath: null,
+    force: false,
+    maxBytes: null,
+    allowedRedirectOrigins: [],
     tokens: ["upload", "plan", "pkg"]
   });
 
@@ -82,6 +86,10 @@ test("parser handles global flags and rejects unknown options", () => {
       status: "published",
       limit: "25",
       cursor: "next-page",
+      outputPath: null,
+      force: false,
+      maxBytes: null,
+      allowedRedirectOrigins: [],
       tokens: ["catalog", "list"]
     }
   );
@@ -95,6 +103,12 @@ test("parser handles global flags and rejects unknown options", () => {
   assert.equal(parseArgs(["catalog", "list", "--status"]).error, "--status requires a value.");
   assert.equal(parseArgs(["catalog", "list", "--limit"]).error, "--limit requires a value.");
   assert.equal(parseArgs(["catalog", "list", "--cursor"]).error, "--cursor requires a value.");
+  assert.equal(parseArgs(["download", "agent-1", "--output"]).error, "--output requires a value.");
+  assert.equal(parseArgs(["download", "agent-1", "--max-bytes"]).error, "--max-bytes requires a value.");
+  assert.equal(
+    parseArgs(["download", "agent-1", "--allow-redirect-origin"]).error,
+    "--allow-redirect-origin requires a value."
+  );
   assert.equal(parseArgs(["upload", "plan", "--unknown"]).error, "Unknown option: --unknown");
 });
 
@@ -112,6 +126,7 @@ test("cli returns help and version without treating them as errors", async () =>
   assert.match(help.stdout, /agentique catalog list/);
   assert.match(help.stdout, /agentique catalog get/);
   assert.match(help.stdout, /agentique catalog download-metadata/);
+  assert.match(help.stdout, /agentique download <resource-id> --output/);
   assert.equal(help.stderr, "");
   assert.equal(version.stdout, `${UPLOADER_PACKAGE_BOUNDARY.version}\n`);
   assert.equal(version.stderr, "");
@@ -408,6 +423,311 @@ test("catalog commands fail closed with typed redacted errors", async () => {
     invalidLimit.stdout + unsafeBaseUrl.stdout + missing.stdout + unavailable.stdout,
     /http:\/\/agentique\.example|flag-token-value|sig=|private|hidden/i
   );
+});
+
+test("download writes artifact bytes without uploader auth or signed-url output", async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), "agentique-cli-download-"));
+  try {
+    const body = "artifact";
+    const digest = createHash("sha256").update(body).digest("hex");
+    const calls = [];
+    const result = await executeUploaderCli(
+      [
+        "download",
+        "agent-1",
+        "--output",
+        tempDir + path.sep,
+        "--api-url",
+        "https://agentique.example",
+        "--token",
+        "flag-token-value",
+        "--json"
+      ],
+      {
+        fetchImpl: async (url, init = {}) => {
+          calls.push({ url: String(url), init });
+          if (String(url).endsWith("/download")) {
+            assert.equal(init.method, "GET");
+            assert.equal(headerValue(init.headers, "accept"), "application/json");
+            assert.equal(headerValue(init.headers, "authorization"), null);
+            assert.equal(headerValue(init.headers, "cookie"), null);
+            return jsonResponse({
+              resourceId: "agent-1",
+              download: {
+                availability: "available",
+                url: "https://storage.agentique.example/files/agent-1.txt?sig=private",
+                filename: "agent-1.txt",
+                mediaType: "text/plain",
+                sizeBytes: Buffer.byteLength(body),
+                digest: `sha256:${digest}`
+              }
+            });
+          }
+
+          assert.equal(String(url), "https://storage.agentique.example/files/agent-1.txt?sig=private");
+          assert.equal(init.method, "GET");
+          assert.equal(init.redirect, "manual");
+          assert.equal(Object.hasOwn(init, "headers"), false);
+          return new Response(body, {
+            status: 200,
+            headers: { "content-length": String(Buffer.byteLength(body)) }
+          });
+        }
+      }
+    );
+    const status = JSON.parse(result.stdout);
+
+    assert.equal(result.exitCode, EXIT_CODES.success);
+    assert.equal(status.code, "download.completed");
+    assert.equal(status.data.resourceId, "agent-1");
+    assert.equal(status.data.filename, "agent-1.txt");
+    assert.equal(status.data.bytesWritten, Buffer.byteLength(body));
+    assert.equal(status.data.digest.value, digest);
+    assert.equal(status.data.outputWritten, true);
+    assert.equal(await readFile(path.join(tempDir, "agent-1.txt"), "utf8"), body);
+    assert.equal(calls.length, 2);
+    assert.doesNotMatch(
+      result.stdout + result.stderr,
+      forbiddenLocalOutputPattern(["flag-token-value", "storage.agentique.example", "sig=private", tempDir])
+    );
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("download supports force, max bytes, and explicit redirect allowlists", async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), "agentique-cli-download-redirect-"));
+  try {
+    const outputPath = path.join(tempDir, "redirect.txt");
+    await writeFile(outputPath, "old", "utf8");
+    const body = "new";
+    const digest = createHash("sha256").update(body).digest("hex");
+    const calls = [];
+    const result = await executeUploaderCli(
+      [
+        "download",
+        "agent-redirect",
+        "--output",
+        outputPath,
+        "--force",
+        "--max-bytes",
+        "3",
+        "--allow-redirect-origin",
+        "https://cdn.agentique.example/downloads",
+        "--api-url",
+        "https://agentique.example",
+        "--json"
+      ],
+      {
+        fetchImpl: async (url, init = {}) => {
+          calls.push({ url: String(url), init });
+          if (String(url).endsWith("/download")) {
+            return jsonResponse({
+              resourceId: "agent-redirect",
+              download: {
+                availability: "available",
+                url: "https://agentique.example/files/redirect.txt",
+                filename: "redirect.txt",
+                sizeBytes: Buffer.byteLength(body),
+                digest: `sha256:${digest}`
+              }
+            });
+          }
+          if (String(url) === "https://agentique.example/files/redirect.txt") {
+            assert.equal(init.redirect, "manual");
+            return new Response(null, {
+              status: 302,
+              headers: { location: "https://cdn.agentique.example/redirect.txt?sig=private" }
+            });
+          }
+          assert.equal(String(url), "https://cdn.agentique.example/redirect.txt?sig=private");
+          assert.equal(Object.hasOwn(init, "headers"), false);
+          return new Response(body, {
+            status: 200,
+            headers: { "content-length": String(Buffer.byteLength(body)) }
+          });
+        }
+      }
+    );
+    const status = JSON.parse(result.stdout);
+
+    assert.equal(result.exitCode, EXIT_CODES.success);
+    assert.equal(status.data.filename, "redirect.txt");
+    assert.equal(await readFile(outputPath, "utf8"), body);
+    assert.equal(calls.length, 3);
+    assert.doesNotMatch(result.stdout + result.stderr, forbiddenLocalOutputPattern(["cdn.agentique.example", "sig=private", tempDir]));
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("download fails closed for unsafe options and unavailable metadata before artifact fetch", async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), "agentique-cli-download-fail-"));
+  try {
+    let calls = 0;
+    const missingOutput = await executeUploaderCli(["download", "agent-1", "--api-url", "https://agentique.example", "--json"], {
+      fetchImpl: async () => {
+        calls += 1;
+        throw new Error("unexpected network call");
+      }
+    });
+    const unsafeOutput = await executeUploaderCli(
+      ["download", "agent-1", "--output", `out${path.sep}..${path.sep}escape.txt`, "--api-url", "https://agentique.example", "--json"],
+      {
+        fetchImpl: async () => {
+          calls += 1;
+          throw new Error("unexpected network call");
+        }
+      }
+    );
+    const invalidMaxBytes = await executeUploaderCli(
+      ["download", "agent-1", "--output", tempDir + path.sep, "--max-bytes", "0", "--api-url", "https://agentique.example", "--json"],
+      {
+        fetchImpl: async () => {
+          calls += 1;
+          throw new Error("unexpected network call");
+        }
+      }
+    );
+    const invalidRedirectOrigin = await executeUploaderCli(
+      [
+        "download",
+        "agent-1",
+        "--output",
+        tempDir + path.sep,
+        "--allow-redirect-origin",
+        "http://not-loopback.example",
+        "--api-url",
+        "https://agentique.example",
+        "--json"
+      ],
+      {
+        fetchImpl: async () => {
+          calls += 1;
+          throw new Error("unexpected network call");
+        }
+      }
+    );
+    const unavailable = await executeUploaderCli(
+      ["download", "agent-1", "--output", tempDir + path.sep, "--api-url", "https://agentique.example", "--json"],
+      {
+        fetchImpl: async (url) => {
+          calls += 1;
+          assert.match(String(url), /\/download$/);
+          return jsonResponse({
+            resourceId: "agent-1",
+            download: {
+              availability: "source-only",
+              url: "https://storage.agentique.example/files/agent-1.txt?sig=private",
+              filename: "agent-1.txt"
+            }
+          });
+        }
+      }
+    );
+
+    assert.equal(missingOutput.exitCode, EXIT_CODES.usage);
+    assert.equal(JSON.parse(missingOutput.stdout).code, "cli.usage_error");
+    assert.equal(unsafeOutput.exitCode, EXIT_CODES.usage);
+    assert.equal(JSON.parse(unsafeOutput.stdout).code, "cli.usage_error");
+    assert.equal(invalidMaxBytes.exitCode, EXIT_CODES.usage);
+    assert.equal(JSON.parse(invalidMaxBytes.stdout).code, "cli.usage_error");
+    assert.equal(invalidRedirectOrigin.exitCode, EXIT_CODES.usage);
+    assert.equal(JSON.parse(invalidRedirectOrigin.stdout).code, "cli.usage_error");
+    assert.equal(unavailable.exitCode, EXIT_CODES.unavailable);
+    assert.equal(JSON.parse(unavailable.stdout).code, "download.download-unavailable");
+    assert.equal(calls, 1);
+    assert.deepEqual(await readdir(tempDir), []);
+    assert.doesNotMatch(
+      missingOutput.stdout + unsafeOutput.stdout + invalidMaxBytes.stdout + invalidRedirectOrigin.stdout + unavailable.stdout,
+      forbiddenLocalOutputPattern(["storage.agentique.example", "sig=private", tempDir])
+    );
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("download cleans temporary files for existing output, digest mismatch, and redirect denial", async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), "agentique-cli-download-cleanup-"));
+  try {
+    const existingPath = path.join(tempDir, "existing.txt");
+    await writeFile(existingPath, "old", "utf8");
+
+    const existing = await executeUploaderCli(
+      ["download", "agent-existing", "--output", existingPath, "--api-url", "https://agentique.example", "--json"],
+      {
+        fetchImpl: async (url) => {
+          assert.match(String(url), /\/download$/);
+          return jsonResponse({
+            resourceId: "agent-existing",
+            download: {
+              availability: "available",
+              url: "https://storage.agentique.example/files/existing.txt?sig=private",
+              filename: "existing.txt"
+            }
+          });
+        }
+      }
+    );
+
+    const digestMismatch = await executeUploaderCli(
+      ["download", "agent-digest", "--output", tempDir + path.sep, "--api-url", "https://agentique.example", "--json"],
+      {
+        fetchImpl: async (url) => {
+          if (String(url).endsWith("/download")) {
+            return jsonResponse({
+              resourceId: "agent-digest",
+              download: {
+                availability: "available",
+                url: "https://storage.agentique.example/files/digest.txt?sig=private",
+                filename: "digest.txt",
+                sizeBytes: 6,
+                digest: `sha256:${"b".repeat(64)}`
+              }
+            });
+          }
+          return new Response("digest", { status: 200, headers: { "content-length": "6" } });
+        }
+      }
+    );
+
+    const redirectDenied = await executeUploaderCli(
+      ["download", "agent-redirect", "--output", tempDir + path.sep, "--api-url", "https://agentique.example", "--json"],
+      {
+        fetchImpl: async (url) => {
+          if (String(url).endsWith("/download")) {
+            return jsonResponse({
+              resourceId: "agent-redirect",
+              download: {
+                availability: "available",
+                url: "https://agentique.example/files/redirect.txt",
+                filename: "redirect.txt"
+              }
+            });
+          }
+          return new Response(null, {
+            status: 302,
+            headers: { location: "https://cdn.agentique.example/redirect.txt?sig=private" }
+          });
+        }
+      }
+    );
+
+    assert.equal(existing.exitCode, EXIT_CODES.unavailable);
+    assert.equal(JSON.parse(existing.stdout).code, "download.output-exists");
+    assert.equal(await readFile(existingPath, "utf8"), "old");
+    assert.equal(digestMismatch.exitCode, EXIT_CODES.unavailable);
+    assert.equal(JSON.parse(digestMismatch.stdout).code, "download.download-digest-mismatch");
+    assert.equal(redirectDenied.exitCode, EXIT_CODES.unavailable);
+    assert.equal(JSON.parse(redirectDenied.stdout).code, "download.unsafe-download-redirect");
+    assert.deepEqual((await readdir(tempDir)).sort(), ["existing.txt"]);
+    assert.doesNotMatch(
+      existing.stdout + digestMismatch.stdout + redirectDenied.stdout,
+      forbiddenLocalOutputPattern(["storage.agentique.example", "cdn.agentique.example", "sig=private", tempDir])
+    );
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
 });
 
 test("upload plan emits validator evidence for a valid starter", async () => {

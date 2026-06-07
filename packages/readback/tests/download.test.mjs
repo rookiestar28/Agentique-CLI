@@ -150,6 +150,7 @@ test("rejects unsafe filenames and existing outputs before fetching", async () =
   const tempDir = await mkdtemp(path.join(os.tmpdir(), "agentique-download-unsafe-"));
   try {
     let fetched = false;
+    let traversalFetched = false;
     await assert.rejects(
       () =>
         downloadResourceArtifact({
@@ -208,6 +209,25 @@ test("rejects unsafe filenames and existing outputs before fetching", async () =
     assert.equal(await readFile(existingPath, "utf8"), "new");
     assert.equal(result.bytesWritten, 3);
     assert.equal(fetched, true);
+
+    await assert.rejects(
+      () =>
+        downloadResourceArtifact({
+          metadata: {
+            download: {
+              availability: "available",
+              url: "https://agentique.example/downloads/escape.txt"
+            }
+          },
+          outputPath: `${tempDir}${path.sep}out${path.sep}..${path.sep}escape.txt`,
+          fetchImpl: async () => {
+            traversalFetched = true;
+            return new Response("never");
+          }
+        }),
+      (error) => error instanceof ReadbackError && error.code === "unsafe-output-path"
+    );
+    assert.equal(traversalFetched, false);
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }

@@ -187,6 +187,11 @@ async function resolveOutputTarget({ cwd, outputPath, filename, url, force }) {
   if (typeof outputPath !== "string" || outputPath.trim() === "") {
     throw new ReadbackError("An output path is required.", { code: "missing-output-path" });
   }
+  if (hasParentPathSegment(outputPath)) {
+    throw new ReadbackError("Output path must not contain parent-directory traversal.", {
+      code: "unsafe-output-path"
+    });
+  }
 
   const baseCwd = cwd ? path.resolve(cwd) : process.cwd();
   const resolvedOutput = path.resolve(baseCwd, outputPath);
@@ -260,6 +265,12 @@ function assertPathInside(root, target) {
   throw new ReadbackError("Output path escapes the selected output directory.", {
     code: "unsafe-output-path"
   });
+}
+
+function hasParentPathSegment(value) {
+  return String(value)
+    .split(/[\\/]+/)
+    .some((segment) => segment === "..");
 }
 
 async function fetchWithSafeRedirects(initialUrl, { fetchImpl, allowedRedirectOrigins, maxRedirects }) {
