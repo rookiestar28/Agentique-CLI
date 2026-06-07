@@ -355,8 +355,10 @@ test("accepts parser variant metadata across supported ecosystems and emits a pu
     assert.equal(report.manifest.parserVariant.parserEvidence.sourceFormat, sourceFormat);
     assert.equal(report.manifest.parserVariant.parserEvidence.noExecution, true);
     assert.equal(report.manifest.parserVariant.resourceGraphSummary.sanitized, true);
+    assert.deepEqual(report.manifest.parserVariant.compatibility.reasons, ["static-contract"]);
     assert.equal(report.manifest.parserVariant.platformVariants[0].platformId, platformId);
     assert.equal(report.manifest.parserVariant.platformVariants[0].downloadAvailability, "source-only");
+    assert.deepEqual(report.manifest.parserVariant.platformVariants[0].reasons, ["source-only"]);
     assert.equal(JSON.stringify(report.manifest.parserVariant).includes("sha256:"), false);
     assert.equal(JSON.stringify(report).includes(tempDir), false);
   }
@@ -409,6 +411,8 @@ test("flags unsupported and stale platform variants distinctly", async () => {
 
   assert.equal(report.ok, false);
   assertFindings(report, ["variant-unsupported", "variant-stale"]);
+  assert.deepEqual(report.manifest.parserVariant.platformVariants[0].reasons, ["code-first-static-only"]);
+  assert.deepEqual(report.manifest.parserVariant.platformVariants[1].reasons, ["source-changed"]);
   assert.equal(JSON.stringify(report).includes(tempDir), false);
 });
 

@@ -552,6 +552,7 @@ function summarizeParserVariant(parserVariant) {
     compatibility: compatibility
       ? {
           status: typeof compatibility.status === "string" ? compatibility.status : null,
+          reasons: stringArrayOrEmpty(compatibility.reasons),
           reasonCount: Array.isArray(compatibility.reasons) ? compatibility.reasons.length : 0
         }
       : null,
@@ -563,6 +564,7 @@ function summarizeParserVariant(parserVariant) {
         state: typeof variant.state === "string" ? variant.state : null,
         validationState: typeof variant.validationState === "string" ? variant.validationState : null,
         downloadAvailability: typeof download.availability === "string" ? download.availability : null,
+        reasons: stringArrayOrEmpty(variant.reasons),
         reasonCount: Array.isArray(variant.reasons) ? variant.reasons.length : 0
       };
     })
@@ -604,6 +606,10 @@ function summarizeRegistryTrust(registryTrust) {
 
 function numberOrNull(value) {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function stringArrayOrEmpty(value) {
+  return Array.isArray(value) ? value.filter((entry) => typeof entry === "string") : [];
 }
 
 function inspectStructuredPackageFile({ rel, text, findings, ajv }) {

@@ -1,7 +1,7 @@
 import { createUploaderBoundaryStatus, UPLOADER_PACKAGE_VERSION } from "./index.mjs";
 import { resolveAuthState } from "./auth.mjs";
 import { createGeneratedDraftOutput, createPatchDeltaOutput } from "./draft.mjs";
-import { createUploadPlan } from "./plan.mjs";
+import { createImportPlan, createUploadPlan, createVariantPlan } from "./plan.mjs";
 import { readUploadStatus, submitReviewOnlyUpload } from "./submit.mjs";
 
 export const EXIT_CODES = Object.freeze({
@@ -15,17 +15,19 @@ export const USAGE = `Usage:
   agentique --version
   agentique auth status [--json]
   agentique upload plan <package-dir> [--json]
+  agentique upload import-plan <package-dir> [--json]
+  agentique upload variant-plan <package-dir> [--json]
   agentique upload draft <package-dir> [--draft-kind card|manifest] [--json]
   agentique upload patch <package-dir> [--json]
   agentique upload submit <package-dir> [--json]
   agentique upload status <submission-id> [--json]
 
 Current status:
-  Draft and patch commands are local-only. Submit and status commands create review-only sessions; they do not publish packages automatically.
+  Import-plan, variant-plan, draft, and patch commands are local-only. Submit and status commands create review-only sessions; they do not publish packages automatically.
 `;
 
 const COMMANDS = new Set(["auth", "upload"]);
-const UPLOAD_COMMANDS = new Set(["plan", "draft", "patch", "submit", "status"]);
+const UPLOAD_COMMANDS = new Set(["plan", "import-plan", "variant-plan", "draft", "patch", "submit", "status"]);
 
 export async function executeUploaderCli(argv, options = {}) {
   const parsed = parseArgs(argv);
@@ -230,7 +232,7 @@ async function handleUploadCommand(action, operand, parsed, options) {
       result: createResult({
         ok: false,
         code: "cli.usage_error",
-        message: "Expected upload command: plan, draft, patch, submit, or status",
+        message: "Expected upload command: plan, import-plan, variant-plan, draft, patch, submit, or status",
         command: "upload"
       }),
       exitCode: EXIT_CODES.usage,
@@ -266,6 +268,46 @@ async function handleUploadCommand(action, operand, parsed, options) {
         code: plan.code,
         message: plan.ok ? "Upload plan is ready for review-only submission." : "Upload plan has validation findings.",
         command: "upload plan",
+        data: plan
+      }),
+      exitCode: plan.ok ? EXIT_CODES.success : EXIT_CODES.unavailable,
+      json: parsed.json
+    });
+  }
+
+  if (action === "import-plan") {
+    const plan = await createImportPlan({
+      packageDir: operand,
+      schemasDir: parsed.schemasDir,
+      cwd: options.cwd
+    });
+
+    return formatResult({
+      result: createResult({
+        ok: plan.ok,
+        code: plan.code,
+        message: plan.ok ? "Import plan is ready for local review." : "Import plan requires review.",
+        command: "upload import-plan",
+        data: plan
+      }),
+      exitCode: plan.ok ? EXIT_CODES.success : EXIT_CODES.unavailable,
+      json: parsed.json
+    });
+  }
+
+  if (action === "variant-plan") {
+    const plan = await createVariantPlan({
+      packageDir: operand,
+      schemasDir: parsed.schemasDir,
+      cwd: options.cwd
+    });
+
+    return formatResult({
+      result: createResult({
+        ok: plan.ok,
+        code: plan.code,
+        message: plan.ok ? "Variant plan is ready for local review." : "Variant plan requires review.",
+        command: "upload variant-plan",
         data: plan
       }),
       exitCode: plan.ok ? EXIT_CODES.success : EXIT_CODES.unavailable,

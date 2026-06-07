@@ -62,6 +62,8 @@ test("cli returns help and version without treating them as errors", async () =>
   });
 
   assert.match(help.stdout, /agentique upload submit/);
+  assert.match(help.stdout, /agentique upload import-plan/);
+  assert.match(help.stdout, /agentique upload variant-plan/);
   assert.equal(help.stderr, "");
   assert.equal(version.stdout, `${UPLOADER_PACKAGE_BOUNDARY.version}\n`);
   assert.equal(version.stderr, "");
@@ -206,6 +208,139 @@ test("upload plan reports ready checkpoint evidence for a valid checkpoint packa
   assert.deepEqual(status.data.checkpoints.missing, []);
   assert.equal(status.data.registryTrust.creatorCheckpointCount, REQUIRED_CREATOR_CHECKPOINTS.length);
   assert.doesNotMatch(result.stdout, forbiddenLocalOutputPattern([packageDir]));
+});
+
+test("upload import-plan emits parser evidence dry-run without auth or network", async () => {
+  let calls = 0;
+  const packageDir = await createCheckpointPackageFixture({
+    parserVariant: parserVariantFixture({
+      sourceEcosystem: "dify",
+      sourceFormat: "yaml",
+      platformId: "dify",
+      artifactKind: "workflow"
+    })
+  });
+  const result = await executeUploaderCli(
+    ["upload", "import-plan", packageDir, "--schemas-dir", path.join(repoRoot, "schemas"), "--json"],
+    {
+      cwd: repoRoot,
+      fetchImpl: async () => {
+        calls += 1;
+        throw new Error("unexpected network call");
+      }
+    }
+  );
+  const status = JSON.parse(result.stdout);
+
+  assert.equal(result.exitCode, EXIT_CODES.success);
+  assert.equal(status.ok, true);
+  assert.equal(status.code, "upload.import_plan.ready");
+  assert.equal(status.data.reviewOnly, true);
+  assert.equal(status.data.dryRunOnly, true);
+  assert.equal(status.data.noExecution, true);
+  assert.equal(status.data.detected.sourceEcosystem, "dify");
+  assert.equal(status.data.detected.sourceFormat, "yaml");
+  assert.equal(status.data.detected.parseStatus, "parsed");
+  assert.equal(status.data.graph.nodeCount, 2);
+  assert.equal(status.data.compatibility.status, "compatible");
+  assert.match(status.data.evidence.inventoryDigest, /^sha256:[a-f0-9]{64}$/);
+  assert.equal(calls, 0);
+  assert.doesNotMatch(result.stdout, forbiddenLocalOutputPattern([packageDir]));
+  assert.doesNotMatch(result.stdout, /parser-input-secret|flag-token-value/i);
+});
+
+test("upload variant-plan emits platform variant dry-run details", async () => {
+  const packageDir = await createCheckpointPackageFixture({
+    parserVariant: parserVariantFixture({
+      platformId: "codex-skill",
+      artifactKind: "skill"
+    })
+  });
+  const result = await executeUploaderCli(
+    ["upload", "variant-plan", packageDir, "--schemas-dir", path.join(repoRoot, "schemas"), "--json"],
+    { cwd: repoRoot }
+  );
+  const status = JSON.parse(result.stdout);
+
+  assert.equal(result.exitCode, EXIT_CODES.success);
+  assert.equal(status.ok, true);
+  assert.equal(status.code, "upload.variant_plan.ready");
+  assert.equal(status.data.reviewOnly, true);
+  assert.equal(status.data.dryRunOnly, true);
+  assert.equal(status.data.noExecution, true);
+  assert.equal(status.data.variants[0].platformId, "codex-skill");
+  assert.equal(status.data.variants[0].artifactKind, "skill");
+  assert.equal(status.data.variants[0].state, "available");
+  assert.equal(status.data.variants[0].downloadAvailability, "source-only");
+  assert.deepEqual(status.data.variants[0].reasons, ["source-only"]);
+  assert.equal(status.data.variants[0].reasonCount, 1);
+  assert.equal(status.data.variants[0].readyForDownload, false);
+  assert.match(status.data.evidence.inventoryDigest, /^sha256:[a-f0-9]{64}$/);
+  assert.doesNotMatch(result.stdout, forbiddenLocalOutputPattern([packageDir]));
+});
+
+test("upload variant-plan fails closed for unsupported or stale variants", async () => {
+  const packageDir = await createCheckpointPackageFixture({
+    parserVariant: parserVariantFixture({
+      platformVariants: [
+        platformVariantEntry({
+          platformId: "flowise",
+          artifactKind: "workflow",
+          state: "unsupported",
+          downloadAvailability: "unavailable",
+          reasons: ["unsupported-platform"]
+        }),
+        platformVariantEntry({
+          platformId: "n8n",
+          artifactKind: "workflow",
+          state: "stale",
+          validationState: "stale",
+          downloadAvailability: "blocked",
+          reasons: ["stale-parser-evidence"]
+        })
+      ]
+    })
+  });
+  const result = await executeUploaderCli(
+    ["upload", "variant-plan", packageDir, "--schemas-dir", path.join(repoRoot, "schemas"), "--json"],
+    { cwd: repoRoot }
+  );
+  const status = JSON.parse(result.stdout);
+  const findingCodes = status.data.evidence.findings.map((finding) => finding.code);
+
+  assert.equal(result.exitCode, EXIT_CODES.unavailable);
+  assert.equal(status.ok, false);
+  assert.equal(status.code, "upload.variant_plan.review_required");
+  assert.ok(findingCodes.includes("variant-unsupported"));
+  assert.ok(findingCodes.includes("variant-stale"));
+  assert.deepEqual(status.data.variants.map((variant) => variant.state), ["unsupported", "stale"]);
+  assert.deepEqual(status.data.variants[0].reasons, ["unsupported-platform"]);
+  assert.deepEqual(status.data.variants[1].reasons, ["stale-parser-evidence"]);
+  assert.equal(status.data.variants[0].readyForDownload, false);
+  assert.equal(status.data.variants[1].readyForDownload, false);
+  assert.doesNotMatch(result.stdout, forbiddenLocalOutputPattern([packageDir]));
+});
+
+test("upload import-plan and variant-plan fail closed without parser variant metadata", async () => {
+  const packageDir = await createCheckpointPackageFixture();
+  const importPlan = await executeUploaderCli(
+    ["upload", "import-plan", packageDir, "--schemas-dir", path.join(repoRoot, "schemas"), "--json"],
+    { cwd: repoRoot }
+  );
+  const variantPlan = await executeUploaderCli(
+    ["upload", "variant-plan", packageDir, "--schemas-dir", path.join(repoRoot, "schemas"), "--json"],
+    { cwd: repoRoot }
+  );
+  const importStatus = JSON.parse(importPlan.stdout);
+  const variantStatus = JSON.parse(variantPlan.stdout);
+
+  assert.equal(importPlan.exitCode, EXIT_CODES.unavailable);
+  assert.equal(importStatus.code, "upload.import_plan.review_required");
+  assert.ok(importStatus.data.evidence.findings.some((finding) => finding.code === "import-plan-parser-evidence-missing"));
+  assert.equal(variantPlan.exitCode, EXIT_CODES.unavailable);
+  assert.equal(variantStatus.code, "upload.variant_plan.review_required");
+  assert.ok(variantStatus.data.evidence.findings.some((finding) => finding.code === "variant-plan-variants-missing"));
+  assert.doesNotMatch(importPlan.stdout + variantPlan.stdout, forbiddenLocalOutputPattern([packageDir]));
 });
 
 test("upload plan fails closed for invalid packages without absolute path leakage", async () => {
@@ -660,7 +795,7 @@ async function execFileExpectFailure(command, args) {
   }
 }
 
-async function createCheckpointPackageFixture({ generatedDraft = null, patchDelta = null } = {}) {
+async function createCheckpointPackageFixture({ generatedDraft = null, patchDelta = null, parserVariant = null } = {}) {
   const tempDir = await mkdtemp(path.join(os.tmpdir(), "agentique-uploader-checkpoints-"));
   const agentsDir = path.join(tempDir, "agents");
   await mkdir(agentsDir, { recursive: true });
@@ -725,12 +860,66 @@ async function createCheckpointPackageFixture({ generatedDraft = null, patchDelt
       files: ["README.md", "agents/research-assistant.md"],
       hashes
     },
-    registryTrust
+    registryTrust,
+    ...(parserVariant ? { parserVariant } : {})
   };
   await writeFile(path.join(tempDir, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
 
   assert.equal(evaluateUploadCheckpointEvidence(manifest.registryTrust).readyForReviewSubmit, true);
   return tempDir;
+}
+
+function parserVariantFixture(overrides = {}) {
+  return {
+    contractVersion: "1.0",
+    parserEvidence: {
+      sourceEcosystem: overrides.sourceEcosystem ?? "mcp",
+      sourceFormat: overrides.sourceFormat ?? "json",
+      parserId: "agentique-uploader-test-parser",
+      parserVersion: "1.0.0",
+      inputDigest: fingerprint("parser-input-secret"),
+      outputDigest: fingerprint("parser-output"),
+      parseStatus: overrides.parseStatus ?? "parsed",
+      parseConfidence: overrides.parseConfidence ?? "high",
+      sanitizerStatus: "passed",
+      noExecution: true,
+      metadataOnly: true,
+      observedAt: "2026-06-07T00:00:00.000Z"
+    },
+    resourceGraphSummary: {
+      sanitized: true,
+      nodeCount: 2,
+      edgeCount: 1,
+      capabilityCount: 1,
+      sourceFileCount: 1,
+      summaryDigest: fingerprint("graph-summary")
+    },
+    compatibility: {
+      status: overrides.compatibilityStatus ?? "compatible",
+      reasons: ["static-contract"]
+    },
+    platformVariants: overrides.platformVariants ?? [
+      platformVariantEntry({
+        platformId: overrides.platformId ?? "mcp",
+        artifactKind: overrides.artifactKind ?? "metadata"
+      })
+    ]
+  };
+}
+
+function platformVariantEntry(overrides = {}) {
+  return {
+    platformId: overrides.platformId ?? "mcp",
+    artifactKind: overrides.artifactKind ?? "metadata",
+    state: overrides.state ?? "available",
+    validationState: overrides.validationState ?? "not-run",
+    managedBy: "creator",
+    download: {
+      availability: overrides.downloadAvailability ?? "source-only"
+    },
+    reasons: overrides.reasons ?? ["source-only"],
+    observedAt: "2026-06-07T00:01:00.000Z"
+  };
 }
 
 function fingerprint(value) {

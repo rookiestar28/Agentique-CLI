@@ -5,6 +5,8 @@ import { validatePackage } from "@agentique.io/validator/src/validator.mjs";
 
 const PLAN_SCHEMA_VERSION = "agentique.uploader.plan.v1";
 const CHECKPOINT_SCHEMA_VERSION = "agentique.uploader.checkpoints.v1";
+const IMPORT_PLAN_SCHEMA_VERSION = "agentique.uploader.importPlan.v1";
+const VARIANT_PLAN_SCHEMA_VERSION = "agentique.uploader.variantPlan.v1";
 
 export const REQUIRED_CREATOR_CHECKPOINTS = Object.freeze([
   "lane-selection",
@@ -57,6 +59,117 @@ export async function createUploadPlan({ packageDir, schemasDir = null, cwd = pr
       }
     };
   }
+}
+
+export async function createImportPlan(options) {
+  const uploadPlan = await createUploadPlan(options);
+  const parserVariant = isRecord(uploadPlan.parserVariant) ? uploadPlan.parserVariant : null;
+  const parserEvidence = isRecord(parserVariant?.parserEvidence) ? parserVariant.parserEvidence : null;
+  const resourceGraphSummary = isRecord(parserVariant?.resourceGraphSummary) ? parserVariant.resourceGraphSummary : null;
+  const compatibility = isRecord(parserVariant?.compatibility) ? parserVariant.compatibility : null;
+  const findings = [...(uploadPlan.evidence?.findings ?? [])];
+
+  if (!parserEvidence) {
+    findings.push({
+      code: "import-plan-parser-evidence-missing",
+      message: "Parser evidence is required before import planning can be ready.",
+      location: "manifest.parserVariant.parserEvidence"
+    });
+  }
+
+  const ok = uploadPlan.ok && parserEvidence !== null && findings.length === 0;
+
+  return {
+    schemaVersion: IMPORT_PLAN_SCHEMA_VERSION,
+    ok,
+    code: ok ? "upload.import_plan.ready" : "upload.import_plan.review_required",
+    command: "upload import-plan",
+    reviewOnly: true,
+    dryRunOnly: true,
+    noExecution: true,
+    package: uploadPlan.package,
+    detected: parserEvidence
+      ? {
+          sourceEcosystem: parserEvidence.sourceEcosystem ?? null,
+          sourceFormat: parserEvidence.sourceFormat ?? null,
+          parseStatus: parserEvidence.parseStatus ?? null,
+          parseConfidence: parserEvidence.parseConfidence ?? null,
+          noExecution: parserEvidence.noExecution === true,
+          outputDigestPresent: parserEvidence.outputDigestPresent === true
+        }
+      : null,
+    graph: resourceGraphSummary
+      ? {
+          sanitized: resourceGraphSummary.sanitized === true,
+          nodeCount: numberOrNull(resourceGraphSummary.nodeCount),
+          edgeCount: numberOrNull(resourceGraphSummary.edgeCount),
+          capabilityCount: numberOrNull(resourceGraphSummary.capabilityCount),
+          sourceFileCount: numberOrNull(resourceGraphSummary.sourceFileCount)
+        }
+      : null,
+    compatibility: compatibility
+      ? {
+          status: compatibility.status ?? null,
+          reasonCount: numberOrNull(compatibility.reasonCount) ?? 0
+        }
+      : null,
+    evidence: {
+      inventoryDigest: uploadPlan.evidence?.inventoryDigest ?? null,
+      findingCount: findings.length,
+      findings
+    }
+  };
+}
+
+export async function createVariantPlan(options) {
+  const uploadPlan = await createUploadPlan(options);
+  const parserVariant = isRecord(uploadPlan.parserVariant) ? uploadPlan.parserVariant : null;
+  const platformVariants = Array.isArray(parserVariant?.platformVariants) ? parserVariant.platformVariants.filter(isRecord) : [];
+  const findings = [...(uploadPlan.evidence?.findings ?? [])];
+
+  if (platformVariants.length === 0) {
+    findings.push({
+      code: "variant-plan-variants-missing",
+      message: "Platform variant metadata is required before variant planning can be ready.",
+      location: "manifest.parserVariant.platformVariants"
+    });
+  }
+
+  const variantSummaries = platformVariants.map((variant) => ({
+    platformId: variant.platformId ?? null,
+    artifactKind: variant.artifactKind ?? null,
+    state: variant.state ?? null,
+    validationState: variant.validationState ?? null,
+    downloadAvailability: variant.downloadAvailability ?? null,
+    reasons: stringArrayOrEmpty(variant.reasons),
+    reasonCount: numberOrNull(variant.reasonCount) ?? 0,
+    readyForDownload: uploadPlan.ok && variant.state === "available" && variant.downloadAvailability === "available"
+  }));
+
+  const ok = uploadPlan.ok && platformVariants.length > 0 && findings.length === 0;
+
+  return {
+    schemaVersion: VARIANT_PLAN_SCHEMA_VERSION,
+    ok,
+    code: ok ? "upload.variant_plan.ready" : "upload.variant_plan.review_required",
+    command: "upload variant-plan",
+    reviewOnly: true,
+    dryRunOnly: true,
+    noExecution: true,
+    package: uploadPlan.package,
+    compatibility: isRecord(parserVariant?.compatibility)
+      ? {
+          status: parserVariant.compatibility.status ?? null,
+          reasonCount: numberOrNull(parserVariant.compatibility.reasonCount) ?? 0
+        }
+      : null,
+    variants: variantSummaries,
+    evidence: {
+      inventoryDigest: uploadPlan.evidence?.inventoryDigest ?? null,
+      findingCount: findings.length,
+      findings
+    }
+  };
 }
 
 export function evaluateUploadCheckpointEvidence(registryTrust) {
@@ -127,6 +240,7 @@ function createPlanFromReport(report, registryTrust) {
   const findings = Array.isArray(report.findings) ? report.findings : [];
   const inventoryDigest = digestInventory(inventory);
   const registryTrustSummary = isRecord(report.manifest?.registryTrust) ? report.manifest.registryTrust : null;
+  const parserVariantSummary = isRecord(report.manifest?.parserVariant) ? report.manifest.parserVariant : null;
 
   return {
     schemaVersion: PLAN_SCHEMA_VERSION,
@@ -141,6 +255,7 @@ function createPlanFromReport(report, registryTrust) {
       directory: report.manifest?.name ?? null
     },
     registryTrust: registryTrustSummary,
+    parserVariant: parserVariantSummary,
     checkpoints: evaluateUploadCheckpointEvidence(registryTrust),
     evidence: {
       inventory,
@@ -170,6 +285,14 @@ function digestInventory(inventory) {
     .sort()
     .join("\n");
   return `sha256:${createHash("sha256").update(normalized).digest("hex")}`;
+}
+
+function numberOrNull(value) {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function stringArrayOrEmpty(value) {
+  return Array.isArray(value) ? value.filter((entry) => typeof entry === "string") : [];
 }
 
 function isRecord(value) {
