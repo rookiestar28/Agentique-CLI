@@ -17,10 +17,10 @@ Local validation is not platform approval. Local validation is not safety certif
 3. Choose a distribution mode that matches the content.
 4. Run local static checks when available.
 5. Add parser/variant metadata only when it is static, source-only, and backed by no-execution evidence.
-6. Use uploader plan, draft, or patch commands for local review-only preparation when useful; use source import-plan and variant-plan dry-runs only as unpublished parser/variant package-release evidence until a new version is published and verified.
+6. Use uploader plan, import-plan, variant-plan, draft, or patch commands for local review-only preparation when useful.
 7. Enter the platform-owned upload flow on `agentique.io`, or review an uploader session when explicitly configured with platform API access and checkpoint-ready package metadata.
 8. Wait for platform scan, review, consent, moderation, publication, and readback.
 
 ## Public Boundaries
 
-Companion docs and tools do not publish, edit, delete, moderate, approve, certify, host, or execute resources. Parser/variant metadata and uploader dry-runs are local preparation evidence only. Parser/variant package changes target `0.2.0` and are No-Go for a new package-release claim until the recovery workflow runs on `main`, uploader `0.2.0` is published, full registry readback, install-smoke, and rollback evidence are recorded. The uploader package is review-only; authenticated review-session access and final resource publication remain platform-owned and account/token gated. Public issue threads are for docs and tooling questions, not unsafe reports, raw imported content, credentials, or private account matters.
+Companion docs and tools do not publish, edit, delete, moderate, approve, certify, host, or execute resources. Parser/variant metadata and uploader dry-runs are local preparation evidence only. Parser/variant and catalog/download package changes are included in the coordinated `0.2.0` package release after hosted CI, GitHub Actions publication, registry readback, and install-smoke. Owner-approved disposable byte-transfer evidence is recorded for a metadata-only public resource. The uploader package is review-only; authenticated review-session access and final resource publication remain platform-owned and account/token gated. Public issue threads are for docs and tooling questions, not unsafe reports, raw imported content, credentials, or private account matters.
