@@ -44,6 +44,23 @@ test("release go/no-go accepts scoped parser variant publication no-go", () => {
   );
 });
 
+test("release go/no-go accepts scoped catalog download publication no-go", () => {
+  assert.deepEqual(
+    collectReleaseDecisionFailures({
+      decision: "go",
+      releaseBlocked: false,
+      localChecks: { tests: true },
+      externalEvidence: { ownerApproval: true },
+      catalogDownloadPublicationDecision: {
+        decision: "no_go",
+        releaseBlocked: true,
+        blockers: ["current live endpoint evidence for catalog and download availability is missing"]
+      }
+    }),
+    []
+  );
+});
+
 test("release go/no-go rejects scoped parser variant no-go without blockers", () => {
   assert.deepEqual(
     collectReleaseDecisionFailures({

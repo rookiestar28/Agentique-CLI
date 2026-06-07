@@ -2,9 +2,11 @@
 
 `@agentique.io/uploader` is the public CLI package for review-only Agentique submissions.
 
-This package exposes a review-only upload lane. It can validate a package locally, create an authenticated review session, transfer local evidence to the server-provided upload URL, complete the session, and read back review status. It does not publish, approve, certify, host, or moderate resources.
+This package exposes a review-only upload lane plus source-branch public readback/download helpers. It can validate a package locally, create an authenticated review session, transfer local evidence to the server-provided upload URL, complete the session, read back review status, query public catalog metadata, and download available artifact bytes to an explicit local output path. It does not publish, approve, certify, host, moderate, install, extract, open, or execute resources.
 
 The package is published on npm at version `0.1.0` after owner-approved publication, registry readback, and clean install smoke. It remains review-only; authenticated review-session access and final resource publication stay on `agentique.io`.
+
+Catalog and direct-download commands in the current source branch are release-candidate evidence. Do not advertise them as a new published npm package capability until the package release gate records hosted CI, owner release approval, package-version decision, registry readback for the advertised version, clean install smoke, rollback or unpublish evidence, and current live endpoint evidence.
 
 Current boundary:
 
@@ -18,10 +20,13 @@ Current boundary:
 - Upload patch emits local patch or delta operation summaries when package metadata provides them; it does not submit partial updates.
 - Upload submit requires token auth, an Agentique API origin, checkpoint-ready package metadata, local validation, review-only session creation, evidence transfer, and server completion verification.
 - Upload status requires token auth and reads a review-only submission status.
+- Catalog list, get, and download-metadata commands are GET-only public readback requests and do not require uploader auth.
+- Direct download resolves public metadata, writes bytes only to the explicit output path, verifies SDK size/digest checks, and never installs, extracts, opens, or executes content.
+- Direct download success and error output omit raw signed URLs and absolute local output paths.
 - JSON output is available with `--json`.
 - Browser sessions, cookies, CSRF state, storage URLs, and bearer tokens are not printed in CLI output.
 - Bearer auth is sent only to Agentique API endpoints, never to the server-provided storage URL.
-- The package does not publish, approve, certify, host, or moderate resources.
+- The package does not publish, approve, certify, host, moderate, install, extract, open, or execute resources.
 
 Examples:
 
@@ -36,6 +41,10 @@ agentique upload draft ./my-package --schemas-dir ./schemas --draft-kind manifes
 agentique upload patch ./my-package --schemas-dir ./schemas --json
 agentique upload submit ./my-package --schemas-dir ./schemas --token <token> --api-url https://www.agentique.io --json
 agentique upload status submission-id --token <token> --api-url https://www.agentique.io --json
+agentique catalog list --api-url https://www.agentique.io --json
+agentique catalog get resource-id --api-url https://www.agentique.io --json
+agentique catalog download-metadata resource-id --api-url https://www.agentique.io --json
+agentique download resource-id --output ./downloads/ --api-url https://www.agentique.io --json
 ```
 
-Use `@agentique.io/validator` for local no-execution package validation and `@agentique.io/readback` for read-only public status and trust projection helpers.
+Use `@agentique.io/validator` for local no-execution package validation and `@agentique.io/readback` for read-only public status, catalog metadata, trust projection, and safe byte-download helpers.

@@ -19,9 +19,10 @@ This repository is for creators and integrators before and after platform submis
 - Run the same validation in GitHub Actions with read-only permissions.
 - Use the review-only uploader CLI for upload plans, parser import dry-runs, variant dry-runs, creator checkpoint readiness, local draft output, local patch/delta output, and authenticated review-session checks before a platform-owned submission.
 - Consume public readback status, trust projection summaries, parser/variant summaries, and badge states for resources that are already published by `agentique.io`.
+- From a source checkout, exercise public catalog list/detail/download-metadata reads and direct artifact byte downloads when an approved public readback endpoint and resource id are available.
 - Use public tools to prepare, validate, and display resource status before entering the Agentique website upload flow.
 
-Local tools in this repository do not publish, approve, certify, edit, delete, or moderate resources.
+Local tools in this repository do not publish, approve, certify, edit, delete, moderate, install, extract, open, or execute resources.
 
 ## Table Of Contents
 
@@ -53,6 +54,8 @@ npm install @agentique.io/schemas @agentique.io/validator @agentique.io/readback
 Published packages currently include `@agentique.io/schemas`, `@agentique.io/validator`, `@agentique.io/action`, `@agentique.io/readback`, and `@agentique.io/uploader` at version `0.1.0`.
 
 Parser/variant package surfaces in the current source branch remain branch-local release-candidate evidence. They are not part of a new advertised package release until the scoped release decision in [docs/release-go-no-go.md](docs/release-go-no-go.md) changes from No-Go.
+
+Catalog/download CLI and SDK surfaces in the current source branch are also branch-local release-candidate evidence. They are not a new advertised npm package capability or live endpoint availability claim until the scoped release decision and live evidence gates are updated.
 
 Use the validator package for local static checks:
 
@@ -125,9 +128,13 @@ node packages/uploader/src/cli.mjs upload import-plan starters/parser-variant-im
 node packages/uploader/src/cli.mjs upload variant-plan starters/parser-variant-import-review --schemas-dir schemas --json
 node packages/uploader/src/cli.mjs upload draft starters/agent-assistant --schemas-dir schemas --draft-kind manifest --json
 node packages/uploader/src/cli.mjs upload patch starters/agent-assistant --schemas-dir schemas --json
+node packages/uploader/src/cli.mjs catalog list --api-url https://www.agentique.io --json
+node packages/uploader/src/cli.mjs catalog get <resource-id> --api-url https://www.agentique.io --json
+node packages/uploader/src/cli.mjs catalog download-metadata <resource-id> --api-url https://www.agentique.io --json
+node packages/uploader/src/cli.mjs download <resource-id> --output ./downloads/ --api-url https://www.agentique.io --json
 ```
 
-The uploader can create review-only upload sessions when configured with platform API access and checkpoint-ready package metadata. Import-plan and variant-plan commands are local dry-runs from validator evidence. Local draft and patch commands are unsubmitted helper outputs. The uploader does not publish, approve, certify, host, or moderate resources.
+The uploader can create review-only upload sessions when configured with platform API access and checkpoint-ready package metadata. Import-plan and variant-plan commands are local dry-runs from validator evidence. Local draft and patch commands are unsubmitted helper outputs. Catalog commands are read-only public readback requests. Direct download writes bytes only to the explicit output path and does not install, extract, open, or execute content. The uploader does not publish, approve, certify, host, or moderate resources.
 
 Run release-readiness checks locally:
 
@@ -145,9 +152,11 @@ The source repository, npm packages, action usage reference, badge/readback docu
 
 ## Current Release Status
 
-Current source repository, package registry, action usage, badge/readback documentation, and platform-link publication decision: **Go**.
+Current source repository, package registry, action usage, badge/readback documentation, and platform-link publication decision for existing advertised channels: **Go**.
 
 Parser/variant package changes in the current source branch are **No-Go** for a new package-release claim until hosted CI for the pushed candidate, owner release approval, package-version decision, registry readback for the advertised version, clean install smoke, and rollback or unpublish evidence are recorded. Existing published package pages remain approved at version `0.1.0`.
+
+Catalog/download package changes in the current source branch are **No-Go** for a new package-release or live availability claim until hosted CI for the pushed candidate, owner release approval, package-version decision, registry readback for the advertised version, clean install smoke, rollback or unpublish evidence, and current live endpoint evidence are recorded.
 
 Public-safe evidence currently recorded:
 
@@ -158,7 +167,7 @@ Public-safe evidence currently recorded:
 - Hosted Release Check evidence is recorded for the latest pushed public release candidate; later branch changes require a fresh hosted run before downstream release claims.
 - Public `main` branch protection is enabled.
 - Final public repository, package, docs, schema, action usage, badge/readback documentation, and platform URLs are approved.
-- The `agentique.io` public URL and public readback endpoint respond successfully to command-line smoke checks.
+- Existing `agentique.io` public links remain approved through the recorded URL inventory; source-branch catalog/download live availability claims require fresh live evidence before advertising.
 - Owner go/no-go approval is recorded.
 
 Approved and separate channels:
@@ -280,7 +289,7 @@ See [packages/validator/README.md](packages/validator/README.md).
 
 The uploader package is a published review-only CLI implementation. It is useful for local integration review because it can report redacted auth status, generate validator-backed upload plans, and exercise review-session submit/status flows when configured with platform API access.
 
-The current source branch also includes parser import and variant dry-runs for local review. Those source-branch parser/variant surfaces are not a new published package claim until the package release gate records the required hosted, owner, registry, install-smoke, and rollback evidence.
+The current source branch also includes parser import and variant dry-runs, public catalog reads, download-metadata reads, and direct artifact byte download for local review. Those source-branch parser/variant and catalog/download surfaces are not a new published package claim until the package release gate records the required hosted, owner, registry, install-smoke, live-evidence, and rollback evidence.
 
 Install from npm:
 
@@ -299,11 +308,15 @@ node packages/uploader/src/cli.mjs upload draft <package-dir> --schemas-dir sche
 node packages/uploader/src/cli.mjs upload patch <package-dir> --schemas-dir schemas --json
 node packages/uploader/src/cli.mjs upload submit <package-dir> --schemas-dir schemas --token <token> --api-url https://www.agentique.io --json
 node packages/uploader/src/cli.mjs upload status <submission-id> --token <token> --api-url https://www.agentique.io --json
+node packages/uploader/src/cli.mjs catalog list --api-url https://www.agentique.io --json
+node packages/uploader/src/cli.mjs catalog get <resource-id> --api-url https://www.agentique.io --json
+node packages/uploader/src/cli.mjs catalog download-metadata <resource-id> --api-url https://www.agentique.io --json
+node packages/uploader/src/cli.mjs download <resource-id> --output ./downloads/ --api-url https://www.agentique.io --json
 ```
 
 `upload plan` reports validator-backed package evidence and creator checkpoint readiness. From the source checkout, `upload import-plan` reports parser evidence, graph counts, and compatibility for local review, while `upload variant-plan` reports source-only variant states and review reasons for local review. `upload draft` and `upload patch` are local-only and unsubmitted. `upload submit` requires scoped token auth, an Agentique API origin, checkpoint-ready package metadata, and server completion verification.
 
-The uploader does not publish, approve, certify, host, or moderate resources. Package installation is available from npm, while authenticated review-session access and final resource publication remain platform-owned and account/token gated.
+`catalog list`, `catalog get`, and `catalog download-metadata` are GET-only public readback commands and do not require uploader auth. `download` resolves public metadata, writes bytes to the explicit `--output` path, verifies SDK size/digest checks, and redacts signed URLs and absolute local paths from CLI output. It does not install, extract, open, execute, approve, certify, publish, host, or moderate content. Package installation is available from npm for the currently published version, while source-branch catalog/download changes require a future package-release decision before advertising them as npm package capabilities.
 
 See [packages/uploader/README.md](packages/uploader/README.md), [docs/release-go-no-go.md](docs/release-go-no-go.md), and [docs/package-release-provenance.md](docs/package-release-provenance.md).
 
@@ -351,16 +364,23 @@ Example:
 import {
   createBadgeState,
   createReadbackClient,
+  downloadResourceArtifact,
+  normalizeDownloadMetadata,
+  normalizeResourceList,
   normalizeTrustReadback
 } from "@agentique.io/readback";
 
 const client = createReadbackClient();
+const catalog = normalizeResourceList(await client.listResources({ limit: 10 }));
+const metadata = normalizeDownloadMetadata(await client.getDownloadMetadata("resource-id"));
 const readback = await client.getReadback("resource-id");
 const trust = normalizeTrustReadback(readback);
 const badge = createBadgeState(readback);
 
 console.log(`${badge.label}: ${badge.message}`);
 console.log(trust.trustPanel?.state ?? trust.platformState);
+console.log(`${catalog.items.length} catalog entries`);
+console.log(metadata.availability);
 ```
 
 Read-only methods:
@@ -372,6 +392,8 @@ Read-only methods:
 - `getReadback(resourceId)`
 - `getContextBundle(resourceId, params)`
 - `getSelectionReadback(resourceId, params)`
+
+`downloadResourceArtifact()` can write available artifact bytes to an explicit output path with HTTPS or loopback URL validation, manual redirect handling, no-overwrite default, temp-file cleanup, size checks, and digest checks. It does not install, extract, open, execute, approve, certify, publish, host, or moderate content. Callers should treat downloaded bytes as untrusted until they perform their own review.
 
 Badge states:
 
@@ -387,7 +409,7 @@ Badge states:
 - `unavailable`
 - `rate-limited`
 
-Trust normalization projects public desired-state, scanner-policy, trust-panel, review-eligibility, report-action, and version-history fields when the platform exposes them. Parser/variant normalization in the current source branch projects public parser evidence and variant state while reporting digest presence instead of raw digests; it remains branch-local package-release evidence until a new package version is approved and published. Badge output is a public readback summary, not a safety guarantee. See [packages/readback/README.md](packages/readback/README.md).
+Trust normalization projects public desired-state, scanner-policy, trust-panel, review-eligibility, report-action, and version-history fields when the platform exposes them. Catalog/download normalizers and the direct download utility in the current source branch remain branch-local package-release evidence until a new package version is approved and published. Parser/variant normalization in the current source branch projects public parser evidence and variant state while reporting digest presence instead of raw digests; it remains branch-local package-release evidence until a new package version is approved and published. Badge output is a public readback summary, not a safety guarantee. See [packages/readback/README.md](packages/readback/README.md).
 
 ## Schemas
 

@@ -11,8 +11,8 @@ This document defines the public boundary for the Agentique companion monorepo. 
 | `starters/` | Benign starter kits and canonical examples for public resource preparation, including parser/variant metadata examples. | De-weaponized examples only. |
 | `packages/validator` | Static no-execution local checks for upload preparation, parser/variant metadata, and package inventory review. | Local readiness only. |
 | `packages/action` | Least-privilege workflow wrapper around local validation output. | No platform approval claim. |
-| `packages/readback` | Read-only clients, trust projection normalizers, and badge helpers for public resource status and readback state. Source-branch parser/variant projection normalizers remain package-release candidate evidence until a new version is approved and published. | Read-only public status only. |
-| `packages/uploader` | Published review-only upload planning, local draft, local patch, submit, and status helpers. Source-branch import-plan and variant-plan dry-runs remain package-release candidate evidence until a new version is approved and published. | Local preparation plus review-only package; authenticated review-session access and final resource publication remain platform-owned and account/token gated. |
+| `packages/readback` | Read-only clients, catalog/download metadata normalizers, direct byte-download utility, trust projection normalizers, and badge helpers for public resource status and readback state. Source-branch parser/variant and catalog/download surfaces remain package-release candidate evidence until a new version is approved and published. | Read-only public status plus explicit-output byte download only; no install, extraction, execution, approval, or safety claim. |
+| `packages/uploader` | Published review-only upload planning, local draft, local patch, submit, status, catalog read, and direct-download helpers. Source-branch import-plan, variant-plan, catalog, and direct-download commands remain package-release candidate evidence until a new version is approved and published. | Local preparation plus review-only package; authenticated review-session access, final resource publication, and live catalog/download availability remain platform-owned and account/token gated. |
 | `scripts/` | Repository release checks, starter validation, workflow posture checks, registry readback, install smoke, package dry-runs, URL inventory checks, and go/no-go checks. | Local/repository evidence only. |
 
 No companion surface may publish, edit, delete, moderate, approve, or certify platform resources. Upload authority and platform review stay on `agentique.io`.
@@ -53,9 +53,11 @@ Every companion release must pass:
 - CODEOWNERS review for docs, schemas, starters, packages, workflows, release scripts, and public readback surfaces.
 - Registry readback and clean install smoke for any package page being newly advertised.
 
-Local validation is not platform approval. Local validation is not safety certification. Parser/variant metadata is not hosted execution evidence. Badge state is not a safety guarantee.
+Local validation is not platform approval. Local validation is not safety certification. Parser/variant metadata is not hosted execution evidence. Badge state is not a safety guarantee. Direct download does not install, extract, open, execute, approve, or certify content.
 
 Parser/variant package changes are currently No-Go for a new package-release claim. Existing package pages remain approved at version `0.1.0`; a new parser/variant package claim requires hosted CI for the pushed candidate, owner release approval, package-version decision, registry readback for the advertised version, clean install smoke, and rollback or unpublish evidence.
+
+Catalog/download package changes are currently No-Go for a new package-release or live availability claim. Existing package pages remain approved at version `0.1.0`; a new catalog/download package or live availability claim requires hosted CI for the pushed candidate, owner release approval, package-version decision, registry readback for the advertised version, clean install smoke, rollback or unpublish evidence, and current live endpoint evidence.
 
 ## Support Routing
 

@@ -37,6 +37,22 @@ Current blockers:
 
 Parser/variant schemas, validator findings, readback helpers, uploader dry-runs, examples, and release smoke coverage are branch-local preparation evidence. They do not publish new package contents, create platform downloads, prove runtime compatibility, approve resources, or replace platform review.
 
+## Catalog And Download Package Release Decision
+
+Current catalog/download package release decision: **No-Go** for a new package-release or live availability claim.
+
+Reason: catalog/download CLI and SDK changes are branch-local source evidence only. Existing published package pages remain approved at `0.1.0`, but no new catalog/download package release or live availability claim is approved without hosted CI for the pushed candidate, owner release approval, a package-version decision, registry readback for the advertised version, clean install smoke, rollback or unpublish evidence, and current live endpoint evidence.
+
+Current blockers:
+
+- Fresh hosted Release Check evidence for the pushed catalog/download package candidate is not recorded.
+- No owner-approved package-version and publish decision is recorded for catalog/download package changes.
+- Registry readback and clean install smoke currently prove only existing published `0.1.0` packages.
+- Rollback or unpublish evidence for a new catalog/download package release is not recorded.
+- Current live endpoint evidence for catalog and direct download availability is not recorded.
+
+Catalog list/detail/download-metadata commands, direct download command, readback catalog normalizers, direct download utility, and release smoke coverage are branch-local preparation evidence. They do not publish new package contents, prove live endpoint availability, approve resources, certify safety, install or execute downloaded content, or replace platform review.
+
 Current public-safe evidence is recorded in [release-evidence.md](release-evidence.md).
 
 ## Local Evidence
@@ -53,6 +69,7 @@ Current public-safe evidence is recorded in [release-evidence.md](release-eviden
 - Hosted Release Check evidence is recorded for the latest pushed public release candidate; later branch changes require a fresh hosted run before downstream release claims.
 - Current branch-local release gate refresh passed package tests, starter validation, release checks, workflow posture, package dry-run, URL inventory, registry readback, install smoke, go/no-go, content scan, diff check, and production dependency audits.
 - Parser/variant package surface smoke passes from locally packed tarballs, but this remains branch-local evidence until a new package release is approved and published.
+- Catalog/download package surface smoke passes from locally packed tarballs, but this remains branch-local evidence until a new package release and live availability claim are approved.
 - Public `main` branch protection is enabled.
 - Final public URLs are approved.
 - `agentique.io` public links are approved.

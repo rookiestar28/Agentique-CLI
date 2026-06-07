@@ -51,5 +51,19 @@
       "Rollback or unpublish evidence for a new parser/variant package release is not recorded."
     ]
   },
+  "catalogDownloadPublicationDecision": {
+    "decision": "no_go",
+    "releaseBlocked": true,
+    "advertisePackageChanges": false,
+    "advertiseLiveAvailability": false,
+    "reason": "Catalog/download CLI and SDK changes are branch-local source evidence only. Existing published packages remain at 0.1.0, and no new catalog/download package-release or live availability claim is approved without hosted CI for the pushed candidate, owner release approval, a package-version decision, registry readback for the advertised version, clean install smoke, rollback/unpublish evidence, and current live endpoint evidence.",
+    "blockers": [
+      "Fresh hosted Release Check evidence for the pushed catalog/download package candidate is not recorded.",
+      "No owner-approved package-version and publish decision is recorded for catalog/download package changes.",
+      "Registry readback and clean install smoke currently prove only existing published 0.1.0 packages.",
+      "Rollback or unpublish evidence for a new catalog/download package release is not recorded.",
+      "Current live endpoint evidence for catalog and direct download availability is not recorded."
+    ]
+  },
   "blockers": []
 }

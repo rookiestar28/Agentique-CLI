@@ -24,7 +24,7 @@ This file records public-safe release evidence for the companion repository. Do 
 | Release allowlist and public-content check | Pass | `npm run release:check` passed. |
 | Workflow posture | Pass | `npm run workflow:check` passed. |
 | Package dry run | Pass | `npm run pack:dry-run` passed schemas, validator, action, readback, and uploader package checks. |
-| Parser/variant package surface smoke | Pass | `npm run install:smoke` installs locally packed tarballs with lifecycle scripts disabled and checks parser-variant schema, readback parser/variant export, and uploader import/variant help. |
+| Parser/variant and catalog/download package surface smoke | Pass | `npm run install:smoke` installs locally packed tarballs with lifecycle scripts disabled and checks parser-variant schema, readback parser/variant export, readback catalog/download exports, uploader import/variant help, uploader catalog help, and uploader direct-download help. |
 | URL inventory check | Pass | `npm run urls:check` passed. |
 | Go/no-go check | Pass as Go | `npm run release:go-no-go` passed with recorded external evidence. |
 | Branch-local release gate refresh | Pass | Current source branch local validation passed package tests, starter validation, release checks, workflow posture, package dry-run, URL inventory, registry readback, install smoke, go/no-go, content scan, diff check, and production dependency audits. This local refresh does not replace hosted CI evidence for later pushed changes. |
@@ -63,6 +63,7 @@ Current command-line finding:
 
 - `@agentique.io/uploader` is implemented in source at version `0.1.0`.
 - Uploader CLI source includes redacted auth status, upload-plan evidence, creator checkpoint readiness, local draft output, local patch/delta output, review-only submit/status helpers, bearer/storage separation, bounded transfer retry, and server completion verification checks.
+- Current source branch additionally includes GET-only catalog list/detail/download-metadata commands and a direct byte-download command with explicit output path, no auth forwarding, signed URL redaction, no absolute output path in CLI output, redirect controls, max-byte checks, digest checks, and no install/extract/open/execute behavior.
 - `@agentique.io/uploader` is included in root tests, package dry-run, publish workflow validation, and production dependency audit.
 - npm registry readback for `@agentique.io/uploader` returns published version `0.1.0`, so the package page is approved for advertising.
 - Authenticated review-session access and final resource publication remain platform and account/token gated. Package checks do not advertise live publication or platform approval.
@@ -83,6 +84,16 @@ Current branch-local release tooling packs schemas, validator, action, readback,
 Registry readback still proves the currently published `0.1.0` package pages only. Branch-local parser/variant source changes require hosted CI, owner review, a package-version release decision, registry readback for the advertised version, and clean install smoke before any new package-release claim changes.
 
 Parser/variant package publication is currently No-Go for a new package-release claim. The blockers are missing hosted Release Check evidence for the pushed candidate, missing owner-approved package-version and publish decision, registry/readback evidence that still covers only existing `0.1.0` packages, and missing rollback or unpublish evidence for a new parser/variant package release.
+
+## Catalog And Download Branch-Local Evidence
+
+Current branch-local source now includes readback catalog list/detail/download-metadata helpers, catalog metadata normalizers, a safe direct-download utility, uploader catalog read commands, uploader direct download, and package-surface smoke coverage for installed tarballs.
+
+Catalog/download evidence remains limited to local source behavior, local tests, and installed-tarball smoke. It does not advertise a new npm package version, prove current live endpoint availability, approve resources, certify safety, install or execute downloaded content, or replace platform review.
+
+Registry readback still proves the currently published `0.1.0` package pages only. Branch-local catalog/download source changes require hosted CI, owner review, a package-version release decision, registry readback for the advertised version, clean install smoke, rollback or unpublish evidence, and current live endpoint evidence before any new package-release or live availability claim changes.
+
+Catalog/download package publication and live availability claims are currently No-Go. The blockers are missing hosted Release Check evidence for the pushed candidate, missing owner-approved package-version and publish decision, registry/readback evidence that still covers only existing `0.1.0` packages, missing rollback or unpublish evidence for a new package release, and missing current live endpoint evidence.
 
 ## All-Channel Public URL Mode
 
@@ -160,10 +171,10 @@ Command-line public link smoke checks were run on 2026-06-02, and package regist
 | `https://github.com/rookiestar28/Agentique/tree/main/packages/action#usage` | Approved action usage reference |
 | `https://github.com/rookiestar28/Agentique/tree/main/packages/readback#badge-states` | Approved badge/readback documentation |
 | `https://www.agentique.io/` | HTTP 200 |
-| `https://www.agentique.io/api/public/v1/resources?limit=1` | HTTP 200 JSON with `pageInfo.page = 1`, `pageInfo.pageSize = 1`, `pageInfo.total = 60`, and `pageInfo.hasNextPage = true` |
+| `https://www.agentique.io/api/public/v1/resources?limit=1` | Historical HTTP 200 JSON smoke for the existing readback endpoint inventory. This row is not a current catalog/download live availability claim for branch-local source changes. |
 
 These smoke checks approve source repository, published package registry, action usage, badge/readback documentation, schema, documentation, and `agentique.io` public links for advertising. GitHub Marketplace-style promotion remains a separate future channel.
 
 ## Current Decision
 
-The source repository, published npm packages including `@agentique.io/uploader`, action usage reference, badge/readback documentation, and `agentique.io` public links remain Go for existing advertised channels. Parser/variant branch-local package changes are No-Go for a new package-release claim until hosted CI, owner release approval, package-version decision, registry readback for the advertised version, clean install smoke, and rollback or unpublish evidence are recorded. Authenticated review-session access and final resource publication remain platform-owned and account/token gated. GitHub Marketplace-style promotion remains separate from this source/package release.
+The source repository, published npm packages including `@agentique.io/uploader`, action usage reference, badge/readback documentation, and `agentique.io` public links remain Go for existing advertised channels. Parser/variant branch-local package changes are No-Go for a new package-release claim until hosted CI, owner release approval, package-version decision, registry readback for the advertised version, clean install smoke, and rollback or unpublish evidence are recorded. Catalog/download branch-local package changes are No-Go for a new package-release or live availability claim until the same package-release evidence plus current live endpoint evidence are recorded. Authenticated review-session access and final resource publication remain platform-owned and account/token gated. GitHub Marketplace-style promotion remains separate from this source/package release.

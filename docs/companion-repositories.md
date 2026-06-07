@@ -9,8 +9,8 @@ Agentique's public companion work is consolidated in this repository. The monore
 - `starters/`: benign starter kits and canonical examples for public resource preparation, including source-only parser/variant metadata.
 - `packages/validator`: static no-execution local checks for package validation, parser/variant metadata, and upload preparation.
 - `packages/action`: least-privilege workflow wrapper around local validation.
-- `packages/readback`: read-only SDK, badge helpers, and trust projection normalizers for public status and readback projections; parser/variant projection normalizers in the source branch remain package-release candidate evidence until a new version is approved and published.
-- `packages/uploader`: published review-only uploader CLI with plan, local draft, and patch/delta preparation commands; source-branch import-plan and variant-plan dry-runs remain package-release candidate evidence until a new version is approved and published. Authenticated review-session access and final resource publication remain platform-owned and account/token gated.
+- `packages/readback`: read-only SDK, catalog/download metadata normalizers, direct byte-download utility, badge helpers, and trust projection normalizers for public status and readback projections; parser/variant and catalog/download surfaces in the source branch remain package-release candidate evidence until a new version is approved and published.
+- `packages/uploader`: published review-only uploader CLI with plan, local draft, patch/delta preparation, catalog read, and direct-download commands; source-branch import-plan, variant-plan, catalog, and direct-download commands remain package-release candidate evidence until a new version is approved and published. Authenticated review-session access, final resource publication, and live catalog/download availability remain platform-owned and account/token gated.
 - `scripts/`: repository release checks, starter validation, workflow posture checks, registry readback, install smoke, URL inventory checks, and package dry-runs.
 
 ## Link Readiness
@@ -24,8 +24,10 @@ New downstream links are not advertised until:
 - Support and security routing is reviewed.
 - Rollback steps are ready.
 
-The platform remains authoritative for upload, scan, review, moderation, publication, distribution state, trust state, parser/variant state, and public readback. Companion uploader output can describe checkpoint readiness, parser evidence, source-only variant metadata, and local preparation state, but it is not a platform decision.
+The platform remains authoritative for upload, scan, review, moderation, publication, distribution state, trust state, parser/variant state, download availability, and public readback. Companion uploader output can describe checkpoint readiness, parser evidence, source-only variant metadata, catalog metadata, direct-download byte transfer results, and local preparation state, but it is not a platform decision.
 
 Current approved advertised links include the public repository, approved npm package pages, action usage reference, badge/readback documentation, schema/docs links, and `agentique.io` public links recorded in `docs/public-url-inventory.json`.
 
 Parser/variant package changes are currently No-Go for a new package-release claim. Existing package pages remain approved at version `0.1.0`; a new parser/variant package claim requires hosted CI for the pushed candidate, owner release approval, package-version decision, registry readback for the advertised version, clean install smoke, and rollback or unpublish evidence.
+
+Catalog/download package changes are currently No-Go for a new package-release or live availability claim. Existing package pages remain approved at version `0.1.0`; a new catalog/download package or live availability claim requires hosted CI for the pushed candidate, owner release approval, package-version decision, registry readback for the advertised version, clean install smoke, rollback or unpublish evidence, and current live endpoint evidence.

@@ -10,7 +10,9 @@ Companion packages are released under the `@agentique.io` npm scope after owner 
 - `@agentique.io/readback` at version `0.1.0`
 - `@agentique.io/uploader` at version `0.1.0`
 
-Schemas, validator, action, readback, and uploader are public on npm. The uploader package is review-only; it can plan, produce local draft metadata, and prepare patch/delta output, but it does not publish, approve, certify, host, or moderate resources.
+Schemas, validator, action, readback, and uploader are public on npm. The uploader package is review-only; it can plan, produce local draft metadata, and prepare patch/delta output, but it does not publish, approve, certify, host, moderate, install, extract, open, or execute resources.
+
+Current source-branch catalog/download helpers are release-candidate evidence. They must not be advertised as a new npm package capability or live endpoint availability claim until a new package-release decision, registry readback for the advertised version, clean install smoke, rollback or unpublish evidence, and current live endpoint evidence are recorded.
 
 ## Required Pre-Publish Checks
 
@@ -20,7 +22,7 @@ Schemas, validator, action, readback, and uploader are public on npm. The upload
 - Release manifest and public-content checks pass.
 - Release notes are reviewed for private data, local paths, unsupported claims, and package scope accuracy.
 - Final public repository and package URLs are approved.
-- Public release notes mention surfacing contracts, lane descriptors, uploader source status, local draft and patch/delta preparation, and read-only helper support only as baseline companion metadata.
+- Public release notes mention surfacing contracts, lane descriptors, uploader source status, local draft and patch/delta preparation, catalog/download source-branch status, and read-only helper support only as baseline companion metadata.
 
 ## Provenance Posture
 
@@ -43,7 +45,7 @@ npm run install:smoke
 
 The registry readback script records the current expected state: schemas, validator, action, readback, and uploader are published at version `0.1.0`.
 
-Current uploader publication closeout is Go for npm package availability after owner approval, hosted CI evidence, registry publish/readback, and clean install smoke. The package remains review-only, local draft and patch/delta output remain unsubmitted preparation artifacts, and final resource publication stays on `agentique.io`.
+Current uploader publication closeout is Go for npm package availability after owner approval, hosted CI evidence, registry publish/readback, and clean install smoke. The package remains review-only, local draft and patch/delta output remain unsubmitted preparation artifacts, source-branch catalog/download changes remain unpublished release-candidate evidence, and final resource publication stays on `agentique.io`.
 
 Public package provenance must not include platform scoring, quarantine criteria, internal review procedures, moderation disposition logic, or operational playbooks.
 

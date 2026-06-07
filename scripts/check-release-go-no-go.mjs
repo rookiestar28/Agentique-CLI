@@ -6,7 +6,7 @@ export function collectReleaseDecisionFailures(decision) {
 
   failures.push(...collectDecisionFailures(decision, { scope: "root", includeScope: false }));
 
-  for (const key of ["uploaderPublicationDecision", "parserVariantPublicationDecision"]) {
+  for (const key of ["uploaderPublicationDecision", "parserVariantPublicationDecision", "catalogDownloadPublicationDecision"]) {
     if (decision[key]) {
       failures.push(...collectDecisionFailures(decision[key], { scope: key, includeScope: true }));
     }
@@ -72,7 +72,7 @@ export function main() {
         ? "Release go/no-go check passed: GO."
         : "Release go/no-go check passed: NO-GO with explicit blockers."
     );
-    for (const key of ["uploaderPublicationDecision", "parserVariantPublicationDecision"]) {
+    for (const key of ["uploaderPublicationDecision", "parserVariantPublicationDecision", "catalogDownloadPublicationDecision"]) {
       if (!decision[key]) {
         continue;
       }
