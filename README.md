@@ -17,8 +17,8 @@ This repository is for creators and integrators before and after platform submis
 - Prepare static resource packages with public manifests.
 - Validate package shape, hashes, paths, bounded file reads, contract-bearing JSON files, and secret-like content locally.
 - Run the same validation in GitHub Actions with read-only permissions.
-- Use the review-only uploader CLI for upload plans, creator checkpoint readiness, local draft output, local patch/delta output, and authenticated review-session checks before a platform-owned submission.
-- Consume public readback status, trust projection summaries, and badge states for resources that are already published by `agentique.io`.
+- Use the review-only uploader CLI for upload plans, parser import dry-runs, variant dry-runs, creator checkpoint readiness, local draft output, local patch/delta output, and authenticated review-session checks before a platform-owned submission.
+- Consume public readback status, trust projection summaries, parser/variant summaries, and badge states for resources that are already published by `agentique.io`.
 - Use public tools to prepare, validate, and display resource status before entering the Agentique website upload flow.
 
 Local tools in this repository do not publish, approve, certify, edit, delete, or moderate resources.
@@ -61,15 +61,22 @@ npx agentique-validator validate <package-dir> --schemas-dir node_modules/@agent
 Use readback helpers for public resource state exposed by `agentique.io`:
 
 ```js
-import { createBadgeState, createReadbackClient, normalizeTrustReadback } from "@agentique.io/readback";
+import {
+  createBadgeState,
+  createReadbackClient,
+  normalizeParserVariantReadback,
+  normalizeTrustReadback
+} from "@agentique.io/readback";
 
 const client = createReadbackClient();
 const readback = await client.getReadback("resource-id");
 const trust = normalizeTrustReadback(readback);
+const parserVariant = normalizeParserVariantReadback(readback);
 const badge = createBadgeState(readback);
 
 console.log(`${badge.label}: ${badge.message}`);
 console.log(trust.platformState);
+console.log(parserVariant.parserEvidence?.parseStatus ?? "unavailable");
 ```
 
 ## Quick Start From Source
@@ -115,11 +122,13 @@ Review uploader source behavior locally:
 ```bash
 node packages/uploader/src/cli.mjs auth status --json
 node packages/uploader/src/cli.mjs upload plan starters/agent-assistant --schemas-dir schemas --json
+node packages/uploader/src/cli.mjs upload import-plan starters/parser-variant-import-review --schemas-dir schemas --json
+node packages/uploader/src/cli.mjs upload variant-plan starters/parser-variant-import-review --schemas-dir schemas --json
 node packages/uploader/src/cli.mjs upload draft starters/agent-assistant --schemas-dir schemas --draft-kind manifest --json
 node packages/uploader/src/cli.mjs upload patch starters/agent-assistant --schemas-dir schemas --json
 ```
 
-The uploader can create review-only upload sessions when configured with platform API access and checkpoint-ready package metadata. Local draft and patch commands are unsubmitted helper outputs. The uploader does not publish, approve, certify, host, or moderate resources.
+The uploader can create review-only upload sessions when configured with platform API access and checkpoint-ready package metadata. Import-plan and variant-plan commands are local dry-runs from validator evidence. Local draft and patch commands are unsubmitted helper outputs. The uploader does not publish, approve, certify, host, or moderate resources.
 
 Run release-readiness checks locally:
 
@@ -168,7 +177,7 @@ Release evidence and approved public channels are tracked in [docs/release-evide
 |---|---|
 | `docs/` | Public concepts, manifests, governance, support, release, URL, and go/no-go guidance. |
 | `schemas/` | JSON Schema contracts for public resource manifests, package manifests, distribution modes, and readback projections. |
-| `starters/` | Static example packages for agents, skills, workflows, tool listings, and bundles. |
+| `starters/` | Static example packages for agents, skills, workflows, tool listings, bundles, and parser/variant metadata. |
 | `packages/validator` | No-execution CLI and library for local package validation and upload preparation. |
 | `packages/action` | Least-privilege GitHub Action wrapper around local validation. |
 | `packages/readback` | Read-only client and badge helpers for public resource status. |
@@ -182,10 +191,11 @@ Release evidence and approved public channels are tracked in [docs/release-evide
 3. Add inspectable Markdown or JSON content files.
 4. Keep secrets, credentials, private paths, generated archives, dependency folders, executable payloads, and personal data out of the package.
 5. Add optional `registryTrust` metadata only for public-safe creator checkpoints, package context, generated draft metadata, or patch/delta metadata.
-6. Validate locally with the validator CLI.
-7. Use uploader plan, draft, or patch commands for local review-only preparation when useful.
-8. Submit through the platform-owned upload flow or an authenticated review-only uploader session when configured.
-9. Use readback helpers only after `agentique.io` exposes public resource status.
+6. Add optional `parserVariant` metadata only for static parser evidence, sanitized graph summaries, compatibility reasons, and source-only platform variant descriptions.
+7. Validate locally with the validator CLI.
+8. Use uploader plan, import-plan, variant-plan, draft, or patch commands for local review-only preparation when useful.
+9. Submit through the platform-owned upload flow or an authenticated review-only uploader session when configured.
+10. Use readback helpers only after `agentique.io` exposes public resource status.
 
 Package concepts are documented in [docs/resource-manifest.md](docs/resource-manifest.md).
 
@@ -199,6 +209,7 @@ Available examples:
 - `starters/tool-mcp-listing` - public listing metadata for a tool or MCP-style endpoint.
 - `starters/resource-bundle-curation` - bundled guide and manifest example.
 - `starters/non-static-lane-descriptors` - static descriptors for agent cards, external endpoints, downloadable packages, tool-enabled packages, static skill/workflow resources, and hosted-deferred readback records.
+- `starters/parser-variant-import-review` - static parser evidence and source-only variant metadata for local review.
 
 Validate every starter:
 
@@ -213,6 +224,12 @@ See [starters/README.md](starters/README.md) for starter-specific guidance.
 The public examples in [docs/non-static-lane-examples.md](docs/non-static-lane-examples.md) show how to describe non-static resource lanes with static, inspectable package metadata. The examples cover agent cards/descriptors, external endpoint registrations, downloadable packages, tool-enabled packages, static skills/workflows, and hosted-deferred records.
 
 These examples validate package shape and metadata only. They do not route live endpoint work, run package content, provide hosting, publish resources, approve submissions, provide safety guarantees, or decide moderation outcomes.
+
+## Parser Variant Examples
+
+The parser/variant starter in [starters/parser-variant-import-review](starters/parser-variant-import-review) shows synthetic parser evidence, sanitized graph counts, compatibility reasons, and source-only variant metadata. Blocked, unsupported, stale, and public readback parser/variant cases are covered in `schemas/fixtures/schema-fixtures.json` and checked by repository tests.
+
+Parser/variant examples are metadata for local review. They do not execute imported content, prove runtime compatibility, create platform downloads, publish resources, approve submissions, or replace platform review.
 
 ## Validator CLI
 
@@ -260,7 +277,7 @@ See [packages/validator/README.md](packages/validator/README.md).
 
 ## Uploader CLI
 
-The uploader package is a published review-only CLI implementation. It is useful for local integration review because it can report redacted auth status, generate validator-backed upload plans, and exercise review-session submit/status flows when configured with platform API access.
+The uploader package is a published review-only CLI implementation. It is useful for local integration review because it can report redacted auth status, generate validator-backed upload plans, emit parser import and variant dry-runs, and exercise review-session submit/status flows when configured with platform API access.
 
 Install from npm:
 
@@ -273,13 +290,15 @@ Source commands:
 ```bash
 node packages/uploader/src/cli.mjs auth status --json
 node packages/uploader/src/cli.mjs upload plan <package-dir> --schemas-dir schemas --json
+node packages/uploader/src/cli.mjs upload import-plan <package-dir> --schemas-dir schemas --json
+node packages/uploader/src/cli.mjs upload variant-plan <package-dir> --schemas-dir schemas --json
 node packages/uploader/src/cli.mjs upload draft <package-dir> --schemas-dir schemas --draft-kind manifest --json
 node packages/uploader/src/cli.mjs upload patch <package-dir> --schemas-dir schemas --json
 node packages/uploader/src/cli.mjs upload submit <package-dir> --schemas-dir schemas --token <token> --api-url https://www.agentique.io --json
 node packages/uploader/src/cli.mjs upload status <submission-id> --token <token> --api-url https://www.agentique.io --json
 ```
 
-`upload plan` reports validator-backed package evidence and creator checkpoint readiness. `upload draft` and `upload patch` are local-only and unsubmitted. `upload submit` requires scoped token auth, an Agentique API origin, checkpoint-ready package metadata, and server completion verification.
+`upload plan` reports validator-backed package evidence and creator checkpoint readiness. `upload import-plan` reports parser evidence, graph counts, and compatibility for local review. `upload variant-plan` reports source-only variant states and review reasons for local review. `upload draft` and `upload patch` are local-only and unsubmitted. `upload submit` requires scoped token auth, an Agentique API origin, checkpoint-ready package metadata, and server completion verification.
 
 The uploader does not publish, approve, certify, host, or moderate resources. Package installation is available from npm, while authenticated review-session access and final resource publication remain platform-owned and account/token gated.
 
@@ -326,15 +345,22 @@ The readback package is read-only. It targets versioned public resource paths un
 Example:
 
 ```js
-import { createBadgeState, createReadbackClient, normalizeTrustReadback } from "@agentique.io/readback";
+import {
+  createBadgeState,
+  createReadbackClient,
+  normalizeParserVariantReadback,
+  normalizeTrustReadback
+} from "@agentique.io/readback";
 
 const client = createReadbackClient();
 const readback = await client.getReadback("resource-id");
 const trust = normalizeTrustReadback(readback);
+const parserVariant = normalizeParserVariantReadback(readback);
 const badge = createBadgeState(readback);
 
 console.log(`${badge.label}: ${badge.message}`);
 console.log(trust.trustPanel?.state ?? trust.platformState);
+console.log(parserVariant.parserEvidence?.parseStatus ?? "unavailable");
 ```
 
 Read-only methods:
@@ -350,6 +376,10 @@ Read-only methods:
 Badge states:
 
 - `published`
+- `parsed`
+- `partial`
+- `unsupported`
+- `variant-available`
 - `review-required`
 - `rescan-required`
 - `blocked`
@@ -357,7 +387,7 @@ Badge states:
 - `unavailable`
 - `rate-limited`
 
-Trust normalization projects public desired-state, scanner-policy, trust-panel, review-eligibility, report-action, and version-history fields when the platform exposes them. Badge output is a public readback summary, not a safety guarantee. See [packages/readback/README.md](packages/readback/README.md).
+Trust normalization projects public desired-state, scanner-policy, trust-panel, review-eligibility, report-action, and version-history fields when the platform exposes them. Parser/variant normalization projects public parser evidence and variant state while reporting digest presence instead of raw digests. Badge output is a public readback summary, not a safety guarantee. See [packages/readback/README.md](packages/readback/README.md).
 
 ## Schemas
 
@@ -379,6 +409,8 @@ Schemas are stored in `schemas/` and can be used by local tooling or external va
 
 The validator CLI uses these schemas through `--schemas-dir schemas`.
 
+`parser-variant.schema.json` defines public parser evidence, sanitized resource graph summaries, compatibility reasons, and platform variant states. Creator manifests may describe source-only variant metadata, but they must not claim platform-managed validation, platform download availability, publication, approval, or runtime compatibility.
+
 ## Contract Evaluation Fixtures
 
 Release checks include a synthetic public fixture matrix for surfacing contracts:
@@ -388,6 +420,8 @@ scripts/fixtures/surfacing-contract-matrix/matrix.json
 ```
 
 The matrix covers overlapping tools or resources, relevant candidates with declared risk, stale or off-topic resources, invalid outputs, and context budget overflow. It is baseline release evidence for companion docs, schemas, validators, and readback helpers. It is not a production review rule set and does not expose platform scoring, quarantine criteria, internal review procedures, moderation disposition logic, or operational playbooks.
+
+Parser/variant fixture coverage includes supported parsed/source-only metadata, blocked parser sources, unsupported and stale platform variant states, and public readback parserVariant projection. These fixtures are local contract evidence only.
 
 See [docs/contract-evaluation-fixtures.md](docs/contract-evaluation-fixtures.md).
 

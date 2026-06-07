@@ -55,7 +55,7 @@ Returned payloads are normalized with a defense-in-depth projection pass that re
 
 `normalizeTrustReadback()` projects public desired-state, scanner-policy, trust-panel, review-eligibility, report-action, and version-history fields into a stable readback summary when those fields are present.
 
-`normalizeParserVariantReadback()` projects public parser evidence and platform variant fields into a bounded summary when those fields are present. It reports digest presence instead of raw digests and keeps parser/variant state descriptive.
+`normalizeParserVariantReadback()` projects public parser evidence and platform variant fields into a bounded summary when those fields are present. It reports digest presence instead of raw digests and keeps parser/variant state descriptive. Source-only variant metadata remains preparation evidence and is not treated as platform download readiness.
 
 ## Badge States
 
@@ -72,6 +72,8 @@ Badge helpers return explicit states:
 - `stale`
 - `unavailable`
 - `rate-limited`
+
+Parser and variant badge states are public readback summaries. They do not prove runtime compatibility, create platform downloads, or replace platform review.
 
 Badge output is a public readback summary, not a safety guarantee.
 

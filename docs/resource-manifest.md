@@ -112,6 +112,19 @@ Resource manifests may include optional `registryTrust` metadata for public-safe
 
 These fields are creator-supplied preparation metadata. They do not set platform scan state, publication state, review state, verified badges, latest-version state, or platform trust scores. The uploader can use them to report checkpoint readiness and local draft or patch output, but `agentique.io` remains authoritative for review submission, validation, moderation, publication, distribution state, and public readback.
 
+## Parser And Variant Metadata
+
+Resource manifests may include optional `parserVariant` metadata for public-safe parser and variant preparation signals:
+
+- `parserEvidence` records source ecosystem, source format, parser id/version, parse status, confidence, sanitizer status, digest presence, and the no-execution proof.
+- `resourceGraphSummary` records sanitized node, edge, capability, source-file, and entrypoint counts without raw source content.
+- `compatibility` records bounded reason codes such as static metadata compatibility or manual review requirements.
+- `platformVariants` records platform id, artifact kind, source-only availability, validation state, and reason codes.
+
+Parser and variant metadata is descriptive local preparation metadata. It does not execute imported content, install packages, run workflows, open notebooks, build containers, start MCP servers, or import agent frameworks. Creator manifests may describe source-only variant metadata, but they must not claim platform-managed validation, platform download availability, publication, approval, hosted execution, or runtime compatibility.
+
+Blocked, unsupported, stale, and review-required states should remain visible as states instead of being hidden. Public readback remains authoritative when `agentique.io` exposes parser/variant projection data.
+
 ## Scan Readback
 
-Scan and trust readback are public statuses that `agentique.io` exposes after platform processing. Public readback can include desired-state, scanner-policy, trust-panel, review-eligibility, report-action, and version-history fields. Local validation is not platform approval. Local validation is not safety certification.
+Scan, trust, parser, and variant readback are public statuses that `agentique.io` exposes after platform processing. Public readback can include desired-state, scanner-policy, trust-panel, review-eligibility, report-action, version-history, parser evidence, compatibility, and platform variant fields. Local validation is not platform approval. Local validation is not safety certification.

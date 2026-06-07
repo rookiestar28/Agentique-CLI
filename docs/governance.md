@@ -7,12 +7,12 @@ This document defines the public boundary for the Agentique companion monorepo. 
 | Surface | Purpose | Boundary |
 |---|---|---|
 | `docs/` | Public usage, packaging, release, support, and security-reporting documentation. | Documentation only. |
-| `schemas/` | Public JSON Schema contracts, public projections, types, and schema fixtures. | Public contract fields only. |
-| `starters/` | Benign starter kits and canonical examples for public resource preparation. | De-weaponized examples only. |
-| `packages/validator` | Static no-execution local checks for upload preparation and package inventory review. | Local readiness only. |
+| `schemas/` | Public JSON Schema contracts, parser/variant contracts, public projections, types, and schema fixtures. | Public contract fields only. |
+| `starters/` | Benign starter kits and canonical examples for public resource preparation, including parser/variant metadata examples. | De-weaponized examples only. |
+| `packages/validator` | Static no-execution local checks for upload preparation, parser/variant metadata, and package inventory review. | Local readiness only. |
 | `packages/action` | Least-privilege workflow wrapper around local validation output. | No platform approval claim. |
-| `packages/readback` | Read-only clients, trust projection normalizers, and badge helpers for public resource status and readback state. | Read-only public status only. |
-| `packages/uploader` | Published review-only upload planning, local draft, local patch, submit, and status helpers. | Local preparation plus review-only package; authenticated review-session access and final resource publication remain platform-owned and account/token gated. |
+| `packages/readback` | Read-only clients, trust and parser/variant projection normalizers, and badge helpers for public resource status and readback state. | Read-only public status only. |
+| `packages/uploader` | Published review-only upload planning, local import-plan, local variant-plan, local draft, local patch, submit, and status helpers. | Local preparation plus review-only package; authenticated review-session access and final resource publication remain platform-owned and account/token gated. |
 | `scripts/` | Repository release checks, starter validation, workflow posture checks, registry readback, install smoke, package dry-runs, URL inventory checks, and go/no-go checks. | Local/repository evidence only. |
 
 No companion surface may publish, edit, delete, moderate, approve, or certify platform resources. Upload authority and platform review stay on `agentique.io`.
@@ -27,6 +27,7 @@ Allowed content:
 - Static validation tooling.
 - Review-only uploader tooling.
 - Read-only readback clients.
+- Parser/variant schema fixtures and source-only starter metadata.
 - Local draft and patch/delta preparation output.
 - Community health files.
 
@@ -52,7 +53,7 @@ Every companion release must pass:
 - CODEOWNERS review for docs, schemas, starters, packages, workflows, release scripts, and public readback surfaces.
 - Registry readback and clean install smoke for any package page being newly advertised.
 
-Local validation is not platform approval. Local validation is not safety certification. Badge state is not a safety guarantee.
+Local validation is not platform approval. Local validation is not safety certification. Parser/variant metadata is not hosted execution evidence. Badge state is not a safety guarantee.
 
 ## Support Routing
 

@@ -69,6 +69,12 @@ Current command-line finding:
 
 Current branch-local documentation now describes registry trust metadata, creator checkpoints, trust readback, local draft output, and patch/delta output. Current local release gates pass for this source branch, but a fresh hosted release check is still required before any downstream release claim is updated for later pushed changes.
 
+## Parser And Variant Branch-Local Evidence
+
+Current branch-local source now includes public parser/variant schemas, schema fixtures, validator summaries, readback projection helpers, uploader import-plan and variant-plan dry-runs, and a synthetic source-only starter package. These changes are local repository evidence until pushed and reviewed through the hosted release checks.
+
+Parser/variant evidence remains limited to static metadata, local dry-runs, and read-only public projection helpers. It does not advertise platform-managed validation, hosted execution, platform download availability, runtime compatibility, approval, publication, or safety outcomes.
+
 ## All-Channel Public URL Mode
 
 Approved advertised URL checks pass for source, published packages, action usage, badge/readback documentation, schema, docs, and platform links:

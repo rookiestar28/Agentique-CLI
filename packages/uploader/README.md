@@ -13,6 +13,7 @@ Current boundary:
 - Auth status can read a one-command `--token`, `AGENTIQUE_TOKEN`, or an `AGENTIQUE_CONFIG` JSON file and reports only redacted metadata.
 - Upload plan validates local packages with `@agentique.io/validator` without executing package code.
 - Upload import-plan and variant-plan reuse local validator evidence for dry-run parser and variant review; they do not execute source code, workflows, notebooks, package managers, Docker, MCP servers, or framework loaders.
+- Source-only variant output is preparation evidence and is not platform download readiness.
 - Upload draft emits local draft-only card or manifest output for review; it does not submit generated content.
 - Upload patch emits local patch or delta operation summaries when package metadata provides them; it does not submit partial updates.
 - Upload submit requires token auth, an Agentique API origin, checkpoint-ready package metadata, local validation, review-only session creation, evidence transfer, and server completion verification.
