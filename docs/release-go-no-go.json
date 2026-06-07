@@ -27,55 +27,58 @@
       "@agentique.io/validator": "0.2.0",
       "@agentique.io/action": "0.2.0",
       "@agentique.io/readback": "0.2.0",
-      "@agentique.io/uploader": "0.1.0"
-    },
-    "pendingPackages": {
       "@agentique.io/uploader": "0.2.0"
-    }
+    },
+    "pendingPackages": {}
   },
   "uploaderPublicationDecision": {
     "decision": "go",
     "releaseBlocked": false,
     "advertisePackage": true,
     "liveUploadAvailable": false,
-    "reason": "Uploader publication is owner-approved, hosted Release Check evidence is recorded, npm registry readback returns @agentique.io/uploader@0.1.0, and clean install smoke from the npm registry package passes. The package remains review-only and does not publish, approve, certify, host, or moderate resources.",
+    "reason": "Uploader publication is owner-approved, hosted Release Check evidence is recorded, npm registry readback returns @agentique.io/uploader@0.2.0, and clean install smoke from the npm registry package passes. The package remains review-only and does not publish, approve, certify, host, or moderate resources.",
     "blockers": []
   },
   "parserVariantPublicationDecision": {
-    "decision": "no_go",
-    "releaseBlocked": true,
-    "advertisePackageChanges": false,
-    "reason": "Parser/variant package changes are prepared for the next coordinated package release target 0.2.0, and owner approval to use the manual GitHub Actions package publishing workflow is recorded. The manual publish run partially completed: schemas, validator, action, and readback are readable from npm at 0.2.0, while uploader 0.2.0 remains pending. No new parser/variant package-release claim is advertised without the recovery workflow on main, uploader 0.2.0 publication, full registry readback, clean install smoke, and rollback/unpublish evidence.",
-    "blockers": [
-      "Fresh hosted Release Check evidence for the publish-recovery workflow branch is not recorded.",
-      "Uploader 0.2.0 publication through GitHub Actions is not recorded.",
-      "Full 0.2.0 registry readback and clean install smoke are not recorded.",
-      "Rollback or unpublish evidence for a new parser/variant package release is not recorded."
-    ]
+    "decision": "go",
+    "releaseBlocked": false,
+    "advertisePackageChanges": true,
+    "reason": "Parser/variant package changes are published in the coordinated 0.2.0 package release. Hosted Release Check passed on main, GitHub Actions registry provenance completed, registry readback confirms all companion packages at 0.2.0, registry install smoke passed, and the public rollback/unpublish procedure is documented.",
+    "blockers": []
   },
   "catalogDownloadPublicationDecision": {
-    "decision": "no_go",
-    "releaseBlocked": true,
-    "advertisePackageChanges": false,
-    "advertiseLiveAvailability": false,
+    "decision": "go",
+    "releaseBlocked": false,
+    "advertisePackageChanges": true,
+    "advertiseLiveAvailability": true,
     "closeoutEvidence": {
       "sourceBranchValidation": true,
       "installedTarballSmoke": true,
       "liveMetadataSmoke": true,
-      "directByteDownloadSmoke": false,
-      "hostedCiForCandidate": false,
+      "directByteDownloadSmoke": true,
+      "hostedCiForCandidate": true,
       "ownerPackageReleaseApproval": true,
-      "newVersionRegistryReadback": false,
-      "rollbackEvidenceForNewRelease": false
+      "newVersionRegistryReadback": true,
+      "rollbackEvidenceForNewRelease": true
     },
-    "reason": "Catalog/download CLI and SDK changes are prepared for the next coordinated package release target 0.2.0, and owner approval to use the manual GitHub Actions package publishing workflow is recorded. The manual publish run partially completed: schemas, validator, action, and readback are readable from npm at 0.2.0, while uploader 0.2.0 remains pending. A GET-only live metadata smoke on 2026-06-07 reached the canonical public list, first resource detail, and first resource download-metadata endpoints with 200 JSON responses, but no new catalog/download package-release or direct-download live availability claim is advertised without the recovery workflow on main, uploader 0.2.0 publication, full registry readback, clean install smoke, rollback/unpublish evidence, and owner-approved disposable direct-download evidence.",
-    "blockers": [
-      "Fresh hosted Release Check evidence for the publish-recovery workflow branch is not recorded.",
-      "Uploader 0.2.0 publication through GitHub Actions is not recorded.",
-      "Full 0.2.0 registry readback and clean install smoke are not recorded.",
-      "Rollback or unpublish evidence for a new catalog/download package release is not recorded.",
-      "Owner-approved disposable direct-download byte-transfer evidence is not recorded, so direct-download live availability is not advertised."
-    ]
+    "directDownloadEvidence": {
+      "ownerApproved": true,
+      "observedAt": "2026-06-07",
+      "resourceId": "cmpu0alp200m0lt0ax39rcb9o",
+      "resourceTitle": "Post Dev Recap Skill",
+      "resourceClass": "metadata-only static-skill",
+      "fileName": "post-dev-recap.zip",
+      "mediaType": "application/zip",
+      "sizeBytes": 1377,
+      "sha256Matched": true,
+      "authUsed": false,
+      "signedUrlOutput": false,
+      "opened": false,
+      "extracted": false,
+      "executed": false
+    },
+    "reason": "Catalog/download CLI and SDK package changes are published in the coordinated 0.2.0 package release. Hosted Release Check passed on main, GitHub Actions registry provenance completed, registry readback confirms all companion packages at 0.2.0, registry install smoke passed, and the public rollback/unpublish procedure is documented. Owner-approved disposable direct byte-transfer smoke passed on 2026-06-07 for a metadata-only public resource without auth, signed URL output, opening, extraction, or execution.",
+    "blockers": []
   },
   "blockers": []
 }

@@ -19,7 +19,7 @@ root cause, severity assessment, and a recommended remediation path.
 - [KI-006: Secret-like pattern false positives on documentation examples](#ki-006-secret-like-pattern-false-positives-on-documentation-examples)
 - [KI-007: License recognizer limited to seven identifiers](#ki-007-license-recognizer-limited-to-seven-identifiers)
 - [KI-008: Sequential publish step lacks error isolation](#ki-008-sequential-publish-step-lacks-error-isolation)
-- [KI-009: Uploader package registry publication is pending](#ki-009-uploader-package-registry-publication-is-pending)
+- [KI-009: Uploader package registry publication closeout](#ki-009-uploader-package-registry-publication-closeout)
 
 ---
 
@@ -474,39 +474,35 @@ according to owner review.
 
 ---
 
-## KI-009: Uploader package registry publication is pending
+## KI-009: Uploader package registry publication closeout
 
 | Field | Value |
 |---|---|
 | **Severity** | Medium |
 | **Module** | `@agentique.io/uploader` — Release and Registry State |
 | **File** | `packages/uploader`; `docs/package-release-provenance.md`; `docs/public-url-inventory.json`; `docs/release-go-no-go.json` |
-| **Status** | Open — source implementation and local tarball smoke exist, but uploader `0.2.0` npm registry publication remains No-Go until publish-recovery evidence, registry readback, and install smoke from npm are recorded |
+| **Status** | Resolved — uploader `0.2.0` npm registry publication, registry readback, and install smoke are recorded |
 
 ### Description
 
 The uploader package is implemented in source and included in local tests,
 package dry-run, workflow posture checks, and production dependency audit.
-npm registry readback currently reports `@agentique.io/uploader` as published
-at `0.1.0`, while uploader `0.2.0` remains pending publish recovery. Users
-should not expect the `0.2.0` uploader package surface to be available from npm
-until registry publication and install smoke evidence are recorded.
+npm registry readback reports `@agentique.io/uploader` as published at `0.2.0`,
+and registry install smoke passes for the full `0.2.0` package set.
 
-The public URL inventory tracks the existing uploader package page as approved
-for the already published package. Existing published package pages for schemas,
-validator, action, and readback remain approved advertised channels and now
-read back at `0.2.0`. The current uploader `0.2.0` publication closeout is
-No-Go.
+The public URL inventory tracks the uploader package page as approved.
+Published package pages for schemas, validator, action, readback, and uploader
+remain approved advertised channels and now read back at `0.2.0`.
 
 ### Required Closeout
 
-Before advertising uploader `0.2.0` package capabilities:
+Closeout evidence recorded:
 
-1. Publish the exact reviewed package version through the approved package
+1. The exact reviewed package version was published through the approved package
    publishing route.
-2. Verify registry readback for version, dist-tag, package metadata, and
-   tarball contents.
-3. Run a clean install smoke without lifecycle scripts.
-4. Run a CLI smoke that proves help/version and auth-gated review-only behavior.
-5. Update the public URL inventory and release evidence only after those checks
-   pass.
+2. Registry readback verifies version and dist-tag state for `0.2.0`.
+3. Clean install smoke passed without lifecycle scripts.
+4. CLI smoke proves help/version and review-only behavior through the registry
+   install smoke.
+5. The public URL inventory and release evidence are updated after those checks
+   passed.
