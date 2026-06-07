@@ -32,7 +32,7 @@ The checked-in package publishing workflow is manual-only, uses GitHub OIDC with
 
 Provenance helps consumers trace package source and build context. It does not mean a package is risk-free, platform-approved, or safety-certified.
 
-The first public package publication used an owner-approved short-lived granular token fallback after local and hosted validation passed. Owner approval is recorded to use the checked-in manual GitHub Actions package publishing workflow for the coordinated package release target, `0.2.0`, subject to npm Trusted Publisher readiness. Token fallback is a contingency for owner-approved manual recovery only; it is not part of the normal trusted-publishing workflow and must not be added to workflow YAML.
+The first public package publication used an owner-approved short-lived granular token fallback after local and hosted validation passed. The coordinated `0.2.0` package release used the checked-in manual GitHub Actions trusted-publishing workflow after npm Trusted Publisher setup. Token fallback is a contingency for owner-approved manual recovery only; it is not part of the normal trusted-publishing workflow and must not be added to workflow YAML.
 
 Registry readback and clean install smoke passed for the initial dotted `@agentique.io` package set. The initial uploader publication used an owner-approved one-time granular token fallback after local and hosted validation; provenance was not generated for that fallback because it was not published from the checked-in OIDC workflow. The current coordinated release used the checked-in GitHub Actions trusted-publishing workflow and passed full registry readback plus clean install smoke for `0.2.0`.
 

@@ -6,7 +6,7 @@ This package exposes a review-only upload lane plus public readback/download hel
 
 The package remains review-only; authenticated review-session access and final resource publication stay on `agentique.io`.
 
-Catalog and direct-download commands are included in the 0.2.0 package source. The commands remain read-only or explicit-output only, and they do not make a live direct-download availability claim unless owner-approved disposable byte-transfer evidence is recorded.
+Catalog and direct-download commands are included in the 0.2.0 package source. The commands remain read-only or explicit-output only. Owner-approved disposable byte-transfer evidence is recorded for a metadata-only public resource, but this evidence does not certify content safety, approve arbitrary resources, or guarantee every public resource is downloadable.
 
 Current boundary:
 

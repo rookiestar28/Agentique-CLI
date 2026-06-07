@@ -11,8 +11,8 @@ This repository uses public review rules to keep companion content narrow, safe,
 | Starters | `starters/` | De-weaponized examples, matching hashes, source-only parser/variant wording, no executable payloads unless explicitly part of a blocked fixture |
 | Validator | `packages/validator/` | Static no-execution behavior, parser/variant findings, redacted findings, stable exit codes |
 | Action | `packages/action/`, `.github/workflows/` | Least privilege, no untrusted secret exposure, no publish behavior in validation workflows |
-| Readback | `packages/readback/` | Read-only methods only, unpublished parser/variant summaries, stale/unavailable states, trust projection wording, no safety guarantee wording |
-| Uploader | `packages/uploader/` | Review-only wording, auth redaction, token handling, checkpoint readiness, unpublished import-plan and variant-plan dry-runs, local draft and patch output, no platform publication or approval claims |
+| Readback | `packages/readback/` | Read-only methods only, platform-owned parser/variant states, stale/unavailable states, trust projection wording, no safety guarantee wording |
+| Uploader | `packages/uploader/` | Review-only wording, auth redaction, token handling, checkpoint readiness, local import-plan and variant-plan dry-runs, local draft and patch output, no platform publication or approval claims |
 | Release | `release-manifest.json`, `scripts/`, release checklist | Allowlist coverage, content scan behavior, registry readback, install smoke, package dry-run evidence |
 
 ## Public Issue Boundary
