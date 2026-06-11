@@ -25,6 +25,30 @@ const BADGE_STATES = Object.freeze({
     color: "0969da",
     description: "Public readback includes a platform variant projection."
   },
+  "agent-native-ready": {
+    state: "agent-native-ready",
+    label: "Agent-native ready",
+    color: "0969da",
+    description: "Public readback includes current agent-native metadata."
+  },
+  "agent-native-review-required": {
+    state: "agent-native-review-required",
+    label: "Agent-native review",
+    color: "bf8700",
+    description: "Public readback shows agent-native metadata that needs review."
+  },
+  "agent-native-private-denied": {
+    state: "agent-native-private-denied",
+    label: "Private denied",
+    color: "6e7781",
+    description: "Public readback denies private MCP runtime access."
+  },
+  "agent-native-ambiguous": {
+    state: "agent-native-ambiguous",
+    label: "Resolver ambiguous",
+    color: "8250df",
+    description: "Public readback shows multiple possible agent-native matches."
+  },
   published: {
     state: "published",
     label: "Published",
@@ -89,6 +113,13 @@ export function createBadgeState(readback, options = {}) {
   const parserVariantState = parserVariantBadgeState(readback);
   if (parserVariantState) {
     return badge(parserVariantState, { platformUrl: readback.platformUrl ?? readback.url ?? null });
+  }
+
+  const agentNativeState = agentNativeBadgeState(readback);
+  if (agentNativeState) {
+    return badge(agentNativeState, {
+      platformUrl: readback.agentNative?.resolverResult?.platformUrl ?? readback.platformUrl ?? readback.url ?? null
+    });
   }
 
   const trustState = trustBadgeState(readback);
@@ -163,6 +194,57 @@ function trustBadgeState(readback) {
 
   if ([desiredState, scannerFreshness, trustPanelState, platformState].includes("stale")) {
     return "stale";
+  }
+
+  return null;
+}
+
+function agentNativeBadgeState(readback) {
+  const agentNative = readback?.agentNative;
+  if (!agentNative || typeof agentNative !== "object" || Array.isArray(agentNative)) {
+    return null;
+  }
+
+  const latestState = normalizeStatus(agentNative.namespace?.latestPointer?.state);
+  const provenanceState = normalizeStatus(agentNative.provenanceTrust?.state);
+  const privateAvailability = normalizeStatus(agentNative.privateMcpBoundary?.availability);
+  const privateVisibility = normalizeStatus(agentNative.privateMcpBoundary?.visibility);
+  const resolverState = normalizeStatus(agentNative.resolverResult?.state);
+  const ambiguity = normalizeStatus(agentNative.resolverResult?.ambiguity);
+  const installTargets = Array.isArray(agentNative.installGuidance) ? agentNative.installGuidance : [];
+  const installStates = installTargets.map((target) => normalizeStatus(target?.state));
+  const downloadStates = installTargets.map((target) => normalizeStatus(target?.downloadAvailability));
+  const checkpoints = Array.isArray(agentNative.resolverResult?.checkpoints) ? agentNative.resolverResult.checkpoints : [];
+  const checkpointStates = checkpoints.map((checkpoint) => normalizeStatus(checkpoint?.state));
+  const allStates = [latestState, provenanceState, privateAvailability, resolverState, ...installStates, ...checkpointStates];
+
+  if (allStates.some((state) => ["blocked", "invalid", "failed"].includes(state)) || downloadStates.includes("blocked")) {
+    return "blocked";
+  }
+
+  if (privateAvailability === "private-denied" || privateVisibility === "private-denied") {
+    return "agent-native-private-denied";
+  }
+
+  if (
+    allStates.some((state) => ["review-required", "stale", "unsupported", "unavailable", "rollback"].includes(state)) ||
+    downloadStates.some((state) => ["unavailable", "guidance-only"].includes(state)) ||
+    ambiguity === "manual-review-required"
+  ) {
+    return "agent-native-review-required";
+  }
+
+  if (resolverState === "ambiguous" || ambiguity === "alternatives-available") {
+    return "agent-native-ambiguous";
+  }
+
+  if (
+    ["matched", "unknown"].includes(resolverState) &&
+    ["none", "unknown"].includes(ambiguity) &&
+    ["current", "unknown"].includes(latestState) &&
+    ["current", "missing", "unknown"].includes(provenanceState)
+  ) {
+    return "agent-native-ready";
   }
 
   return null;

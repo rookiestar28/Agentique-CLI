@@ -7,6 +7,7 @@ import {
   createBadgeState,
   createReadbackClient,
   listBadgeStates,
+  normalizeAgentNativeReadback,
   normalizeDownloadMetadata,
   normalizeParserVariantReadback,
   normalizePublicReadback,
@@ -362,6 +363,10 @@ describe("badge states", () => {
       "partial",
       "unsupported",
       "variant-available",
+      "agent-native-ready",
+      "agent-native-review-required",
+      "agent-native-private-denied",
+      "agent-native-ambiguous",
       "published",
       "review-required",
       "rescan-required",
@@ -441,11 +446,81 @@ describe("badge states", () => {
     );
   });
 
+  it("maps agent-native projection states", () => {
+    assert.equal(
+      createBadgeState({
+        agentNative: agentNativeReadback({
+          checkpoints: [
+            {
+              kind: "namespace",
+              state: "passed",
+              reasons: []
+            },
+            {
+              kind: "download",
+              state: "passed",
+              reasons: ["source-only"]
+            }
+          ]
+        })
+      }).state,
+      "agent-native-ready"
+    );
+    assert.equal(
+      createBadgeState({
+        agentNative: agentNativeReadback({
+          provenanceState: "stale",
+          resolverState: "review-required",
+          ambiguity: "manual-review-required"
+        })
+      }).state,
+      "agent-native-review-required"
+    );
+    assert.equal(
+      createBadgeState({
+        agentNative: agentNativeReadback({
+          privateAvailability: "private-denied",
+          privateVisibility: "private-denied",
+          resolverState: "matched",
+          ambiguity: "none"
+        })
+      }).state,
+      "agent-native-private-denied"
+    );
+    assert.equal(
+      createBadgeState({
+        agentNative: agentNativeReadback({
+          resolverState: "ambiguous",
+          ambiguity: "alternatives-available",
+          privateAvailability: "not-available",
+          checkpoints: [
+            {
+              kind: "namespace",
+              state: "passed",
+              reasons: []
+            },
+            {
+              kind: "ambiguity",
+              state: "passed",
+              reasons: ["alternatives-visible"]
+            }
+          ]
+        })
+      }).state,
+      "agent-native-ambiguous"
+    );
+  });
+
   it("does not use strong safety or approval wording in badge output", () => {
     const states = [
       createBadgeState({ parserVariant: parserVariantReadback() }),
       createBadgeState({ parserVariant: parserVariantReadback({ parseStatus: "partial" }) }),
       createBadgeState({ parserVariant: parserVariantReadback({ parseStatus: "unsupported" }) }),
+      createBadgeState({ agentNative: agentNativeReadback() }),
+      createBadgeState({ agentNative: agentNativeReadback({ resolverState: "ambiguous", ambiguity: "alternatives-available" }) }),
+      createBadgeState({
+        agentNative: agentNativeReadback({ privateAvailability: "private-denied", privateVisibility: "private-denied" })
+      }),
       createBadgeState({ status: "published" }),
       createBadgeState({ status: "review required" }),
       createBadgeState({ scannerPolicy: { freshness: "rescan-required" } }),
@@ -970,6 +1045,113 @@ describe("normalizer", () => {
     });
   });
 
+  it("normalizes agent-native readback without exposing raw evidence or credentials", () => {
+    const normalized = normalizeAgentNativeReadback({
+      resourceId: "example-resource",
+      updatedAt: "2026-06-11T00:08:00.000Z",
+      agentNative: {
+        ...agentNativeReadback(),
+        provenanceTrust: {
+          ...agentNativeReadback().provenanceTrust,
+          digest: "sha256:9999999999999999999999999999999999999999999999999999999999999999"
+        },
+        privateMcpBoundary: {
+          ...agentNativeReadback().privateMcpBoundary,
+          credentialReferenceValue: "hidden-secret"
+        },
+        resolverResult: {
+          ...agentNativeReadback().resolverResult,
+          rawRankingEvidence: "hidden"
+        },
+        privateReviewNotes: "hidden"
+      }
+    });
+
+    assert.deepEqual(normalized, {
+      namespace: {
+        namespaceId: "agentique.examples",
+        namespaceSlug: "agentique-examples",
+        resourceCoordinate: "agentique.examples/source-reviewer",
+        version: "1.0.0",
+        latestPointer: {
+          state: "current",
+          managedBy: "platform",
+          version: "1.0.0",
+          observedAt: "2026-06-11T00:02:00.000Z",
+          reasons: []
+        }
+      },
+      provenanceTrust: {
+        state: "current",
+        evidenceTier: "sbom-present",
+        sourceKinds: ["source-url", "sbom"],
+        digestPresent: true,
+        nonCertifying: true,
+        observedAt: "2026-06-11T00:03:00.000Z",
+        reasons: ["public-evidence-present"]
+      },
+      installGuidance: [
+        {
+          targetId: "codex",
+          state: "source-only",
+          artifactKind: "skill",
+          downloadAvailability: "source-only",
+          noExecution: true,
+          observedAt: "2026-06-11T00:04:00.000Z",
+          reasons: ["manual-review-required"]
+        }
+      ],
+      privateMcpBoundary: {
+        availability: "not-available",
+        visibility: "public-metadata-only",
+        credentialReferenceKind: "none",
+        credentialValuesPresent: false,
+        toolResponseIsolation: true,
+        observedAt: "2026-06-11T00:05:00.000Z",
+        reasons: ["no-public-credential-values"]
+      },
+      resolverResult: {
+        state: "matched",
+        resourceId: "example-resource",
+        confidence: "medium",
+        relevance: "medium",
+        ambiguity: "none",
+        platformUrl: "https://agentique.io/resources/example-resource",
+        downloadAvailability: "source-only",
+        checkpointCount: 2,
+        checkpoints: [
+          {
+            kind: "namespace",
+            state: "passed",
+            reasons: []
+          },
+          {
+            kind: "download",
+            state: "review-required",
+            reasons: ["source-only"]
+          }
+        ],
+        nonCertifying: true,
+        observedAt: "2026-06-11T00:06:00.000Z"
+      },
+      observedAt: "2026-06-11T00:07:00.000Z"
+    });
+    assert.equal(JSON.stringify(normalized).includes("sha256:"), false);
+    assert.equal(JSON.stringify(normalized).includes("hidden"), false);
+  });
+
+  it("normalizes direct agent-native objects and unavailable agent-native readback", () => {
+    assert.equal(normalizeAgentNativeReadback(agentNativeReadback()).namespace.namespaceId, "agentique.examples");
+    assert.deepEqual(normalizeAgentNativeReadback({ status: "published" }), {
+      namespace: null,
+      provenanceTrust: null,
+      installGuidance: [],
+      privateMcpBoundary: null,
+      resolverResult: null,
+      observedAt: null
+    });
+  });
+
   it("preserves public projection keys that contain formerly ambiguous terms", () => {
     assert.deepEqual(
       normalizePublicReadback({
@@ -1100,5 +1282,77 @@ function platformVariantReadback(overrides = {}) {
     },
     reasons: overrides.reasons ?? ["source-only"],
     observedAt: "2026-06-07T00:02:00.000Z"
+  };
+}
+
+function agentNativeReadback(overrides = {}) {
+  return {
+    contractVersion: "1.0",
+    namespace: {
+      namespaceId: "agentique.examples",
+      namespaceSlug: "agentique-examples",
+      resourceCoordinate: "agentique.examples/source-reviewer",
+      version: "1.0.0",
+      latestPointer: {
+        state: overrides.latestState ?? "current",
+        managedBy: "platform",
+        version: "1.0.0",
+        observedAt: "2026-06-11T00:02:00.000Z",
+        reasons: overrides.latestReasons ?? []
+      }
+    },
+    provenanceTrust: {
+      state: overrides.provenanceState ?? "current",
+      evidenceTier: "sbom-present",
+      sourceKinds: ["source-url", "sbom"],
+      digestPresent: true,
+      nonCertifying: true,
+      observedAt: "2026-06-11T00:03:00.000Z",
+      reasons: overrides.provenanceReasons ?? ["public-evidence-present"]
+    },
+    installGuidance: [
+      {
+        targetId: overrides.targetId ?? "codex",
+        state: overrides.installState ?? "source-only",
+        artifactKind: overrides.artifactKind ?? "skill",
+        downloadAvailability: overrides.downloadAvailability ?? "source-only",
+        noExecution: true,
+        observedAt: "2026-06-11T00:04:00.000Z",
+        reasons: overrides.installReasons ?? ["manual-review-required"]
+      }
+    ],
+    privateMcpBoundary: {
+      availability: overrides.privateAvailability ?? "not-available",
+      visibility: overrides.privateVisibility ?? "public-metadata-only",
+      credentialReferenceKind: "none",
+      credentialValuesPresent: false,
+      toolResponseIsolation: true,
+      observedAt: "2026-06-11T00:05:00.000Z",
+      reasons: overrides.privateReasons ?? ["no-public-credential-values"]
+    },
+    resolverResult: {
+      state: overrides.resolverState ?? "matched",
+      resourceId: "example-resource",
+      confidence: overrides.confidence ?? "medium",
+      relevance: overrides.relevance ?? "medium",
+      ambiguity: overrides.ambiguity ?? "none",
+      platformUrl: "https://agentique.io/resources/example-resource",
+      downloadAvailability: overrides.resolverDownloadAvailability ?? "source-only",
+      checkpoints: overrides.checkpoints ?? [
+        {
+          kind: "namespace",
+          state: "passed",
+          reasons: []
+        },
+        {
+          kind: "download",
+          state: "review-required",
+          reasons: ["source-only"]
+        }
+      ],
+      nonCertifying: true,
+      observedAt: "2026-06-11T00:06:00.000Z"
+    },
+    observedAt: "2026-06-11T00:07:00.000Z"
   };
 }
