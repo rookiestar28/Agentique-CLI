@@ -22,10 +22,10 @@ Use this checklist before any public release, package publish, repository link c
 - Public docs describe registry trust metadata, creator checkpoints, trust readback, generated drafts, and patch/delta output as preparation/readback contracts only.
 - Public docs describe parser/variant and agent-native schemas, fixtures, starters, readback helpers, and uploader import/variant/agent-native dry-runs as static local preparation or read-only projection contracts only.
 - Parser/variant docs do not claim platform download availability, hosted execution, runtime compatibility, publication, approval, or safety outcomes.
-- Public docs describe already-published catalog/download behavior as `0.2.0` release evidence and canonical catalog envelope, ticket-backed byte-transfer fixes, and agent-native source changes as owner-approved coordinated `0.2.1` patch-candidate changes, with schemas, validator, action, and readback published at `0.2.1` and uploader `0.2.1` pending for the publish retry.
+- Public docs describe already-published catalog/download behavior as `0.2.0` release evidence and canonical catalog envelope, ticket-backed byte-transfer fixes, and agent-native source changes as owner-approved coordinated `0.2.1` patch-package changes with full registry readback and clean install smoke.
 - Catalog/download docs do not claim hosted execution, package installation, archive extraction, runtime compatibility, publication, approval, safety outcomes, or universal direct-download availability for every public resource.
 - Uploader package status, local draft/patch output, and review-only submit are documented separately from platform publication and live resource availability.
-- Any pending package pages are marked non-advertised in the URL inventory.
+- There are no pending `0.2.1` package pages in the URL inventory.
 - Registry readback passed with expected published package states.
 - Package install smoke passed from locally packed tarballs with lifecycle scripts disabled.
 - Parser/variant, agent-native, and catalog/download package surface smoke passed from locally packed tarballs: parser-variant schema file, agent-native schema file, readback parser/variant and agent-native exports, readback catalog/download exports, uploader import-plan / variant-plan / agent-native-plan help, uploader catalog help, and uploader direct-download help are present.

@@ -4,20 +4,20 @@ Companion packages are released under the `@agentique.io` npm scope after owner 
 
 ## Publishable Packages
 
-- `@agentique.io/schemas` at version `0.2.0`
-- `@agentique.io/validator` at version `0.2.0`
-- `@agentique.io/action` at version `0.2.0`
-- `@agentique.io/readback` at version `0.2.0`
-- `@agentique.io/uploader` at version `0.2.0`
+- `@agentique.io/schemas` at version `0.2.1`
+- `@agentique.io/validator` at version `0.2.1`
+- `@agentique.io/action` at version `0.2.1`
+- `@agentique.io/readback` at version `0.2.1`
+- `@agentique.io/uploader` at version `0.2.1`
 
 Schemas, validator, action, readback, and uploader are public on npm. The uploader package is review-only; it can plan, produce local draft metadata, and prepare patch/delta output, but it does not publish, approve, certify, host, moderate, install, extract, open, or execute resources.
 
-The coordinated package release `0.2.0` is published for schemas, validator, action, readback, and uploader. This repository revision is a coordinated `0.2.1` patch candidate; schemas, validator, action, and readback are published at `0.2.1`, while uploader `0.2.1` remains pending for the publish retry. Owner-approved disposable byte-transfer evidence is recorded for a public catalog resource; this evidence does not certify content safety or approve arbitrary resources.
+The coordinated package release `0.2.1` is published for schemas, validator, action, readback, and uploader. Owner-approved disposable byte-transfer evidence is recorded for a public catalog resource; this evidence does not certify content safety or approve arbitrary resources.
 
 ## Patch Candidate
 
 - Coordinated patch target: `0.2.1` for schemas, validator, action, readback, and uploader.
-- Publish status: Go for the owner-approved coordinated `0.2.1` release workflow. Schemas, validator, action, and readback are published at `0.2.1`; uploader registry readback, clean install smoke for the full patch set, rollback/unpublish evidence, and branch cleanup remain required post-publish closeout evidence.
+- Publish status: Go for the owner-approved coordinated `0.2.1` release workflow. Full registry readback, clean install smoke for the full patch set, rollback/unpublish evidence, and branch cleanup are recorded.
 - Scope: canonical public catalog envelope compatibility, ticket-backed download metadata projection, explicit-output CLI byte transfer through the declared unauthenticated POST ticket path, and agent-native schema/validator/readback/uploader dry-run source surfaces.
 
 ## Required Pre-Publish Checks
@@ -34,7 +34,7 @@ The coordinated package release `0.2.0` is published for schemas, validator, act
 
 Provenance helps consumers trace package source and build context. It does not mean a package is risk-free, platform-approved, or safety-certified.
 
-Registry readback and clean install smoke passed for the initial dotted `@agentique.io` package set. The initial uploader publication used an owner-approved maintainer-approved publication path after local and hosted validation; provenance was not generated for that fallback because it was not published from the checked-in OIDC workflow. The current coordinated release used the checked-in GitHub Actions package publication workflow and passed full registry readback plus clean install smoke for `0.2.0`.
+Registry readback and clean install smoke passed for the initial dotted `@agentique.io` package set. The initial uploader publication used an owner-approved maintainer-approved publication path after local and hosted validation; provenance was not generated for that fallback because it was not published from the checked-in OIDC workflow. The current coordinated release used the checked-in GitHub Actions package publication workflow and passed full registry readback plus clean install smoke for `0.2.1`.
 
 Local release candidates should run:
 
@@ -43,9 +43,9 @@ npm run registry:readback
 npm run install:smoke
 ```
 
-The registry readback script records the current expected state from `docs/release-go-no-go.json`: schemas, validator, action, and readback are published at version `0.2.1`; uploader is published at version `0.2.0` with `0.2.1` pending until the publish retry completes.
+The registry readback script records the current expected state from `docs/release-go-no-go.json`: schemas, validator, action, readback, and uploader are published at version `0.2.1`.
 
-Current uploader publication closeout is Go for existing npm package availability at `0.2.0` after owner approval, hosted CI evidence, registry publish/readback, and clean install smoke. The coordinated `0.2.1` patch candidate is owner-approved for the release workflow. The package remains review-only; local draft, patch/delta, and agent-native-plan output remain unsubmitted preparation artifacts; bounded disposable byte-transfer evidence is recorded; and final resource publication stays on `agentique.io`.
+Current uploader publication closeout is Go for npm package availability at `0.2.1` after owner approval, hosted CI evidence, registry publish/readback, and clean install smoke. The package remains review-only; local draft, patch/delta, and agent-native-plan output remain unsubmitted preparation artifacts; bounded disposable byte-transfer evidence is recorded; and final resource publication stays on `agentique.io`.
 
 Public package provenance must not include platform scoring, quarantine criteria, internal review procedures, moderation disposition logic, or operational playbooks.
 

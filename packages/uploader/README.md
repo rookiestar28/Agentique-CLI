@@ -6,7 +6,7 @@ This package exposes a review-only upload lane plus public readback/download hel
 
 The package remains review-only; authenticated review-session access and final resource publication stay on `agentique.io`.
 
-Catalog and direct-download commands are included in the published `0.2.0` package for the behavior released there. This source revision is part of a coordinated `0.2.1` patch candidate for canonical public catalog envelopes, ticket-backed byte transfer, and agent-native dry-run planning. Uploader `0.2.1` remains pending for the publish retry. The commands remain read-only, local-preparation, or explicit-output only. Owner-approved disposable byte-transfer evidence is recorded for a public catalog resource, but this evidence does not certify content safety, approve arbitrary resources, or guarantee every public resource is downloadable.
+Catalog and direct-download commands are included in the published `0.2.1` package for canonical public catalog envelopes, ticket-backed byte transfer, and agent-native dry-run planning. The commands remain read-only, local-preparation, or explicit-output only. Owner-approved disposable byte-transfer evidence is recorded for a public catalog resource, but this evidence does not certify content safety, approve arbitrary resources, or guarantee every public resource is downloadable.
 
 Current boundary:
 
