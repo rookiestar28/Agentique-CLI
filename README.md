@@ -162,16 +162,16 @@ Source repository, package registry, action usage, badge/readback documentation,
 
 Parser/variant package changes already included in `0.2.0` are **Go** for the coordinated `0.2.0` npm package-release claim. Owner approval to use the manual GitHub Actions package publishing workflow is recorded, hosted Release Check passed on `main`, GitHub Actions publication completed, registry readback confirms all companion packages at `0.2.0`, and registry install smoke passed.
 
-Catalog/download behavior already published in `0.2.0` remains **Go** only within the evidence recorded for that release. This repository revision is a coordinated `0.2.1` patch candidate with readback/uploader fixes for canonical public catalog envelopes and ticket-backed byte transfer. A new npm availability claim for those patch changes is **No-Go** until hosted Release Check, owner approval, trusted publishing, registry readback, clean install smoke, rollback evidence, and branch cleanup are complete. Owner-approved disposable byte-transfer smoke passed for a public catalog resource without auth, signed URL output, opening, extraction, or execution.
+Catalog/download behavior already published in `0.2.0` remains **Go** only within the evidence recorded for that release. This repository revision is a coordinated `0.2.1` patch candidate with readback/uploader fixes for canonical public catalog envelopes and ticket-backed byte transfer. Owner approval is recorded to execute the coordinated `0.2.1` release workflow; registry readback, clean install smoke, rollback evidence, and branch cleanup remain required closeout evidence after publication. Owner-approved disposable byte-transfer smoke passed for a public catalog resource without auth, signed URL output, opening, extraction, or execution.
 
-Agent-native source changes in this branch are **No-Go** for a new package-release claim until hosted checks, owner approval, trusted publishing, registry readback, clean install smoke, rollback evidence, and branch cleanup are complete. The source changes are local preparation and public readback helper surfaces only.
+Agent-native source changes in this branch are **Go** for the coordinated `0.2.1` release workflow after owner approval. Registry readback, clean install smoke, rollback evidence, and branch cleanup remain required closeout evidence after publication. The source changes are local preparation and public readback helper surfaces only.
 
 Public-safe evidence currently recorded:
 
 - The public repository is available at [github.com/rookiestar28/Agentique](https://github.com/rookiestar28/Agentique).
 - The published companion npm packages are `@agentique.io/schemas`, `@agentique.io/validator`, `@agentique.io/action`, `@agentique.io/readback`, and `@agentique.io/uploader`.
 - `@agentique.io/uploader` is a published review-only CLI package at `0.2.0`; this source revision is a `0.2.1` patch candidate.
-- Local package tests, starter validation, release checks, workflow posture checks, registry readback, install smoke, package dry-runs, dependency audits, and secret scans pass.
+- Local package tests, starter validation, release checks, workflow posture checks, registry readback, install smoke, and package dry-runs pass for this source revision; dependency audit and secret scan evidence is recorded in [docs/release-evidence.md](docs/release-evidence.md).
 - Hosted Release Check evidence is recorded for the latest pushed public release candidate; later branch changes require a fresh hosted run before downstream release claims.
 - Public `main` branch protection is enabled.
 - Final public repository, package, docs, schema, action usage, badge/readback documentation, and platform URLs are approved.

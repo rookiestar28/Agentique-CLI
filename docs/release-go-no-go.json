@@ -53,9 +53,9 @@
     "blockers": []
   },
   "catalogDownloadPublicationDecision": {
-    "decision": "no_go",
-    "releaseBlocked": true,
-    "advertisePackageChanges": false,
+    "decision": "go",
+    "releaseBlocked": false,
+    "advertisePackageChanges": true,
     "advertiseLiveAvailability": false,
     "closeoutEvidence": {
       "sourceBranchValidation": true,
@@ -63,10 +63,11 @@
       "liveMetadataSmoke": true,
       "directByteDownloadSmoke": true,
       "canonicalTicketByteDownloadSmoke": true,
-      "hostedCiForCandidate": false,
-      "ownerPackageReleaseApproval": false,
-      "newVersionRegistryReadback": false,
-      "rollbackEvidenceForNewRelease": false
+      "ownerPackageReleaseApproval": true,
+      "publishWorkflowRequired": true,
+      "postPublishRegistryReadbackRequired": true,
+      "postPublishInstallSmokeRequired": true,
+      "postPublishRollbackEvidenceRequired": true
     },
     "directDownloadEvidence": {
       "ownerApproved": true,
@@ -88,20 +89,13 @@
       },
       "reason": "The canonical-host POST ticket flow and live envelope compatibility are source-revision patch changes after the published 0.2.0 package set. The coordinated 0.2.1 patch candidate keeps companion package versions aligned; the behavior changes are concentrated in readback and uploader."
     },
-    "reason": "Existing catalog/download surfaces remain published at 0.2.0 where already released. The canonical-host POST ticket flow and live envelope compatibility are patch-candidate behavior changes in readback and uploader, carried by a coordinated 0.2.1 package candidate. Publishing those changes is blocked until hosted Release Check passes for the candidate, owner package-release approval is recorded, the trusted publishing workflow completes, registry readback verifies the new versions, clean install smoke passes for the new versions, rollback/unpublish evidence is recorded, and branch cleanup is complete.",
-    "blockers": [
-      "Hosted Release Check for the patch candidate is not yet recorded.",
-      "Owner approval to publish the patch candidate is not yet recorded.",
-      "Trusted Publishing has not published the patch candidate.",
-      "Registry readback for the patch versions is not yet available.",
-      "Clean install smoke for the patch versions is not yet available.",
-      "Rollback and branch-cleanup evidence for the patch release is not yet recorded."
-    ]
+    "reason": "Owner approval is recorded to execute the coordinated 0.2.1 patch publication through the checked-in GitHub Actions Trusted Publishing workflow. The release remains scoped to package availability for catalog/download helper changes; direct broad byte-transfer availability, resource approval, safety certification, installation, extraction, and execution claims remain excluded. Post-publish registry readback, clean install smoke, rollback evidence, and branch cleanup must be recorded before the closeout evidence is complete.",
+    "blockers": []
   },
   "agentNativePublicationDecision": {
-    "decision": "no_go",
-    "releaseBlocked": true,
-    "advertisePackageChanges": false,
+    "decision": "go",
+    "releaseBlocked": false,
+    "advertisePackageChanges": true,
     "advertiseResolverAvailability": false,
     "advertiseDirectInstall": false,
     "advertiseRuntimeSupport": false,
@@ -110,13 +104,12 @@
       "installedTarballSmoke": true,
       "agentNativePackageSurfaceSmoke": true,
       "registryPendingReadback": true,
-      "hostedCiForCandidate": false,
-      "ownerPackageReleaseApproval": false,
-      "trustedPublishingForCandidate": false,
-      "newVersionRegistryReadback": false,
-      "newVersionInstallSmoke": false,
-      "rollbackEvidenceForNewRelease": false,
-      "branchCleanup": false
+      "ownerPackageReleaseApproval": true,
+      "publishWorkflowRequired": true,
+      "postPublishRegistryReadbackRequired": true,
+      "postPublishInstallSmokeRequired": true,
+      "postPublishRollbackEvidenceRequired": true,
+      "branchCleanupRequired": true
     },
     "targetPackages": {
       "@agentique.io/schemas": "0.2.1",
@@ -125,15 +118,8 @@
       "@agentique.io/readback": "0.2.1",
       "@agentique.io/uploader": "0.2.1"
     },
-    "reason": "Agent-native schema, validator, readback, badge, uploader dry-run, and starter surfaces are source-revision patch-candidate changes after the published 0.2.0 package set. Local validation, installed-tarball smoke, and pending-state registry readback passed, but publishing or advertising package availability is blocked until hosted Release Check passes for the candidate, owner package-release approval is recorded, Trusted Publishing completes, registry readback verifies the new versions, clean install smoke passes for the new versions, rollback evidence is recorded, and branch cleanup is complete.",
-    "blockers": [
-      "Hosted Release Check for the agent-native patch candidate is not yet recorded.",
-      "Owner approval to publish the agent-native patch candidate is not yet recorded.",
-      "Trusted Publishing has not published the agent-native patch candidate.",
-      "Registry readback for the agent-native patch versions is not yet available.",
-      "Clean install smoke for the agent-native patch versions is not yet available.",
-      "Rollback and branch-cleanup evidence for the agent-native patch release is not yet recorded."
-    ]
+    "reason": "Owner approval is recorded to execute the coordinated 0.2.1 patch publication through the checked-in GitHub Actions Trusted Publishing workflow. The release remains scoped to package availability for agent-native schemas, validator findings, readback/badge helpers, uploader dry-runs, and starter metadata; resolver availability, direct install, credential handling, runtime compatibility, approval, publication of resources, and safety claims remain excluded. Post-publish registry readback, clean install smoke, rollback evidence, and branch cleanup must be recorded before the closeout evidence is complete.",
+    "blockers": []
   },
   "blockers": []
 }

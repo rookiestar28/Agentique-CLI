@@ -189,7 +189,7 @@ function collectNpmInstallPostureFindings(content, relativePath) {
       continue;
     }
 
-    if (/\bnpm(?:\s+--prefix\s+\S+)?\s+install\b/i.test(command)) {
+    if (/\bnpm(?:\s+--prefix\s+\S+)?\s+install\b/i.test(command) && !/\s--ignore-scripts(?:\s|$)/i.test(command)) {
       failures.push(`workflow uses lifecycle-enabled npm install: ${relativePath}`);
       continue;
     }

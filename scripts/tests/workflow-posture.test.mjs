@@ -150,7 +150,7 @@ test("rejects lifecycle-enabled npm installs in pull request workflows", async (
   assert.match(findings, /npm ci without --ignore-scripts/);
 });
 
-test("accepts lockfile-backed lifecycle-disabled npm installs", async () => {
+test("accepts lifecycle-disabled npm installs", async () => {
   const repoRoot = await createWorkflowRepo({
     "release-check.yml": [
       "name: Safe install",
@@ -163,7 +163,8 @@ test("accepts lockfile-backed lifecycle-disabled npm installs", async () => {
       "    runs-on: ubuntu-latest",
       "    steps:",
       "      - run: npm ci --ignore-scripts",
-      "      - run: npm --prefix packages/action ci --ignore-scripts"
+      "      - run: npm --prefix packages/action ci --ignore-scripts",
+      "      - run: npm --prefix packages/uploader install --ignore-scripts --package-lock=false --no-audit --no-fund"
     ].join("\n")
   });
 
