@@ -23,17 +23,13 @@
   },
   "packagePublicationState": {
     "publishedPackages": {
-      "@agentique.io/schemas": "0.2.0",
-      "@agentique.io/validator": "0.2.0",
-      "@agentique.io/action": "0.2.0",
-      "@agentique.io/readback": "0.2.0",
-      "@agentique.io/uploader": "0.2.0"
-    },
-    "pendingPackages": {
       "@agentique.io/schemas": "0.2.1",
       "@agentique.io/validator": "0.2.1",
       "@agentique.io/action": "0.2.1",
       "@agentique.io/readback": "0.2.1",
+      "@agentique.io/uploader": "0.2.0"
+    },
+    "pendingPackages": {
       "@agentique.io/uploader": "0.2.1"
     }
   },

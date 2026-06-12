@@ -132,8 +132,9 @@ jobs:
 
       - name: Verify uploader package dependencies
         run: |
-          npm --prefix packages/uploader install --ignore-scripts --package-lock=false --no-audit --no-fund
+          npm --prefix packages/uploader install --package-lock-only --ignore-scripts --no-audit --no-fund
           npm --prefix packages/uploader audit --omit=dev
+          rm -f packages/uploader/package-lock.json
 
       - name: Publish uploader package
         if: ${{ steps.package_status.outputs.uploader_exists != 'true' }}

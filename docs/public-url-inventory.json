@@ -1,6 +1,6 @@
 {
   "releaseBlocked": false,
-  "reason": "Source repository, approved package registry pages at the published 0.2.0 version, action usage reference, badge/readback documentation, and agentique.io public links are approved for advertising after publication and smoke testing. The coordinated 0.2.1 patch candidate is owner-approved for release workflow execution and is not yet published at this source checkpoint.",
+  "reason": "Source repository, approved package registry pages, action usage reference, badge/readback documentation, and agentique.io public links are approved for advertising after publication and smoke testing. The coordinated 0.2.1 patch candidate is owner-approved for release workflow execution; schemas, validator, action, and readback are published at 0.2.1, while uploader remains pending at 0.2.1 for the publish retry.",
   "entries": [
     {
       "id": "public-repository",
