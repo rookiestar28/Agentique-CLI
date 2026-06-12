@@ -226,4 +226,16 @@ These smoke checks approve source repository, published package registry, action
 
 ## Current Decision
 
-The source repository, published npm packages including `@agentique.io/uploader`, action usage reference, badge/readback documentation, and `agentique.io` public links remain Go for existing advertised channels. Parser/variant source changes are Go for the coordinated package-release claim. Catalog/download behavior already published in `0.2.0` remains limited to that release evidence. The canonical-host live envelope, POST-ticket byte-transfer compatibility, and agent-native local-review/readback-helper surfaces in this source revision are published in the coordinated `0.2.1` package set. Authenticated review-session access and final resource publication remain platform-owned and account/token gated. GitHub Marketplace-style promotion remains separate from this source/package release.
+The source repository, published npm packages, action usage reference,
+badge/readback documentation, and `agentique.io` public links remain Go for
+existing advertised channels. The published package set includes
+`@agentique.io/uploader` at `0.2.1`.
+
+Parser/variant source changes are Go for the coordinated package-release claim.
+Catalog/download behavior already published in `0.2.0` remains limited to that
+release evidence. The canonical-host live envelope, POST-ticket byte-transfer
+compatibility, and agent-native local-review/readback-helper surfaces in this
+source revision are published in the coordinated `0.2.1` package set.
+Authenticated review-session access and final resource publication remain
+platform-owned and account/token gated. GitHub Marketplace-style promotion
+remains separate from this source/package release.
