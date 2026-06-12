@@ -53,7 +53,7 @@ npm install @agentique.io/schemas @agentique.io/validator @agentique.io/readback
 
 Published package pages currently include `@agentique.io/schemas`, `@agentique.io/validator`, `@agentique.io/action`, `@agentique.io/readback`, and `@agentique.io/uploader`. Registry readback currently shows all five companion packages at `0.2.1`.
 
-Parser/variant package surfaces are included in the coordinated npm package release `0.2.0`; the scoped release decision in [docs/release-go-no-go.md](docs/release-go-no-go.md) records hosted CI, GitHub Actions publication, registry readback, clean install smoke, and rollback/unpublish procedure evidence.
+Parser/variant package surfaces were included in the coordinated npm package release `0.2.0` and are carried forward in the published `0.2.1` package set; the scoped release decision in [docs/release-go-no-go.md](docs/release-go-no-go.md) records hosted CI, GitHub Actions publication, registry readback, clean install smoke, and rollback/unpublish procedure evidence.
 
 Catalog/download CLI and SDK surfaces are included in the coordinated npm package releases. The `0.2.1` package set is published for canonical public catalog envelopes and ticket-backed byte transfer. Owner-approved disposable byte-transfer evidence is recorded for a public catalog resource; this is a bounded live transfer smoke, not a safety certification or platform approval of downloaded content.
 
@@ -183,6 +183,7 @@ Approved and separate channels:
 - Package registry URLs are approved after publication and install smoke testing.
 - Badge/readback documentation is approved through the published readback package.
 - Public action usage documentation is approved as a repository usage reference.
+- Repository-side known-issues hardening is reconciled in `KNOWN_ISSUES.md`; GitHub Actions registry provenance succeeded for the coordinated `0.2.1` release, and future publisher, workflow, package, or environment changes still require owner-side confirmation.
 - GitHub Marketplace-style promotion remains separate from this source/package release.
 - Platform API access and final resource publication remain platform-owned and account/token gated.
 
