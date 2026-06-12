@@ -5,6 +5,7 @@ import Ajv from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
 
 const schemaFiles = [
+  "agent-native.schema.json",
   "distribution-mode.schema.json",
   "context-bundle.schema.json",
   "output-contract.schema.json",
@@ -97,6 +98,20 @@ const platformManagedCreatorKeys = new Set([
   "platformTrustScore",
   "publishedAt",
   "publicationState",
+  "scanPassed",
+  "verifiedBadge"
+]);
+
+const agentNativePlatformManagedCreatorKeys = new Set([
+  "approved",
+  "credentialValuesPresent",
+  "directInstall",
+  "directInstallSupported",
+  "downloadAvailability",
+  "latestPointer",
+  "latestVersion",
+  "platformManaged",
+  "resolverResult",
   "scanPassed",
   "verifiedBadge"
 ]);
@@ -347,6 +362,7 @@ function validateManifestContracts(manifest, findings) {
 
   validateRegistryTrustContracts(manifest.registryTrust, findings);
   validateParserVariantContracts(manifest.parserVariant, findings);
+  validateAgentNativeContracts(manifest.agentNative, findings);
 }
 
 function validateRegistryTrustContracts(registryTrust, findings) {
@@ -490,6 +506,95 @@ function validateParserVariantContracts(parserVariant, findings) {
   });
 }
 
+function validateAgentNativeContracts(agentNative, findings) {
+  if (!isRecord(agentNative)) return;
+
+  collectAgentNativePlatformManagedCreatorKeys(agentNative, "manifest.agentNative", findings);
+
+  const provenanceTrust = isRecord(agentNative.provenanceTrust) ? agentNative.provenanceTrust : null;
+  if (provenanceTrust) {
+    if (provenanceTrust.nonCertifying !== true) {
+      findings.push(
+        finding(
+          "agent-native-overclaim",
+          "Agent-native provenance metadata must remain non-certifying.",
+          "manifest.agentNative.provenanceTrust"
+        )
+      );
+    }
+
+    if (["missing", "stale", "invalid", "review-required"].includes(provenanceTrust.evidenceState)) {
+      findings.push(
+        finding(
+          "agent-native-trust-stale",
+          "Agent-native provenance evidence requires review before trust or resolver claims.",
+          "manifest.agentNative.provenanceTrust"
+        )
+      );
+    }
+  }
+
+  const installGuidance = Array.isArray(agentNative.installGuidance) ? agentNative.installGuidance : [];
+  installGuidance.forEach((target, index) => {
+    if (!isRecord(target)) return;
+    const location = `manifest.agentNative.installGuidance[${index}]`;
+
+    if (target.noExecution !== true) {
+      findings.push(
+        finding(
+          "agent-native-overclaim",
+          "Agent-native install guidance must remain no-execution local preparation metadata.",
+          location
+        )
+      );
+    }
+
+    if (["unsupported", "blocked", "stale"].includes(target.state)) {
+      findings.push(
+        finding(
+          "agent-native-unsupported-target",
+          "Agent-native install guidance declares a target that is unsupported, blocked, or stale.",
+          location
+        )
+      );
+    }
+  });
+
+  const privateMcpBoundary = isRecord(agentNative.privateMcpBoundary) ? agentNative.privateMcpBoundary : null;
+  if (privateMcpBoundary) {
+    if (privateMcpBoundary.toolResponseIsolation !== true) {
+      findings.push(
+        finding(
+          "agent-native-overclaim",
+          "Private MCP boundary metadata must preserve tool-response isolation.",
+          "manifest.agentNative.privateMcpBoundary"
+        )
+      );
+    }
+
+    if (["private-denied", "requires-organization-review"].includes(privateMcpBoundary.visibility)) {
+      findings.push(
+        finding(
+          "agent-native-private-denied",
+          "Private MCP boundary metadata declares private or organization-scoped visibility.",
+          "manifest.agentNative.privateMcpBoundary"
+        )
+      );
+    }
+  }
+
+  const resolverIntent = isRecord(agentNative.resolverIntent) ? agentNative.resolverIntent : null;
+  if (resolverIntent && ["manual-review", "show-alternatives"].includes(resolverIntent.ambiguityHandling)) {
+    findings.push(
+      finding(
+        "agent-native-resolver-ambiguity",
+        "Agent-native resolver intent requires ambiguity handling before resolver claims.",
+        "manifest.agentNative.resolverIntent"
+      )
+    );
+  }
+}
+
 function collectPlatformManagedCreatorKeys(value, location, findings) {
   if (Array.isArray(value)) {
     value.forEach((item, index) => collectPlatformManagedCreatorKeys(item, `${location}[${index}]`, findings));
@@ -511,14 +616,88 @@ function collectPlatformManagedCreatorKeys(value, location, findings) {
   }
 }
 
+function collectAgentNativePlatformManagedCreatorKeys(value, location, findings) {
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => collectAgentNativePlatformManagedCreatorKeys(item, `${location}[${index}]`, findings));
+    return;
+  }
+  if (!isRecord(value)) return;
+
+  for (const [key, nested] of Object.entries(value)) {
+    if (agentNativePlatformManagedCreatorKeys.has(key)) {
+      findings.push(
+        finding(
+          "agent-native-platform-overclaim",
+          "Creator manifests cannot set platform-managed agent-native latest, resolver, private, download, or badge state.",
+          location
+        )
+      );
+    }
+    collectAgentNativePlatformManagedCreatorKeys(nested, `${location}.${key}`, findings);
+  }
+}
+
 function summarizeManifest(manifest) {
   if (!isRecord(manifest)) return null;
 
   return {
     name: typeof manifest.name === "string" ? manifest.name : null,
     formatVersion: typeof manifest.formatVersion === "string" ? manifest.formatVersion : null,
+    ...(isRecord(manifest.agentNative) ? { agentNative: summarizeAgentNative(manifest.agentNative) } : {}),
     ...(isRecord(manifest.parserVariant) ? { parserVariant: summarizeParserVariant(manifest.parserVariant) } : {}),
     ...(isRecord(manifest.registryTrust) ? { registryTrust: summarizeRegistryTrust(manifest.registryTrust) } : {})
+  };
+}
+
+function summarizeAgentNative(agentNative) {
+  const namespace = isRecord(agentNative.namespace) ? agentNative.namespace : null;
+  const provenanceTrust = isRecord(agentNative.provenanceTrust) ? agentNative.provenanceTrust : null;
+  const installGuidance = Array.isArray(agentNative.installGuidance) ? agentNative.installGuidance.filter(isRecord) : [];
+  const privateMcpBoundary = isRecord(agentNative.privateMcpBoundary) ? agentNative.privateMcpBoundary : null;
+  const resolverIntent = isRecord(agentNative.resolverIntent) ? agentNative.resolverIntent : null;
+
+  return {
+    namespace: namespace
+      ? {
+          namespaceId: typeof namespace.namespaceId === "string" ? namespace.namespaceId : null,
+          namespaceSlug: typeof namespace.namespaceSlug === "string" ? namespace.namespaceSlug : null,
+          resourceCoordinate: typeof namespace.resourceCoordinate === "string" ? namespace.resourceCoordinate : null,
+          version: typeof namespace.version === "string" ? namespace.version : null,
+          latestPointerPresent: isRecord(namespace.latestPointer)
+        }
+      : null,
+    provenanceTrust: provenanceTrust
+      ? {
+          evidenceTier: typeof provenanceTrust.evidenceTier === "string" ? provenanceTrust.evidenceTier : null,
+          evidenceState: typeof provenanceTrust.evidenceState === "string" ? provenanceTrust.evidenceState : null,
+          sourceKindCount: Array.isArray(provenanceTrust.sourceKinds) ? provenanceTrust.sourceKinds.length : 0,
+          digestPresent: typeof provenanceTrust.digest === "string",
+          nonCertifying: provenanceTrust.nonCertifying === true,
+          reasonCount: Array.isArray(provenanceTrust.reasons) ? provenanceTrust.reasons.length : 0
+        }
+      : null,
+    installGuidance: installGuidance.map((target) => ({
+      targetId: typeof target.targetId === "string" ? target.targetId : null,
+      state: typeof target.state === "string" ? target.state : null,
+      artifactKind: typeof target.artifactKind === "string" ? target.artifactKind : null,
+      noExecution: target.noExecution === true,
+      requiresManualReview: target.requiresManualReview === true,
+      reasonCount: Array.isArray(target.reasons) ? target.reasons.length : 0
+    })),
+    privateMcpBoundary: privateMcpBoundary
+      ? {
+          visibility: typeof privateMcpBoundary.visibility === "string" ? privateMcpBoundary.visibility : null,
+          credentialHandling: typeof privateMcpBoundary.credentialHandling === "string" ? privateMcpBoundary.credentialHandling : null,
+          toolResponseIsolation: privateMcpBoundary.toolResponseIsolation === true,
+          reasonCount: Array.isArray(privateMcpBoundary.reasons) ? privateMcpBoundary.reasons.length : 0
+        }
+      : null,
+    resolverIntent: resolverIntent
+      ? {
+          intentKindCount: Array.isArray(resolverIntent.intentKinds) ? resolverIntent.intentKinds.length : 0,
+          ambiguityHandling: typeof resolverIntent.ambiguityHandling === "string" ? resolverIntent.ambiguityHandling : null
+        }
+      : null
   };
 }
 

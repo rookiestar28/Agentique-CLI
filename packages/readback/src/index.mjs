@@ -2,6 +2,7 @@ export {
   ReadbackError,
   assertReadOnlyClientSurface,
   createReadbackClient,
+  normalizeAgentNativeReadback,
   normalizeDownloadMetadata,
   normalizeParserVariantReadback,
   normalizeResourceList,

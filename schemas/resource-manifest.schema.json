@@ -56,6 +56,9 @@
     "parserVariant": {
       "$ref": "https://schemas.agentique.io/parser-variant.schema.json#/$defs/parserVariantMetadata"
     },
+    "agentNative": {
+      "$ref": "https://schemas.agentique.io/agent-native.schema.json#/$defs/agentNativeMetadata"
+    },
     "registryTrust": {
       "type": "object",
       "additionalProperties": false,

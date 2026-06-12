@@ -1,12 +1,19 @@
 import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 
+export const SCOPED_DECISION_KEYS = Object.freeze([
+  "uploaderPublicationDecision",
+  "parserVariantPublicationDecision",
+  "catalogDownloadPublicationDecision",
+  "agentNativePublicationDecision"
+]);
+
 export function collectReleaseDecisionFailures(decision) {
   const failures = [];
 
   failures.push(...collectDecisionFailures(decision, { scope: "root", includeScope: false }));
 
-  for (const key of ["uploaderPublicationDecision", "parserVariantPublicationDecision", "catalogDownloadPublicationDecision"]) {
+  for (const key of SCOPED_DECISION_KEYS) {
     if (decision[key]) {
       failures.push(...collectDecisionFailures(decision[key], { scope: key, includeScope: true }));
     }
@@ -72,7 +79,7 @@ export function main() {
         ? "Release go/no-go check passed: GO."
         : "Release go/no-go check passed: NO-GO with explicit blockers."
     );
-    for (const key of ["uploaderPublicationDecision", "parserVariantPublicationDecision", "catalogDownloadPublicationDecision"]) {
+    for (const key of SCOPED_DECISION_KEYS) {
       if (!decision[key]) {
         continue;
       }

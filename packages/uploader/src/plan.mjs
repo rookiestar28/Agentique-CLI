@@ -7,6 +7,7 @@ const PLAN_SCHEMA_VERSION = "agentique.uploader.plan.v1";
 const CHECKPOINT_SCHEMA_VERSION = "agentique.uploader.checkpoints.v1";
 const IMPORT_PLAN_SCHEMA_VERSION = "agentique.uploader.importPlan.v1";
 const VARIANT_PLAN_SCHEMA_VERSION = "agentique.uploader.variantPlan.v1";
+const AGENT_NATIVE_PLAN_SCHEMA_VERSION = "agentique.uploader.agentNativePlan.v1";
 
 export const REQUIRED_CREATOR_CHECKPOINTS = Object.freeze([
   "lane-selection",
@@ -172,6 +173,109 @@ export async function createVariantPlan(options) {
   };
 }
 
+export async function createAgentNativePlan(options) {
+  const uploadPlan = await createUploadPlan(options);
+  const agentNative = isRecord(uploadPlan.agentNative) ? uploadPlan.agentNative : null;
+  const namespace = isRecord(agentNative?.namespace) ? agentNative.namespace : null;
+  const provenanceTrust = isRecord(agentNative?.provenanceTrust) ? agentNative.provenanceTrust : null;
+  const installGuidance = Array.isArray(agentNative?.installGuidance) ? agentNative.installGuidance.filter(isRecord) : [];
+  const privateMcpBoundary = isRecord(agentNative?.privateMcpBoundary) ? agentNative.privateMcpBoundary : null;
+  const resolverIntent = isRecord(agentNative?.resolverIntent) ? agentNative.resolverIntent : null;
+  const findings = [...(uploadPlan.evidence?.findings ?? [])];
+
+  if (!agentNative) {
+    findings.push({
+      code: "agent-native-plan-metadata-missing",
+      message: "Agent-native metadata is required before agent-native dry-run planning can be ready.",
+      location: "manifest.agentNative"
+    });
+  } else {
+    if (!namespace) {
+      findings.push({
+        code: "agent-native-plan-namespace-missing",
+        message: "Agent-native namespace metadata is required before dry-run planning can be ready.",
+        location: "manifest.agentNative.namespace"
+      });
+    }
+    if (installGuidance.length === 0) {
+      findings.push({
+        code: "agent-native-plan-install-guidance-missing",
+        message: "Agent-native install guidance is required before dry-run planning can be ready.",
+        location: "manifest.agentNative.installGuidance"
+      });
+    }
+    if (!resolverIntent) {
+      findings.push({
+        code: "agent-native-plan-resolver-intent-missing",
+        message: "Agent-native resolver intent is required before dry-run planning can be ready.",
+        location: "manifest.agentNative.resolverIntent"
+      });
+    }
+  }
+
+  const ok = uploadPlan.ok && agentNative !== null && namespace !== null && installGuidance.length > 0 && resolverIntent !== null && findings.length === 0;
+
+  return {
+    schemaVersion: AGENT_NATIVE_PLAN_SCHEMA_VERSION,
+    ok,
+    code: ok ? "upload.agent_native_plan.ready" : "upload.agent_native_plan.review_required",
+    command: "upload agent-native-plan",
+    reviewOnly: true,
+    dryRunOnly: true,
+    noExecution: true,
+    package: uploadPlan.package,
+    namespace: namespace
+      ? {
+          namespaceId: namespace.namespaceId ?? null,
+          namespaceSlug: namespace.namespaceSlug ?? null,
+          resourceCoordinate: namespace.resourceCoordinate ?? null,
+          version: namespace.version ?? null,
+          latestPointerPresent: namespace.latestPointerPresent === true
+        }
+      : null,
+    provenanceTrust: provenanceTrust
+      ? {
+          evidenceTier: provenanceTrust.evidenceTier ?? null,
+          evidenceState: provenanceTrust.evidenceState ?? null,
+          sourceKindCount: numberOrNull(provenanceTrust.sourceKindCount) ?? 0,
+          digestPresent: provenanceTrust.digestPresent === true,
+          nonCertifying: provenanceTrust.nonCertifying === true,
+          reasonCount: numberOrNull(provenanceTrust.reasonCount) ?? 0
+        }
+      : null,
+    installGuidance: installGuidance.map((target) => ({
+      targetId: target.targetId ?? null,
+      state: target.state ?? null,
+      artifactKind: target.artifactKind ?? null,
+      noExecution: target.noExecution === true,
+      requiresManualReview: target.requiresManualReview === true,
+      reasonCount: numberOrNull(target.reasonCount) ?? 0,
+      readyForLocalReview:
+        target.noExecution === true && ["source-only", "guidance-only"].includes(target.state) && target.requiresManualReview === true
+    })),
+    privateMcpBoundary: privateMcpBoundary
+      ? {
+          visibility: privateMcpBoundary.visibility ?? null,
+          credentialHandling: privateMcpBoundary.credentialHandling ?? null,
+          toolResponseIsolation: privateMcpBoundary.toolResponseIsolation === true,
+          reasonCount: numberOrNull(privateMcpBoundary.reasonCount) ?? 0
+        }
+      : null,
+    resolverIntent: resolverIntent
+      ? {
+          intentKindCount: numberOrNull(resolverIntent.intentKindCount) ?? 0,
+          ambiguityHandling: resolverIntent.ambiguityHandling ?? null,
+          failClosed: resolverIntent.ambiguityHandling === "fail-closed"
+        }
+      : null,
+    evidence: {
+      inventoryDigest: uploadPlan.evidence?.inventoryDigest ?? null,
+      findingCount: findings.length,
+      findings
+    }
+  };
+}
+
 export function evaluateUploadCheckpointEvidence(registryTrust) {
   const checkpointEntries = isRecord(registryTrust) && Array.isArray(registryTrust.creatorCheckpoints)
     ? registryTrust.creatorCheckpoints
@@ -241,6 +345,7 @@ function createPlanFromReport(report, registryTrust) {
   const inventoryDigest = digestInventory(inventory);
   const registryTrustSummary = isRecord(report.manifest?.registryTrust) ? report.manifest.registryTrust : null;
   const parserVariantSummary = isRecord(report.manifest?.parserVariant) ? report.manifest.parserVariant : null;
+  const agentNativeSummary = isRecord(report.manifest?.agentNative) ? report.manifest.agentNative : null;
 
   return {
     schemaVersion: PLAN_SCHEMA_VERSION,
@@ -256,6 +361,7 @@ function createPlanFromReport(report, registryTrust) {
     },
     registryTrust: registryTrustSummary,
     parserVariant: parserVariantSummary,
+    agentNative: agentNativeSummary,
     checkpoints: evaluateUploadCheckpointEvidence(registryTrust),
     evidence: {
       inventory,

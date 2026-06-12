@@ -8,6 +8,7 @@ import {
   evaluateRegistryReadback,
 } from "../registry-readback.mjs";
 import {
+  collectAgentNativePackageSurfaceFailures,
   collectCatalogDownloadPackageSurfaceFailures,
   collectParserVariantPackageSurfaceFailures,
   collectForbiddenPackedFiles,
@@ -67,6 +68,23 @@ test("release go/no-go accepts scoped catalog download publication no-go", () =>
         decision: "no_go",
         releaseBlocked: true,
         blockers: ["current live endpoint evidence for catalog and download availability is missing"]
+      }
+    }),
+    []
+  );
+});
+
+test("release go/no-go accepts scoped agent-native publication no-go", () => {
+  assert.deepEqual(
+    collectReleaseDecisionFailures({
+      decision: "go",
+      releaseBlocked: false,
+      localChecks: { tests: true },
+      externalEvidence: { ownerApproval: true },
+      agentNativePublicationDecision: {
+        decision: "no_go",
+        releaseBlocked: true,
+        blockers: ["agent-native patch candidate has no owner-approved package publication"]
       }
     }),
     []
@@ -168,6 +186,30 @@ test("install smoke covers catalog and direct download package surface", () => {
       "uploader help missing catalog get command",
       "uploader help missing catalog download-metadata command",
       "uploader help missing direct download command"
+    ]
+  );
+});
+
+test("install smoke covers agent-native package surface", () => {
+  assert.deepEqual(
+    collectAgentNativePackageSurfaceFailures({
+      agentNativeSchemaExists: true,
+      hasNormalizeAgentNativeReadbackExport: true,
+      uploaderHelpText: "agentique upload agent-native-plan ./pkg"
+    }),
+    []
+  );
+
+  assert.deepEqual(
+    collectAgentNativePackageSurfaceFailures({
+      agentNativeSchemaExists: false,
+      hasNormalizeAgentNativeReadbackExport: false,
+      uploaderHelpText: "agentique upload plan ./pkg"
+    }),
+    [
+      "schemas package missing agent-native.schema.json",
+      "readback package missing normalizeAgentNativeReadback export",
+      "uploader help missing upload agent-native-plan command"
     ]
   );
 });

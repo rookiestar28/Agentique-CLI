@@ -60,6 +60,26 @@ export function collectParserVariantPackageSurfaceFailures({
   return failures;
 }
 
+export function collectAgentNativePackageSurfaceFailures({
+  agentNativeSchemaExists,
+  hasNormalizeAgentNativeReadbackExport,
+  uploaderHelpText
+}) {
+  const failures = [];
+
+  if (!agentNativeSchemaExists) {
+    failures.push("schemas package missing agent-native.schema.json");
+  }
+  if (!hasNormalizeAgentNativeReadbackExport) {
+    failures.push("readback package missing normalizeAgentNativeReadback export");
+  }
+  if (!/\bupload agent-native-plan\b/.test(uploaderHelpText ?? "")) {
+    failures.push("uploader help missing upload agent-native-plan command");
+  }
+
+  return failures;
+}
+
 export function collectCatalogDownloadPackageSurfaceFailures({
   hasDownloadResourceArtifactExport,
   hasNormalizeResourceListExport,
@@ -189,6 +209,13 @@ export function runInstalledSmoke(consumerDir) {
     "schemas",
     "parser-variant.schema.json"
   );
+  const agentNativeSchemaFile = path.join(
+    consumerDir,
+    "node_modules",
+    "@agentique.io",
+    "schemas",
+    "agent-native.schema.json"
+  );
   const actionModule = pathToFileURL(
     path.join(consumerDir, "node_modules", "@agentique.io", "action", "src", "action.mjs")
   ).href;
@@ -224,6 +251,15 @@ export function runInstalledSmoke(consumerDir) {
     throw new Error(`parser/variant package smoke failed: ${parserVariantFailures.join("; ")}`);
   }
 
+  const agentNativeFailures = collectAgentNativePackageSurfaceFailures({
+    agentNativeSchemaExists: existsSync(agentNativeSchemaFile),
+    hasNormalizeAgentNativeReadbackExport: readbackExports.normalizeAgentNativeReadback,
+    uploaderHelpText
+  });
+  if (agentNativeFailures.length > 0) {
+    throw new Error(`agent-native package smoke failed: ${agentNativeFailures.join("; ")}`);
+  }
+
   const catalogDownloadFailures = collectCatalogDownloadPackageSurfaceFailures({
     hasDownloadResourceArtifactExport: readbackExports.downloadResourceArtifact,
     hasNormalizeResourceListExport: readbackExports.normalizeResourceList,
@@ -256,7 +292,7 @@ function readInstalledReadbackExportStatus(consumerDir) {
         "-e",
         [
           "import('@agentique.io/readback').then((m)=>{",
-          "const names=['createReadbackClient','normalizeParserVariantReadback','downloadResourceArtifact','normalizeResourceList','normalizeDownloadMetadata'];",
+          "const names=['createReadbackClient','normalizeParserVariantReadback','normalizeAgentNativeReadback','downloadResourceArtifact','normalizeResourceList','normalizeDownloadMetadata'];",
           "console.log(JSON.stringify(Object.fromEntries(names.map((name)=>[name, typeof m[name] === 'function']))));",
           "})"
         ].join("")
@@ -272,6 +308,7 @@ function readInstalledReadbackExportStatus(consumerDir) {
     return {
       createReadbackClient: false,
       normalizeParserVariantReadback: false,
+      normalizeAgentNativeReadback: false,
       downloadResourceArtifact: false,
       normalizeResourceList: false,
       normalizeDownloadMetadata: false

@@ -6,7 +6,7 @@ This package helps integrators consume public Agentique resource status from `ag
 
 `agentique.io` remains the source of truth for upload, scan, review, moderation, publication, distribution state, and readback. This package does not publish, edit, delete, moderate, approve, certify, install, extract, open, or execute resources.
 
-Catalog and direct-download helpers are included in the published 0.2.0 package for the behavior released there. This source revision is part of a coordinated 0.2.1 patch candidate for canonical public catalog envelopes and ticket-backed byte transfer. That patch is not yet published on npm. The helpers remain read-only or explicit-output only. Owner-approved disposable byte-transfer evidence is recorded for a public catalog resource, but this evidence does not certify content safety, approve arbitrary resources, or guarantee every public resource is downloadable.
+Catalog and direct-download helpers are included in the published 0.2.0 package for the behavior released there. This source revision is part of a coordinated 0.2.1 patch candidate for canonical public catalog envelopes, ticket-backed byte transfer, and agent-native readback projection helpers. That patch is not yet published on npm. The helpers remain read-only or explicit-output only. Owner-approved disposable byte-transfer evidence is recorded for a public catalog resource, but this evidence does not certify content safety, approve arbitrary resources, or guarantee every public resource is downloadable.
 
 ## Install
 
@@ -21,6 +21,7 @@ import {
   createBadgeState,
   createReadbackClient,
   downloadResourceArtifact,
+  normalizeAgentNativeReadback,
   normalizeDownloadMetadata,
   normalizeParserVariantReadback,
   normalizeResourceList,
@@ -33,11 +34,13 @@ const metadata = normalizeDownloadMetadata(await client.getDownloadMetadata("res
 const readback = await client.getReadback("resource-id");
 const trust = normalizeTrustReadback(readback);
 const parserVariant = normalizeParserVariantReadback(readback);
+const agentNative = normalizeAgentNativeReadback(readback);
 const badge = createBadgeState(readback);
 
 console.log(badge.label);
 console.log(trust.trustPanel?.state ?? trust.platformState);
 console.log(parserVariant.parserEvidence?.parseStatus ?? "unavailable");
+console.log(agentNative.resolverResult?.state ?? "unavailable");
 console.log(`${catalog.items.length} catalog entries`);
 console.log(metadata.availability);
 ```
@@ -68,6 +71,8 @@ Returned payloads are normalized with a defense-in-depth projection pass that re
 
 `normalizeParserVariantReadback()` projects public parser evidence and platform variant fields into a bounded summary when those fields are present. It reports digest presence instead of raw digests and keeps parser/variant state descriptive. Source-only variant metadata remains preparation evidence and is not treated as platform download readiness.
 
+`normalizeAgentNativeReadback()` projects public namespace, provenance, install guidance, public-boundary, resolver result, and checkpoint fields into a bounded summary when those fields are present. It reports digest presence instead of raw digests and keeps resolver output non-certifying.
+
 `downloadResourceArtifact()` can write available artifact bytes to an explicit output path. It enforces HTTPS outside loopback development, manual redirect handling, no-overwrite by default, safe filename/path checks, temp-file cleanup, size limits, and digest verification. It does not install, extract, open, execute, approve, certify, publish, host, or moderate downloaded content. Treat downloaded bytes as untrusted until separately reviewed.
 
 ## Badge States
@@ -79,6 +84,10 @@ Badge helpers return explicit states:
 - `partial`
 - `unsupported`
 - `variant-available`
+- `agent-native-ready`
+- `agent-native-review-required`
+- `agent-native-private-denied`
+- `agent-native-ambiguous`
 - `review-required`
 - `rescan-required`
 - `blocked`
@@ -86,10 +95,10 @@ Badge helpers return explicit states:
 - `unavailable`
 - `rate-limited`
 
-Parser and variant badge states are public readback summaries. They do not prove runtime compatibility, create platform downloads, or replace platform review.
+Parser, variant, and agent-native badge states are public readback summaries. They do not prove runtime compatibility, create platform downloads, provide resolver availability, or replace platform review.
 
 Badge output is a public readback summary, not a safety guarantee.
 
 ## Status
 
-Published on npm as `@agentique.io/readback` at `0.2.0`. This source revision is a `0.2.1` patch candidate and is not yet published. Badge output is a public readback summary, not a platform approval or safety guarantee.
+Published on npm as `@agentique.io/readback` at `0.2.0`. This source revision is a `0.2.1` patch candidate and is not yet published. Agent-native readback helpers in this source revision are not an npm availability claim. Badge output is a public readback summary, not a platform approval or safety guarantee.

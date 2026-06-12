@@ -125,6 +125,20 @@ Parser and variant metadata is descriptive local preparation metadata. It does n
 
 Blocked, unsupported, stale, and review-required states should remain visible as states instead of being hidden. Public readback remains authoritative when `agentique.io` exposes parser/variant projection data.
 
+## Agent-Native Metadata
+
+Resource manifests may include optional `agentNative` metadata for public-safe agent-native preparation signals:
+
+- `namespace` records creator-declared namespace id, slug, coordinate, version, and declaration timestamp.
+- `provenanceTrust` records non-certifying source/referrer/signature/SBOM/attestation labels, evidence state, digest presence, and reason codes.
+- `installGuidance` records source-only or guidance-only target hints such as Codex or Claude Code, artifact kind, no-execution posture, manual-review expectations, and reason codes.
+- `privateMcpBoundary` records public metadata boundary labels such as public metadata only, omitted credential handling, and tool-response isolation.
+- `resolverIntent` records creator-supplied intent kinds and fail-closed or manual-review handling for ambiguous matches.
+
+Agent-native metadata is descriptive local preparation metadata. It does not resolve live resources, install packages, start MCP servers, run tools, provide credential handling, publish resources, approve submissions, certify safety, or prove runtime compatibility. Creator manifests may declare preparation hints, but platform-managed latest pointers, resolver results, access availability, download-backed install states, and badge states remain public readback fields owned by `agentique.io`.
+
+Blocked, unsupported, stale, private-denied, and resolver-ambiguous states should remain visible as states in fixtures and readback instead of being hidden. The uploader's agent-native plan command uses validator evidence for local review only.
+
 ## Scan Readback
 
-Scan, trust, parser, and variant readback are public statuses that `agentique.io` exposes after platform processing. Public readback can include desired-state, scanner-policy, trust-panel, review-eligibility, report-action, version-history, parser evidence, compatibility, and platform variant fields. Local validation is not platform approval. Local validation is not safety certification.
+Scan, trust, parser, variant, and agent-native readback are public statuses that `agentique.io` exposes after platform processing. Public readback can include desired-state, scanner-policy, trust-panel, review-eligibility, report-action, version-history, parser evidence, compatibility, platform variant fields, namespace/latest-pointer labels, provenance labels, install guidance, public-boundary labels, and resolver-result summaries. Local validation is not platform approval. Local validation is not safety certification.

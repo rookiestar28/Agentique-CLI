@@ -6,15 +6,15 @@ This package exposes a review-only upload lane plus public readback/download hel
 
 The package remains review-only; authenticated review-session access and final resource publication stay on `agentique.io`.
 
-Catalog and direct-download commands are included in the published 0.2.0 package for the behavior released there. This source revision is part of a coordinated 0.2.1 patch candidate for canonical public catalog envelopes and ticket-backed byte transfer. That patch is not yet published on npm. The commands remain read-only or explicit-output only. Owner-approved disposable byte-transfer evidence is recorded for a public catalog resource, but this evidence does not certify content safety, approve arbitrary resources, or guarantee every public resource is downloadable.
+Catalog and direct-download commands are included in the published 0.2.0 package for the behavior released there. This source revision is part of a coordinated 0.2.1 patch candidate for canonical public catalog envelopes, ticket-backed byte transfer, and agent-native dry-run planning. That patch is not yet published on npm. The commands remain read-only, local-preparation, or explicit-output only. Owner-approved disposable byte-transfer evidence is recorded for a public catalog resource, but this evidence does not certify content safety, approve arbitrary resources, or guarantee every public resource is downloadable.
 
 Current boundary:
 
 - The package reserves the `agentique` command name.
-- The CLI exposes help, version, auth, upload plan, local import-plan, local variant-plan, local draft, local patch, upload submit, and upload status commands.
+- The CLI exposes help, version, auth, upload plan, local import-plan, local variant-plan, local agent-native-plan, local draft, local patch, upload submit, and upload status commands.
 - Auth status can read a one-command `--token`, `AGENTIQUE_TOKEN`, or an `AGENTIQUE_CONFIG` JSON file and reports only redacted metadata.
 - Upload plan validates local packages with `@agentique.io/validator` without executing package code.
-- Upload import-plan and variant-plan reuse local validator evidence for dry-run parser and variant review; they do not execute source code, workflows, notebooks, package managers, Docker, MCP servers, or framework loaders.
+- Upload import-plan, variant-plan, and agent-native-plan reuse local validator evidence for dry-run parser, variant, and agent-native review; they do not execute source code, workflows, notebooks, package managers, Docker, MCP servers, tool calls, or framework loaders.
 - Source-only variant output is preparation evidence and is not platform download readiness.
 - Upload draft emits local draft-only card or manifest output for review; it does not submit generated content.
 - Upload patch emits local patch or delta operation summaries when package metadata provides them; it does not submit partial updates.
@@ -37,6 +37,7 @@ agentique auth status --token <token> --json
 agentique upload plan ./my-package --schemas-dir ./schemas --json
 agentique upload import-plan ./my-package --schemas-dir ./schemas --json
 agentique upload variant-plan ./my-package --schemas-dir ./schemas --json
+agentique upload agent-native-plan ./my-package --schemas-dir ./schemas --json
 agentique upload draft ./my-package --schemas-dir ./schemas --draft-kind manifest --json
 agentique upload patch ./my-package --schemas-dir ./schemas --json
 agentique upload submit ./my-package --schemas-dir ./schemas --token <token> --api-url https://www.agentique.io --json

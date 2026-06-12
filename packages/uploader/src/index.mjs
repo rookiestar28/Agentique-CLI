@@ -19,7 +19,7 @@ export const UPLOADER_PACKAGE_BOUNDARY = Object.freeze({
 export const UPLOADER_PACKAGE_VERSION = UPLOADER_PACKAGE_BOUNDARY.version;
 
 export { createGeneratedDraftOutput, createPatchDeltaOutput } from "./draft.mjs";
-export { createImportPlan, createUploadPlan, createVariantPlan } from "./plan.mjs";
+export { createAgentNativePlan, createImportPlan, createUploadPlan, createVariantPlan } from "./plan.mjs";
 
 export function createUploaderBoundaryStatus() {
   return {

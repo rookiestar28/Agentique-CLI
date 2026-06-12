@@ -140,6 +140,9 @@
     "parserVariant": {
       "$ref": "https://schemas.agentique.io/parser-variant.schema.json#/$defs/parserVariantReadback"
     },
+    "agentNative": {
+      "$ref": "https://schemas.agentique.io/agent-native.schema.json#/$defs/agentNativeReadback"
+    },
     "reportActionState": {
       "type": "string",
       "enum": ["available", "submitted", "rate-limited", "unavailable"]

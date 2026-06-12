@@ -1,0 +1,526 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.agentique.io/agent-native.schema.json",
+  "title": "Agentique Public Agent-Native Metadata",
+  "$ref": "#/$defs/agentNativeMetadata",
+  "$defs": {
+    "fingerprint": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "reasonCode": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 80,
+      "pattern": "^[a-z0-9][a-z0-9._-]*$"
+    },
+    "boundedText": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240
+    },
+    "publicHttpsUrl": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": ["high", "medium", "low", "unknown"]
+    },
+    "namespaceCoordinate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["namespaceId", "resourceCoordinate"],
+      "properties": {
+        "namespaceId": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 80,
+          "pattern": "^[a-z0-9][a-z0-9._-]*$"
+        },
+        "namespaceSlug": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 80,
+          "pattern": "^[a-z0-9][a-z0-9-]*$"
+        },
+        "displayName": {
+          "$ref": "#/$defs/boundedText"
+        },
+        "resourceCoordinate": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 160,
+          "pattern": "^[a-z0-9][a-z0-9._/-]*$"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[0-9A-Za-z][0-9A-Za-z.+_-]*$"
+        },
+        "declaredAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "latestPointerReadback": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "managedBy"],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": ["current", "stale", "rollback", "review-required", "blocked", "unavailable"]
+        },
+        "managedBy": {
+          "type": "string",
+          "const": "platform"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[0-9A-Za-z][0-9A-Za-z.+_-]*$"
+        },
+        "observedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "reasons": {
+          "type": "array",
+          "maxItems": 12,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/reasonCode"
+          }
+        }
+      }
+    },
+    "namespaceReadback": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["namespaceId", "resourceCoordinate"],
+      "properties": {
+        "namespaceId": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 80,
+          "pattern": "^[a-z0-9][a-z0-9._-]*$"
+        },
+        "namespaceSlug": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 80,
+          "pattern": "^[a-z0-9][a-z0-9-]*$"
+        },
+        "displayName": {
+          "$ref": "#/$defs/boundedText"
+        },
+        "resourceCoordinate": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 160,
+          "pattern": "^[a-z0-9][a-z0-9._/-]*$"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[0-9A-Za-z][0-9A-Za-z.+_-]*$"
+        },
+        "declaredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "latestPointer": {
+          "$ref": "#/$defs/latestPointerReadback"
+        }
+      }
+    },
+    "provenanceEvidenceDeclaration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidenceTier", "evidenceState", "nonCertifying"],
+      "properties": {
+        "evidenceTier": {
+          "type": "string",
+          "enum": ["none", "source-referrer", "signed-source", "sbom-declared", "attestation-declared", "review-required"]
+        },
+        "evidenceState": {
+          "type": "string",
+          "enum": ["declared", "missing", "stale", "invalid", "review-required"]
+        },
+        "sourceKinds": {
+          "type": "array",
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": ["source-url", "package-digest", "signature", "referrer", "sbom", "attestation"]
+          }
+        },
+        "digest": {
+          "$ref": "#/$defs/fingerprint"
+        },
+        "nonCertifying": {
+          "type": "boolean",
+          "const": true
+        },
+        "observedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "reasons": {
+          "type": "array",
+          "maxItems": 12,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/reasonCode"
+          }
+        }
+      }
+    },
+    "provenanceTrustReadback": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "evidenceTier", "nonCertifying"],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": ["current", "missing", "stale", "invalid", "review-required", "blocked", "unavailable"]
+        },
+        "evidenceTier": {
+          "type": "string",
+          "enum": ["none", "source-referrer", "signed-source", "sbom-present", "attestation-present", "review-required"]
+        },
+        "sourceKinds": {
+          "type": "array",
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": ["source-url", "package-digest", "signature", "referrer", "sbom", "attestation"]
+          }
+        },
+        "digestPresent": {
+          "type": "boolean"
+        },
+        "nonCertifying": {
+          "type": "boolean",
+          "const": true
+        },
+        "observedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "reasons": {
+          "type": "array",
+          "maxItems": 12,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/reasonCode"
+          }
+        }
+      }
+    },
+    "installTargetDeclaration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["targetId", "state", "noExecution"],
+      "properties": {
+        "targetId": {
+          "type": "string",
+          "enum": ["source-package", "codex", "claude-code", "cursor", "gemini-cli", "goose", "opencode", "mcp", "other"]
+        },
+        "state": {
+          "type": "string",
+          "enum": ["source-only", "guidance-only", "unsupported", "stale", "review-required", "blocked"]
+        },
+        "artifactKind": {
+          "type": "string",
+          "enum": ["source-package", "skill", "subagent", "workflow", "graph", "metadata", "guidance"]
+        },
+        "noExecution": {
+          "type": "boolean",
+          "const": true
+        },
+        "requiresManualReview": {
+          "type": "boolean"
+        },
+        "reasons": {
+          "type": "array",
+          "maxItems": 12,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/reasonCode"
+          }
+        }
+      }
+    },
+    "installTargetReadback": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["targetId", "state", "noExecution"],
+      "properties": {
+        "targetId": {
+          "type": "string",
+          "enum": ["source-package", "codex", "claude-code", "cursor", "gemini-cli", "goose", "opencode", "mcp", "other"]
+        },
+        "state": {
+          "type": "string",
+          "enum": ["download-backed", "source-only", "guidance-only", "unsupported", "stale", "review-required", "blocked", "unavailable"]
+        },
+        "artifactKind": {
+          "type": "string",
+          "enum": ["source-package", "skill", "subagent", "workflow", "graph", "metadata", "guidance"]
+        },
+        "downloadAvailability": {
+          "type": "string",
+          "enum": ["available", "source-only", "guidance-only", "unavailable", "blocked"]
+        },
+        "noExecution": {
+          "type": "boolean",
+          "const": true
+        },
+        "observedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "reasons": {
+          "type": "array",
+          "maxItems": 12,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/reasonCode"
+          }
+        }
+      }
+    },
+    "privateMcpBoundaryDeclaration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["visibility", "credentialHandling", "toolResponseIsolation"],
+      "properties": {
+        "visibility": {
+          "type": "string",
+          "enum": ["not-declared", "public-metadata-only", "private-denied", "requires-organization-review"]
+        },
+        "credentialHandling": {
+          "type": "string",
+          "enum": ["not-required", "placeholder-only", "omitted"]
+        },
+        "toolResponseIsolation": {
+          "type": "boolean",
+          "const": true
+        },
+        "reasons": {
+          "type": "array",
+          "maxItems": 12,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/reasonCode"
+          }
+        }
+      }
+    },
+    "privateMcpBoundaryReadback": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["availability", "visibility", "credentialValuesPresent", "toolResponseIsolation"],
+      "properties": {
+        "availability": {
+          "type": "string",
+          "enum": ["not-available", "private-denied", "organization-restricted", "review-required", "unavailable"]
+        },
+        "visibility": {
+          "type": "string",
+          "enum": ["public-metadata-only", "private-denied", "organization-restricted", "unavailable"]
+        },
+        "credentialReferenceKind": {
+          "type": "string",
+          "enum": ["none", "redacted-reference", "organization-managed"]
+        },
+        "credentialValuesPresent": {
+          "type": "boolean",
+          "const": false
+        },
+        "toolResponseIsolation": {
+          "type": "boolean",
+          "const": true
+        },
+        "observedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "reasons": {
+          "type": "array",
+          "maxItems": 12,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/reasonCode"
+          }
+        }
+      }
+    },
+    "resolverIntent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["intentKinds", "ambiguityHandling"],
+      "properties": {
+        "intentKinds": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/reasonCode"
+          }
+        },
+        "ambiguityHandling": {
+          "type": "string",
+          "enum": ["manual-review", "show-alternatives", "fail-closed"]
+        },
+        "notes": {
+          "$ref": "#/$defs/boundedText"
+        }
+      }
+    },
+    "resolverCheckpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "state"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["namespace", "provenance", "install-guidance", "private-boundary", "download", "ambiguity"]
+        },
+        "state": {
+          "type": "string",
+          "enum": ["passed", "review-required", "blocked", "stale", "unavailable"]
+        },
+        "reasons": {
+          "type": "array",
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/reasonCode"
+          }
+        }
+      }
+    },
+    "resolverResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "resourceId", "confidence", "ambiguity", "nonCertifying"],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": ["matched", "ambiguous", "review-required", "blocked", "unavailable"]
+        },
+        "resourceId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{1,80}$"
+        },
+        "confidence": {
+          "$ref": "#/$defs/confidence"
+        },
+        "relevance": {
+          "$ref": "#/$defs/confidence"
+        },
+        "ambiguity": {
+          "type": "string",
+          "enum": ["none", "alternatives-available", "manual-review-required"]
+        },
+        "platformUrl": {
+          "$ref": "#/$defs/publicHttpsUrl"
+        },
+        "downloadAvailability": {
+          "type": "string",
+          "enum": ["available", "source-only", "guidance-only", "unavailable", "blocked"]
+        },
+        "checkpoints": {
+          "type": "array",
+          "maxItems": 12,
+          "items": {
+            "$ref": "#/$defs/resolverCheckpoint"
+          }
+        },
+        "nonCertifying": {
+          "type": "boolean",
+          "const": true
+        },
+        "observedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "agentNativeMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion"],
+      "properties": {
+        "contractVersion": {
+          "type": "string",
+          "const": "1.0"
+        },
+        "namespace": {
+          "$ref": "#/$defs/namespaceCoordinate"
+        },
+        "provenanceTrust": {
+          "$ref": "#/$defs/provenanceEvidenceDeclaration"
+        },
+        "installGuidance": {
+          "type": "array",
+          "maxItems": 12,
+          "items": {
+            "$ref": "#/$defs/installTargetDeclaration"
+          }
+        },
+        "privateMcpBoundary": {
+          "$ref": "#/$defs/privateMcpBoundaryDeclaration"
+        },
+        "resolverIntent": {
+          "$ref": "#/$defs/resolverIntent"
+        }
+      }
+    },
+    "agentNativeReadback": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "observedAt"],
+      "properties": {
+        "contractVersion": {
+          "type": "string",
+          "const": "1.0"
+        },
+        "namespace": {
+          "$ref": "#/$defs/namespaceReadback"
+        },
+        "provenanceTrust": {
+          "$ref": "#/$defs/provenanceTrustReadback"
+        },
+        "installGuidance": {
+          "type": "array",
+          "maxItems": 12,
+          "items": {
+            "$ref": "#/$defs/installTargetReadback"
+          }
+        },
+        "privateMcpBoundary": {
+          "$ref": "#/$defs/privateMcpBoundaryReadback"
+        },
+        "resolverResult": {
+          "$ref": "#/$defs/resolverResult"
+        },
+        "observedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    }
+  }
+}

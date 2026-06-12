@@ -42,6 +42,8 @@ const PRIVATE_PROJECTION_KEYS = new Set([
   "storagepath"
 ]);
 
+const PUBLIC_PRIVATE_TERM_KEYS = new Set(["privatemcpboundary", "credentialreferencekind", "credentialvaluespresent"]);
+
 const PROTOTYPE_POLLUTION_KEYS = new Set(["__proto__", "constructor", "prototype"]);
 
 export class ReadbackError extends Error {
@@ -438,6 +440,102 @@ export function normalizeParserVariantReadback(value) {
   });
 }
 
+export function normalizeAgentNativeReadback(value) {
+  const normalized = normalizePublicReadback(value);
+  const agentNative = isRecord(normalized?.agentNative) ? normalized.agentNative : normalized;
+
+  if (!isRecord(agentNative) || !hasAgentNativeReadbackFields(agentNative)) {
+    return emptyAgentNativeSummary();
+  }
+
+  const namespace = isRecord(agentNative.namespace) ? agentNative.namespace : null;
+  const latestPointer = isRecord(namespace?.latestPointer) ? namespace.latestPointer : null;
+  const provenanceTrust = isRecord(agentNative.provenanceTrust) ? agentNative.provenanceTrust : null;
+  const installGuidance = Array.isArray(agentNative.installGuidance) ? agentNative.installGuidance.filter(isRecord) : [];
+  const privateMcpBoundary = isRecord(agentNative.privateMcpBoundary) ? agentNative.privateMcpBoundary : null;
+  const resolverResult = isRecord(agentNative.resolverResult) ? agentNative.resolverResult : null;
+  const checkpoints = Array.isArray(resolverResult?.checkpoints) ? resolverResult.checkpoints.filter(isRecord) : [];
+
+  return Object.freeze({
+    namespace: namespace
+      ? Object.freeze({
+          namespaceId: stringOrNull(namespace.namespaceId),
+          namespaceSlug: stringOrNull(namespace.namespaceSlug),
+          resourceCoordinate: stringOrNull(namespace.resourceCoordinate),
+          version: stringOrNull(namespace.version),
+          latestPointer: latestPointer
+            ? Object.freeze({
+                state: normalizePublicState(latestPointer.state),
+                managedBy: stringOrNull(latestPointer.managedBy),
+                version: stringOrNull(latestPointer.version),
+                observedAt: stringOrNull(latestPointer.observedAt),
+                reasons: arrayOfStrings(latestPointer.reasons)
+              })
+            : null
+        })
+      : null,
+    provenanceTrust: provenanceTrust
+      ? Object.freeze({
+          state: normalizePublicState(provenanceTrust.state),
+          evidenceTier: normalizePublicState(provenanceTrust.evidenceTier),
+          sourceKinds: arrayOfStrings(provenanceTrust.sourceKinds),
+          digestPresent: provenanceTrust.digestPresent === true || typeof provenanceTrust.digest === "string",
+          nonCertifying: provenanceTrust.nonCertifying === true,
+          observedAt: stringOrNull(provenanceTrust.observedAt),
+          reasons: arrayOfStrings(provenanceTrust.reasons)
+        })
+      : null,
+    installGuidance: Object.freeze(
+      installGuidance.map((target) =>
+        Object.freeze({
+          targetId: stringOrNull(target.targetId),
+          state: normalizePublicState(target.state),
+          artifactKind: stringOrNull(target.artifactKind),
+          downloadAvailability: normalizePublicState(target.downloadAvailability),
+          noExecution: target.noExecution === true,
+          observedAt: stringOrNull(target.observedAt),
+          reasons: arrayOfStrings(target.reasons)
+        })
+      )
+    ),
+    privateMcpBoundary: privateMcpBoundary
+      ? Object.freeze({
+          availability: normalizePublicState(privateMcpBoundary.availability),
+          visibility: normalizePublicState(privateMcpBoundary.visibility),
+          credentialReferenceKind: stringOrNull(privateMcpBoundary.credentialReferenceKind),
+          credentialValuesPresent: false,
+          toolResponseIsolation: privateMcpBoundary.toolResponseIsolation === true,
+          observedAt: stringOrNull(privateMcpBoundary.observedAt),
+          reasons: arrayOfStrings(privateMcpBoundary.reasons)
+        })
+      : null,
+    resolverResult: resolverResult
+      ? Object.freeze({
+          state: normalizePublicState(resolverResult.state),
+          resourceId: stringOrNull(resolverResult.resourceId),
+          confidence: normalizePublicState(resolverResult.confidence),
+          relevance: normalizePublicState(resolverResult.relevance),
+          ambiguity: normalizePublicState(resolverResult.ambiguity),
+          platformUrl: stringOrNull(resolverResult.platformUrl),
+          downloadAvailability: normalizePublicState(resolverResult.downloadAvailability),
+          checkpointCount: checkpoints.length,
+          checkpoints: Object.freeze(
+            checkpoints.map((checkpoint) =>
+              Object.freeze({
+                kind: stringOrNull(checkpoint.kind),
+                state: normalizePublicState(checkpoint.state),
+                reasons: arrayOfStrings(checkpoint.reasons)
+              })
+            )
+          ),
+          nonCertifying: resolverResult.nonCertifying === true,
+          observedAt: stringOrNull(resolverResult.observedAt)
+        })
+      : null,
+    observedAt: stringOrNull(agentNative.observedAt ?? normalized?.observedAt ?? normalized?.updatedAt)
+  });
+}
+
 function emptyParserVariantSummary() {
   return Object.freeze({
     parserEvidence: null,
@@ -446,6 +544,28 @@ function emptyParserVariantSummary() {
     platformVariants: Object.freeze([]),
     observedAt: null
   });
+}
+
+function emptyAgentNativeSummary() {
+  return Object.freeze({
+    namespace: null,
+    provenanceTrust: null,
+    installGuidance: Object.freeze([]),
+    privateMcpBoundary: null,
+    resolverResult: null,
+    observedAt: null
+  });
+}
+
+function hasAgentNativeReadbackFields(value) {
+  return [
+    "namespace",
+    "provenanceTrust",
+    "installGuidance",
+    "privateMcpBoundary",
+    "resolverResult",
+    "observedAt"
+  ].some((key) => Object.hasOwn(value, key));
 }
 
 function emptyResourceList() {
@@ -676,6 +796,11 @@ function firstString(...values) {
 
 function isPrivateProjectionKey(key) {
   const normalized = key.replace(/[-_\s]/g, "").toLowerCase();
+  // These exact schema keys are public labels; broad filtering still drops actual credential values.
+  if (PUBLIC_PRIVATE_TERM_KEYS.has(normalized)) {
+    return false;
+  }
+
   return (
     PRIVATE_PROJECTION_KEYS.has(normalized) ||
     normalized.startsWith("private") ||

@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { test } from "node:test";
 import { executeUploaderCli, EXIT_CODES, parseArgs } from "../src/cli-core.mjs";
-import { createUploaderBoundaryStatus, UPLOADER_PACKAGE_BOUNDARY } from "../src/index.mjs";
+import { createAgentNativePlan, createUploaderBoundaryStatus, UPLOADER_PACKAGE_BOUNDARY } from "../src/index.mjs";
 import { REQUIRED_CREATOR_CHECKPOINTS, evaluateUploadCheckpointEvidence } from "../src/plan.mjs";
 
 const execFileAsync = promisify(execFile);
@@ -123,6 +123,7 @@ test("cli returns help and version without treating them as errors", async () =>
   assert.match(help.stdout, /agentique upload submit/);
   assert.match(help.stdout, /agentique upload import-plan/);
   assert.match(help.stdout, /agentique upload variant-plan/);
+  assert.match(help.stdout, /agentique upload agent-native-plan/);
   assert.match(help.stdout, /agentique catalog list/);
   assert.match(help.stdout, /agentique catalog get/);
   assert.match(help.stdout, /agentique catalog download-metadata/);
@@ -974,6 +975,84 @@ test("upload variant-plan fails closed for unsupported or stale variants", async
   assert.doesNotMatch(result.stdout, forbiddenLocalOutputPattern([packageDir]));
 });
 
+test("upload agent-native-plan emits dry-run metadata without auth or network", async () => {
+  let calls = 0;
+  const packageDir = await createCheckpointPackageFixture({
+    agentNative: agentNativeFixture()
+  });
+  const result = await executeUploaderCli(
+    ["upload", "agent-native-plan", packageDir, "--schemas-dir", path.join(repoRoot, "schemas"), "--json"],
+    {
+      cwd: repoRoot,
+      fetchImpl: async () => {
+        calls += 1;
+        throw new Error("unexpected network call");
+      }
+    }
+  );
+  const status = JSON.parse(result.stdout);
+  const directPlan = await createAgentNativePlan({
+    packageDir,
+    schemasDir: path.join(repoRoot, "schemas"),
+    cwd: repoRoot
+  });
+
+  assert.equal(result.exitCode, EXIT_CODES.success);
+  assert.equal(status.ok, true);
+  assert.equal(status.code, "upload.agent_native_plan.ready");
+  assert.equal(status.data.schemaVersion, "agentique.uploader.agentNativePlan.v1");
+  assert.equal(status.data.reviewOnly, true);
+  assert.equal(status.data.dryRunOnly, true);
+  assert.equal(status.data.noExecution, true);
+  assert.equal(status.data.namespace.namespaceId, "agentique.examples");
+  assert.equal(status.data.namespace.resourceCoordinate, "agentique.examples/source-reviewer");
+  assert.equal(status.data.provenanceTrust.evidenceTier, "signed-source");
+  assert.equal(status.data.provenanceTrust.digestPresent, true);
+  assert.equal(status.data.installGuidance[0].targetId, "codex");
+  assert.equal(status.data.installGuidance[0].noExecution, true);
+  assert.equal(status.data.installGuidance[0].readyForLocalReview, true);
+  assert.equal(status.data.privateMcpBoundary.visibility, "public-metadata-only");
+  assert.equal(status.data.privateMcpBoundary.credentialHandling, "not-required");
+  assert.equal(status.data.resolverIntent.intentKindCount, 2);
+  assert.equal(status.data.resolverIntent.ambiguityHandling, "fail-closed");
+  assert.equal(directPlan.ok, true);
+  assert.equal(calls, 0);
+  assert.doesNotMatch(result.stdout, forbiddenLocalOutputPattern([packageDir]));
+  assert.equal(result.stdout.includes(fingerprint("agent-native-source")), false);
+  assert.doesNotMatch(result.stdout, /hidden-secret|api-token-value/i);
+});
+
+test("upload agent-native-plan fails closed for missing or incomplete metadata", async () => {
+  const missingPackageDir = await createCheckpointPackageFixture();
+  const incompletePackageDir = await createCheckpointPackageFixture({
+    agentNative: {
+      contractVersion: "1.0"
+    }
+  });
+  const missing = await executeUploaderCli(
+    ["upload", "agent-native-plan", missingPackageDir, "--schemas-dir", path.join(repoRoot, "schemas"), "--json"],
+    { cwd: repoRoot }
+  );
+  const incomplete = await executeUploaderCli(
+    ["upload", "agent-native-plan", incompletePackageDir, "--schemas-dir", path.join(repoRoot, "schemas"), "--json"],
+    { cwd: repoRoot }
+  );
+  const missingStatus = JSON.parse(missing.stdout);
+  const incompleteStatus = JSON.parse(incomplete.stdout);
+  const missingCodes = missingStatus.data.evidence.findings.map((finding) => finding.code);
+  const incompleteCodes = incompleteStatus.data.evidence.findings.map((finding) => finding.code);
+
+  assert.equal(missing.exitCode, EXIT_CODES.unavailable);
+  assert.equal(missingStatus.code, "upload.agent_native_plan.review_required");
+  assert.ok(missingCodes.includes("agent-native-plan-metadata-missing"));
+  assert.equal(incomplete.exitCode, EXIT_CODES.unavailable);
+  assert.equal(incompleteStatus.code, "upload.agent_native_plan.review_required");
+  assert.ok(incompleteCodes.includes("agent-native-plan-namespace-missing"));
+  assert.ok(incompleteCodes.includes("agent-native-plan-install-guidance-missing"));
+  assert.ok(incompleteCodes.includes("agent-native-plan-resolver-intent-missing"));
+  assert.doesNotMatch(missing.stdout + incomplete.stdout, forbiddenLocalOutputPattern([missingPackageDir, incompletePackageDir]));
+});
+
 test("upload import-plan and variant-plan fail closed without parser variant metadata", async () => {
   const packageDir = await createCheckpointPackageFixture();
   const importPlan = await executeUploaderCli(
@@ -1454,7 +1533,7 @@ async function execFileExpectFailure(command, args) {
   }
 }
 
-async function createCheckpointPackageFixture({ generatedDraft = null, patchDelta = null, parserVariant = null } = {}) {
+async function createCheckpointPackageFixture({ generatedDraft = null, patchDelta = null, parserVariant = null, agentNative = null } = {}) {
   const tempDir = await mkdtemp(path.join(os.tmpdir(), "agentique-uploader-checkpoints-"));
   const agentsDir = path.join(tempDir, "agents");
   await mkdir(agentsDir, { recursive: true });
@@ -1520,7 +1599,8 @@ async function createCheckpointPackageFixture({ generatedDraft = null, patchDelt
       hashes
     },
     registryTrust,
-    ...(parserVariant ? { parserVariant } : {})
+    ...(parserVariant ? { parserVariant } : {}),
+    ...(agentNative ? { agentNative } : {})
   };
   await writeFile(path.join(tempDir, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
 
@@ -1578,6 +1658,49 @@ function platformVariantEntry(overrides = {}) {
     },
     reasons: overrides.reasons ?? ["source-only"],
     observedAt: "2026-06-07T00:01:00.000Z"
+  };
+}
+
+function agentNativeFixture(overrides = {}) {
+  return {
+    contractVersion: "1.0",
+    namespace: {
+      namespaceId: "agentique.examples",
+      namespaceSlug: "agentique-examples",
+      resourceCoordinate: "agentique.examples/source-reviewer",
+      version: "1.0.0",
+      declaredAt: "2026-06-11T00:00:00.000Z"
+    },
+    provenanceTrust: {
+      evidenceTier: "signed-source",
+      evidenceState: "declared",
+      sourceKinds: ["source-url", "package-digest", "signature"],
+      digest: fingerprint("agent-native-source"),
+      nonCertifying: true,
+      observedAt: "2026-06-11T00:01:00.000Z",
+      reasons: ["creator-declared"]
+    },
+    installGuidance: [
+      {
+        targetId: "codex",
+        state: "source-only",
+        artifactKind: "skill",
+        noExecution: true,
+        requiresManualReview: true,
+        reasons: ["manual-review-required"]
+      }
+    ],
+    privateMcpBoundary: {
+      visibility: overrides.privateVisibility ?? "public-metadata-only",
+      credentialHandling: overrides.credentialHandling ?? "not-required",
+      toolResponseIsolation: true,
+      reasons: ["no-public-credential-values"]
+    },
+    resolverIntent: {
+      intentKinds: overrides.intentKinds ?? ["source-review", "agent-selection"],
+      ambiguityHandling: overrides.ambiguityHandling ?? "fail-closed",
+      notes: "Public creator hints without resolver availability claims."
+    }
   };
 }
 

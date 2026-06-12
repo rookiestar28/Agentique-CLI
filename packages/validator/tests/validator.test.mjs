@@ -17,6 +17,7 @@ const fixturesDir = path.join(repoDir, "tests", "fixtures");
 const schemasDir = path.resolve(packageDir, "schemas");
 const execFileAsync = promisify(execFile);
 const schemaFiles = [
+  "agent-native.schema.json",
   "distribution-mode.schema.json",
   "context-bundle.schema.json",
   "output-contract.schema.json",
@@ -442,6 +443,101 @@ test("rejects creator-authored platform parser variant overclaims", async () => 
   assert.equal(JSON.stringify(report).includes(tempDir), false);
 });
 
+test("accepts agent-native metadata and emits a public-safe summary", async () => {
+  const tempDir = await copyFixture("valid-package");
+  const manifest = await readManifest(tempDir);
+  manifest.agentNative = agentNativeFixture();
+  await writeManifest(tempDir, manifest);
+
+  const report = await validatePackage({ command: "validate", packageDir: tempDir, schemasDir });
+
+  assert.equal(report.ok, true);
+  assert.equal(report.manifest.agentNative.namespace.namespaceId, "agentique.examples");
+  assert.equal(report.manifest.agentNative.namespace.resourceCoordinate, "agentique.examples/source-reviewer");
+  assert.equal(report.manifest.agentNative.provenanceTrust.evidenceTier, "signed-source");
+  assert.equal(report.manifest.agentNative.provenanceTrust.digestPresent, true);
+  assert.equal(report.manifest.agentNative.provenanceTrust.sourceKindCount, 3);
+  assert.equal(report.manifest.agentNative.installGuidance[0].targetId, "codex");
+  assert.equal(report.manifest.agentNative.installGuidance[0].state, "source-only");
+  assert.equal(report.manifest.agentNative.privateMcpBoundary.credentialHandling, "omitted");
+  assert.equal(report.manifest.agentNative.resolverIntent.intentKindCount, 1);
+  assert.equal(JSON.stringify(report.manifest.agentNative).includes("sha256:"), false);
+  assert.equal(JSON.stringify(report).includes(tempDir), false);
+});
+
+test("flags agent-native trust install private and resolver review states without leaking evidence", async () => {
+  const tempDir = await copyFixture("valid-package");
+  const manifest = await readManifest(tempDir);
+  manifest.agentNative = agentNativeFixture({
+    provenanceTrust: {
+      evidenceTier: "signed-source",
+      evidenceState: "stale",
+      sourceKinds: ["source-url", "signature"],
+      digest: "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+      nonCertifying: true,
+      reasons: ["stale"]
+    },
+    installGuidance: [
+      {
+        targetId: "goose",
+        state: "unsupported",
+        artifactKind: "guidance",
+        noExecution: true,
+        requiresManualReview: true,
+        reasons: ["unsupported-target"]
+      }
+    ],
+    privateMcpBoundary: {
+      visibility: "private-denied",
+      credentialHandling: "omitted",
+      toolResponseIsolation: true,
+      reasons: ["private-denied"]
+    },
+    resolverIntent: {
+      intentKinds: ["source-review", "agent-selection"],
+      ambiguityHandling: "show-alternatives"
+    }
+  });
+  await writeManifest(tempDir, manifest);
+
+  const report = await validatePackage({ command: "validate", packageDir: tempDir, schemasDir });
+
+  assert.equal(report.ok, false);
+  assertFindings(report, [
+    "agent-native-trust-stale",
+    "agent-native-unsupported-target",
+    "agent-native-private-denied",
+    "agent-native-resolver-ambiguity"
+  ]);
+  assert.equal(report.manifest.agentNative.provenanceTrust.digestPresent, true);
+  assert.equal(report.manifest.agentNative.installGuidance[0].reasonCount, 1);
+  assert.equal(JSON.stringify(report).includes("sha256:999999"), false);
+  assert.equal(JSON.stringify(report).includes(tempDir), false);
+});
+
+test("rejects creator-authored agent-native platform managed overclaims", async () => {
+  const tempDir = await copyFixture("valid-package");
+  const manifest = await readManifest(tempDir);
+  manifest.agentNative = {
+    ...agentNativeFixture(),
+    platformManaged: {
+      approved: true,
+      latestVersion: true,
+      resolverResult: {
+        state: "matched"
+      }
+    }
+  };
+  await writeManifest(tempDir, manifest);
+
+  const report = await validatePackage({ command: "validate", packageDir: tempDir, schemasDir });
+
+  assert.equal(report.ok, false);
+  assertFindings(report, ["schema", "agent-native-platform-overclaim"]);
+  assert.equal(JSON.stringify(report).includes("latestVersion"), false);
+  assert.equal(JSON.stringify(report).includes(tempDir), false);
+});
+
 test("validates packaged tool listing contracts", async () => {
   const tempDir = await copyFixture("valid-package");
   await addPackageFile(
@@ -779,7 +875,7 @@ test("schema loader errors include failing schema filename", async () => {
         packageDir: path.join(fixturesDir, "valid-package"),
         schemasDir: tempSchemasDir
       }),
-    /Unable to load schema distribution-mode\.schema\.json/
+    /Unable to load schema agent-native\.schema\.json/
   );
 });
 
@@ -798,7 +894,7 @@ test("CLI reports clear missing schemas-dir errors", async () => {
       ]),
     (error) => {
       assert.equal(error.code, 2);
-      assert.match(error.stderr, /CLI error: Unable to load schema distribution-mode\.schema\.json/);
+      assert.match(error.stderr, /CLI error: Unable to load schema agent-native\.schema\.json/);
       return true;
     }
   );
@@ -1420,6 +1516,48 @@ function parserVariantEntry(overrides = {}) {
     download,
     reasons: overrides.reasons ?? ["source-only"],
     observedAt: "2026-06-07T00:01:00.000Z"
+  };
+}
+
+function agentNativeFixture(overrides = {}) {
+  return {
+    contractVersion: "1.0",
+    namespace: {
+      namespaceId: "agentique.examples",
+      namespaceSlug: "agentique-examples",
+      resourceCoordinate: "agentique.examples/source-reviewer",
+      version: "1.0.0",
+      declaredAt: "2026-06-11T00:00:00.000Z"
+    },
+    provenanceTrust: overrides.provenanceTrust ?? {
+      evidenceTier: "signed-source",
+      evidenceState: "declared",
+      sourceKinds: ["source-url", "package-digest", "signature"],
+      digest: "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+      nonCertifying: true,
+      observedAt: "2026-06-11T00:01:00.000Z",
+      reasons: ["creator-declared"]
+    },
+    installGuidance: overrides.installGuidance ?? [
+      {
+        targetId: "codex",
+        state: "source-only",
+        artifactKind: "skill",
+        noExecution: true,
+        requiresManualReview: true,
+        reasons: ["source-only"]
+      }
+    ],
+    privateMcpBoundary: overrides.privateMcpBoundary ?? {
+      visibility: "public-metadata-only",
+      credentialHandling: "omitted",
+      toolResponseIsolation: true,
+      reasons: ["public-metadata-only"]
+    },
+    resolverIntent: overrides.resolverIntent ?? {
+      intentKinds: ["source-review"],
+      ambiguityHandling: "fail-closed"
+    }
   };
 }
 

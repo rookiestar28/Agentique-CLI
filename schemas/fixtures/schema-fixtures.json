@@ -1,4 +1,117 @@
 {
+  "agent-native.schema.json": {
+    "validCases": {
+      "creator-metadata": {
+        "contractVersion": "1.0",
+        "namespace": {
+          "namespaceId": "agentique.examples",
+          "namespaceSlug": "agentique-examples",
+          "displayName": "Agentique Examples",
+          "resourceCoordinate": "agentique.examples/source-reviewer",
+          "version": "1.0.0",
+          "declaredAt": "2026-06-11T00:00:00.000Z"
+        },
+        "provenanceTrust": {
+          "evidenceTier": "signed-source",
+          "evidenceState": "declared",
+          "sourceKinds": ["source-url", "package-digest", "signature"],
+          "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "nonCertifying": true,
+          "observedAt": "2026-06-11T00:01:00.000Z",
+          "reasons": ["creator-declared"]
+        },
+        "installGuidance": [
+          {
+            "targetId": "codex",
+            "state": "source-only",
+            "artifactKind": "skill",
+            "noExecution": true,
+            "requiresManualReview": true,
+            "reasons": ["source-only"]
+          },
+          {
+            "targetId": "cursor",
+            "state": "guidance-only",
+            "artifactKind": "guidance",
+            "noExecution": true,
+            "requiresManualReview": true,
+            "reasons": ["guidance-only"]
+          }
+        ],
+        "privateMcpBoundary": {
+          "visibility": "private-denied",
+          "credentialHandling": "omitted",
+          "toolResponseIsolation": true,
+          "reasons": ["no-public-credential-values"]
+        },
+        "resolverIntent": {
+          "intentKinds": ["source-review", "agent-selection"],
+          "ambiguityHandling": "show-alternatives",
+          "notes": "Public creator hints for resolver review without platform ranking claims."
+        }
+      }
+    },
+    "invalid": {
+      "missing-required": {
+        "namespace": {
+          "namespaceId": "agentique.examples",
+          "resourceCoordinate": "agentique.examples/source-reviewer"
+        }
+      },
+      "extra-property": {
+        "contractVersion": "1.0",
+        "approved": true
+      },
+      "boundary": {
+        "contractVersion": "2.0",
+        "namespace": {
+          "namespaceId": "Agentique Examples",
+          "resourceCoordinate": "../private",
+          "version": "*",
+          "declaredAt": "not-a-date"
+        },
+        "provenanceTrust": {
+          "evidenceTier": "certified-safe",
+          "evidenceState": "approved",
+          "nonCertifying": false
+        },
+        "installGuidance": [
+          {
+            "targetId": "codex",
+            "state": "direct-install",
+            "noExecution": false
+          }
+        ],
+        "privateMcpBoundary": {
+          "visibility": "runtime-available",
+          "credentialHandling": "inline-secret",
+          "toolResponseIsolation": false
+        }
+      },
+      "overclaim": {
+        "contractVersion": "1.0",
+        "namespace": {
+          "namespaceId": "agentique.examples",
+          "resourceCoordinate": "agentique.examples/source-reviewer",
+          "latestPointer": {
+            "state": "current",
+            "managedBy": "creator"
+          }
+        }
+      },
+      "private-credential-value": {
+        "contractVersion": "1.0",
+        "observedAt": "2026-06-11T00:06:00.000Z",
+        "privateMcpBoundary": {
+          "availability": "organization-restricted",
+          "visibility": "organization-restricted",
+          "credentialReferenceKind": "organization-managed",
+          "credentialValuesPresent": true,
+          "toolResponseIsolation": true
+        }
+      }
+    }
+  },
   "context-bundle.schema.json": {
     "valid": {
       "bundleId": "example-context-bundle",
@@ -640,6 +753,77 @@
             }
           ]
         }
+      },
+      "agent-native": {
+        "resourceId": "example-resource",
+        "state": "review_required",
+        "updatedAt": "2026-06-11T00:06:00.000Z",
+        "platformUrl": "https://agentique.io/resources/example-resource",
+        "message": "Agent-native metadata is available for public readback review.",
+        "agentNative": {
+          "contractVersion": "1.0",
+          "namespace": {
+            "namespaceId": "agentique.examples",
+            "namespaceSlug": "agentique-examples",
+            "resourceCoordinate": "agentique.examples/source-reviewer",
+            "version": "1.0.0",
+            "latestPointer": {
+              "state": "review-required",
+              "managedBy": "platform",
+              "version": "1.0.0",
+              "observedAt": "2026-06-11T00:02:00.000Z",
+              "reasons": ["review-required"]
+            }
+          },
+          "provenanceTrust": {
+            "state": "stale",
+            "evidenceTier": "sbom-present",
+            "sourceKinds": ["source-url", "sbom"],
+            "digestPresent": true,
+            "nonCertifying": true,
+            "observedAt": "2026-06-11T00:03:00.000Z",
+            "reasons": ["stale"]
+          },
+          "installGuidance": [
+            {
+              "targetId": "cursor",
+              "state": "guidance-only",
+              "artifactKind": "guidance",
+              "downloadAvailability": "guidance-only",
+              "noExecution": true,
+              "observedAt": "2026-06-11T00:04:00.000Z",
+              "reasons": ["guidance-only"]
+            }
+          ],
+          "privateMcpBoundary": {
+            "availability": "private-denied",
+            "visibility": "private-denied",
+            "credentialReferenceKind": "none",
+            "credentialValuesPresent": false,
+            "toolResponseIsolation": true,
+            "observedAt": "2026-06-11T00:05:00.000Z",
+            "reasons": ["private-denied"]
+          },
+          "resolverResult": {
+            "state": "ambiguous",
+            "resourceId": "example-resource",
+            "confidence": "medium",
+            "relevance": "medium",
+            "ambiguity": "alternatives-available",
+            "platformUrl": "https://agentique.io/resources/example-resource",
+            "downloadAvailability": "source-only",
+            "checkpoints": [
+              {
+                "kind": "ambiguity",
+                "state": "review-required",
+                "reasons": ["multiple-candidates"]
+              }
+            ],
+            "nonCertifying": true,
+            "observedAt": "2026-06-11T00:06:00.000Z"
+          },
+          "observedAt": "2026-06-11T00:06:00.000Z"
+        }
       }
     },
     "invalid": {
@@ -1110,6 +1294,88 @@
               "observedAt": "2026-06-07T00:07:00.000Z"
             }
           ]
+        }
+      },
+      "agent-native": {
+        "formatVersion": "1.0",
+        "name": "agent-native-resource",
+        "summary": "A public fixture resource manifest with agent-native metadata.",
+        "source": {
+          "type": "git",
+          "url": "https://github.com/agentique/agent-native-resource"
+        },
+        "distribution": {
+          "mode": "package_download"
+        },
+        "package": {
+          "formatVersion": "1.0",
+          "files": [
+            "README.md"
+          ],
+          "hashes": {
+            "README.md": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+          }
+        },
+        "permissionRisk": {
+          "readOnly": true,
+          "destructive": false,
+          "idempotent": true,
+          "openWorld": false,
+          "externalNetwork": false,
+          "credentialed": false,
+          "approvalRequired": false,
+          "dataSensitivity": "public",
+          "capabilities": [
+            "read-public-content"
+          ],
+          "reviewNotes": "Reads public package content without credential access."
+        },
+        "agentNative": {
+          "contractVersion": "1.0",
+          "namespace": {
+            "namespaceId": "agentique.examples",
+            "namespaceSlug": "agentique-examples",
+            "resourceCoordinate": "agentique.examples/source-reviewer",
+            "version": "1.0.0",
+            "declaredAt": "2026-06-11T00:00:00.000Z"
+          },
+          "provenanceTrust": {
+            "evidenceTier": "source-referrer",
+            "evidenceState": "declared",
+            "sourceKinds": ["source-url", "referrer"],
+            "nonCertifying": true,
+            "observedAt": "2026-06-11T00:01:00.000Z",
+            "reasons": ["creator-declared"]
+          },
+          "installGuidance": [
+            {
+              "targetId": "source-package",
+              "state": "source-only",
+              "artifactKind": "source-package",
+              "noExecution": true,
+              "requiresManualReview": true,
+              "reasons": ["source-only"]
+            },
+            {
+              "targetId": "gemini-cli",
+              "state": "guidance-only",
+              "artifactKind": "guidance",
+              "noExecution": true,
+              "requiresManualReview": true,
+              "reasons": ["guidance-only"]
+            }
+          ],
+          "privateMcpBoundary": {
+            "visibility": "private-denied",
+            "credentialHandling": "omitted",
+            "toolResponseIsolation": true,
+            "reasons": ["no-public-credential-values"]
+          },
+          "resolverIntent": {
+            "intentKinds": ["source-review"],
+            "ambiguityHandling": "fail-closed",
+            "notes": "Public creator hints without resolver availability claims."
+          }
         }
       }
     }

@@ -1,0 +1,101 @@
+{
+  "formatVersion": "1.0",
+  "name": "agent-native-review",
+  "summary": "A static agent-native metadata example for local review.",
+  "source": {
+    "type": "git",
+    "url": "https://github.com/rookiestar28/Agentique/tree/main/starters/agent-native-review"
+  },
+  "distribution": {
+    "mode": "metadata_view",
+    "notes": "Prepared as static agent-native metadata for platform upload review."
+  },
+  "surfacing": {
+    "taskIntents": ["source-review", "agent-selection", "package-preparation"],
+    "audience": ["developer", "integrator", "reviewer", "agent"],
+    "priority": 0.72,
+    "recency": {
+      "lastReviewedAt": "2026-06-11T00:00:00Z",
+      "reviewCadenceDays": 90
+    },
+    "compatibility": {
+      "runtimeFamilies": ["markdown", "metadata"],
+      "protocols": ["https"]
+    },
+    "contextBudget": {
+      "maxTokens": 1600,
+      "maxBytes": 12288,
+      "preferredSummaryBytes": 2048
+    },
+    "notes": "Surface this starter when creators need a static agent-native metadata example."
+  },
+  "permissionRisk": {
+    "readOnly": true,
+    "destructive": false,
+    "idempotent": true,
+    "openWorld": false,
+    "externalNetwork": false,
+    "credentialed": false,
+    "approvalRequired": false,
+    "dataSensitivity": "public",
+    "capabilities": ["read-public-content"],
+    "reviewNotes": "Synthetic metadata only; the example does not execute, authenticate, proxy, or mutate state."
+  },
+  "package": {
+    "formatVersion": "1.0",
+    "files": ["README.md", "agents/source-reviewer.md"],
+    "hashes": {
+      "README.md": "sha256:fce5a1be7b36cc1f7bc3d539705a6738d61b54c6904ab191ddf102e250483b6d",
+      "agents/source-reviewer.md": "sha256:2381d911ceba5ef249469a4d9c48753e21f80f470f06aaa628123d334f161466"
+    }
+  },
+  "agentNative": {
+    "contractVersion": "1.0",
+    "namespace": {
+      "namespaceId": "agentique.examples",
+      "namespaceSlug": "agentique-examples",
+      "displayName": "Agentique Examples",
+      "resourceCoordinate": "agentique.examples/source-reviewer",
+      "version": "1.0.0",
+      "declaredAt": "2026-06-11T00:00:00.000Z"
+    },
+    "provenanceTrust": {
+      "evidenceTier": "signed-source",
+      "evidenceState": "declared",
+      "sourceKinds": ["source-url", "package-digest", "signature"],
+      "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "nonCertifying": true,
+      "observedAt": "2026-06-11T00:01:00.000Z",
+      "reasons": ["creator-declared"]
+    },
+    "installGuidance": [
+      {
+        "targetId": "codex",
+        "state": "source-only",
+        "artifactKind": "skill",
+        "noExecution": true,
+        "requiresManualReview": true,
+        "reasons": ["manual-review-required"]
+      },
+      {
+        "targetId": "claude-code",
+        "state": "guidance-only",
+        "artifactKind": "subagent",
+        "noExecution": true,
+        "requiresManualReview": true,
+        "reasons": ["manual-review-required"]
+      }
+    ],
+    "privateMcpBoundary": {
+      "visibility": "public-metadata-only",
+      "credentialHandling": "not-required",
+      "toolResponseIsolation": true,
+      "reasons": ["no-public-credential-values"]
+    },
+    "resolverIntent": {
+      "intentKinds": ["source-review", "agent-selection"],
+      "ambiguityHandling": "fail-closed",
+      "notes": "Public creator hints without resolver availability claims."
+    }
+  }
+}

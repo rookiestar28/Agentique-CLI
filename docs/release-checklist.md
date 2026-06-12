@@ -20,15 +20,15 @@ Use this checklist before any public release, package publish, repository link c
 - Surfacing contract fixture matrix exists and covers overlapping, risky, stale, off-topic, invalid-output, and budget-overflow cases.
 - Public docs describe context bundle and selection readback helpers as read-only baseline projections.
 - Public docs describe registry trust metadata, creator checkpoints, trust readback, generated drafts, and patch/delta output as preparation/readback contracts only.
-- Public docs describe parser/variant schemas, fixtures, starters, readback helpers, and uploader import/variant dry-runs as static local preparation or read-only projection contracts only.
+- Public docs describe parser/variant and agent-native schemas, fixtures, starters, readback helpers, and uploader import/variant/agent-native dry-runs as static local preparation or read-only projection contracts only.
 - Parser/variant docs do not claim platform download availability, hosted execution, runtime compatibility, publication, approval, or safety outcomes.
-- Public docs describe already-published catalog/download behavior as `0.2.0` release evidence and canonical catalog envelope plus ticket-backed byte-transfer fixes as coordinated `0.2.1` patch-candidate changes that are not yet published.
+- Public docs describe already-published catalog/download behavior as `0.2.0` release evidence and canonical catalog envelope, ticket-backed byte-transfer fixes, and agent-native source changes as owner-approved coordinated `0.2.1` patch-candidate changes that are not yet published at this source checkpoint.
 - Catalog/download docs do not claim hosted execution, package installation, archive extraction, runtime compatibility, publication, approval, safety outcomes, or universal direct-download availability for every public resource.
 - Uploader package status, local draft/patch output, and review-only submit are documented separately from platform publication and live resource availability.
 - Any pending package pages are marked non-advertised in the URL inventory.
 - Registry readback passed with expected published package states.
 - Package install smoke passed from locally packed tarballs with lifecycle scripts disabled.
-- Parser/variant and catalog/download package surface smoke passed from locally packed tarballs: parser-variant schema file, readback parser/variant export, readback catalog/download exports, uploader import-plan / variant-plan help, uploader catalog help, and uploader direct-download help are present.
+- Parser/variant, agent-native, and catalog/download package surface smoke passed from locally packed tarballs: parser-variant schema file, agent-native schema file, readback parser/variant and agent-native exports, readback catalog/download exports, uploader import-plan / variant-plan / agent-native-plan help, uploader catalog help, and uploader direct-download help are present.
 
 ## Package Evidence
 
@@ -38,7 +38,7 @@ Provenance and attestations help consumers trace where an artifact came from. Th
 
 The first public npm release used an owner-approved maintainer-approved publication path after local and hosted validation passed. The coordinated `0.2.0` package release used the checked-in manual GitHub Actions package publication workflow and passed registry readback plus clean install smoke for the full package set.
 
-Before advertising any newly published package, run `npm run registry:readback`, run `npm run install:smoke`, and record version, dist-tag, tarball contents, clean install smoke, package CLI/import smoke, parser/variant package surface evidence, and catalog/download package surface evidence for the exact version being advertised.
+Before advertising any newly published package, run `npm run registry:readback`, run `npm run install:smoke`, and record version, dist-tag, tarball contents, clean install smoke, package CLI/import smoke, parser/variant package surface evidence, agent-native package surface evidence, and catalog/download package surface evidence for the exact version being advertised.
 
 ## Launch Boundary
 
@@ -48,7 +48,7 @@ External-intake output does not approve a candidate, certify safety, replace pla
 
 Surfacing contract fixtures and readback helper output are release-review inputs only. They do not replace `agentique.io` review, moderation, publication state, distribution state, or public readback.
 
-Parser/variant helper output is local preparation output only. It does not prove runtime compatibility, create a platform download, publish a converted artifact, or replace platform parser/readback decisions.
+Parser/variant and agent-native helper output is local preparation output only. It does not prove runtime compatibility, create a platform download, publish a converted artifact, provide resolver availability, or replace platform parser/readback decisions.
 
 Generated draft and patch/delta helper output is local preparation output only. It remains unsubmitted until the user confirms the change and the platform validates it through the review flow.
 
