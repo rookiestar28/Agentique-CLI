@@ -40,7 +40,7 @@ Parser/variant schemas, validator findings, readback helpers, uploader dry-runs,
 
 Current catalog/download package release decision: **Go** for executing the coordinated `0.2.1` patch package release.
 
-Existing catalog/download surfaces that were already published in the coordinated `0.2.0` package set remain advertised only within the evidence recorded for that release. The canonical-host live envelope compatibility and unauthenticated POST ticket byte-transfer path are source-revision changes in a coordinated `0.2.1` patch candidate. The behavior changes are concentrated in `@agentique.io/readback` and `@agentique.io/uploader`; the patch package set is not yet published on npm.
+Existing catalog/download surfaces that were already published in the coordinated `0.2.0` package set remain advertised only within the evidence recorded for that release. The canonical-host live envelope compatibility and unauthenticated POST ticket byte-transfer path are source-revision changes in a coordinated `0.2.1` patch candidate. `@agentique.io/readback` is published at `0.2.1`; `@agentique.io/uploader` remains published at `0.2.0` with `0.2.1` pending for the publish retry.
 
 Reason: local source validation, installed-tarball smoke, live metadata checks, and owner-approved disposable byte-transfer evidence passed for this source revision, and owner approval is recorded to execute the manual GitHub Actions Trusted Publishing workflow for the coordinated `0.2.1` patch package release. Post-publish registry readback, clean install smoke, rollback/unpublish evidence, and branch cleanup remain required closeout evidence before downstream claims are considered complete.
 
@@ -50,13 +50,13 @@ Current blockers:
 
 Catalog list/detail/download-metadata commands, download command behavior, readback catalog normalizers, ticket-flow byte transfer, live metadata smoke, disposable byte-transfer smoke, and release smoke coverage are package and local-preparation evidence for the patch candidate. They do not approve resources, certify safety, install or execute downloaded content, guarantee every public resource is downloadable, or replace platform review.
 
-Closeout evidence for the patch candidate: source validation, installed-tarball smoke, live metadata checks, owner-approved disposable byte-transfer smoke, and owner approval to publish are recorded locally. New registry/package availability closeout remains pending until the publish workflow completes, registry readback verifies `0.2.1`, clean install smoke passes for `0.2.1`, rollback/unpublish evidence is recorded, and branch cleanup is complete.
+Closeout evidence for the patch candidate: source validation, installed-tarball smoke, live metadata checks, owner-approved disposable byte-transfer smoke, and owner approval to publish are recorded locally. Schemas, validator, action, and readback are published at `0.2.1`; uploader remains pending at `0.2.1` for the publish retry. New registry/package availability closeout remains pending until registry readback verifies the full `0.2.1` set, clean install smoke passes for `0.2.1`, rollback/unpublish evidence is recorded, and branch cleanup is complete.
 
 ## Agent-Native Package Release Decision
 
 Current agent-native package release decision: **Go** for executing the coordinated `0.2.1` patch package release.
 
-Agent-native schema, validator, readback, badge, uploader dry-run, and starter surfaces are source-revision changes in the coordinated `0.2.1` patch candidate. The behavior changes are concentrated in `@agentique.io/schemas`, `@agentique.io/validator`, `@agentique.io/readback`, and `@agentique.io/uploader`; the patch package set is not yet published on npm.
+Agent-native schema, validator, readback, badge, uploader dry-run, and starter surfaces are source-revision changes in the coordinated `0.2.1` patch candidate. `@agentique.io/schemas`, `@agentique.io/validator`, `@agentique.io/action`, and `@agentique.io/readback` are published at `0.2.1`; `@agentique.io/uploader` remains published at `0.2.0` with `0.2.1` pending for the publish retry.
 
 Reason: local source validation, installed-tarball smoke, package-surface smoke, and pending-state registry readback passed for this source revision, and owner approval is recorded to execute the manual GitHub Actions Trusted Publishing workflow for the coordinated `0.2.1` patch package release. Post-publish registry readback, clean install smoke, rollback/unpublish evidence, and branch cleanup remain required closeout evidence before downstream claims are considered complete.
 
@@ -66,7 +66,7 @@ Current blockers:
 
 Agent-native schemas, validator findings, readback projection helpers, badge states, uploader dry-runs, starter metadata, and release smoke coverage are package and local-preparation evidence for the patch candidate. They do not approve resources, certify safety, provide resolver availability, install or execute downloaded content, prove runtime compatibility, provide credential handling, create direct-install support, or replace platform review.
 
-Closeout evidence for the agent-native patch candidate: source validation, installed-tarball smoke, release smoke coverage, pending-state registry readback, and owner approval to publish are recorded locally. New registry/package availability closeout remains pending until the publish workflow completes, registry readback verifies `0.2.1`, clean install smoke passes for `0.2.1`, rollback/unpublish evidence is recorded, and branch cleanup is complete.
+Closeout evidence for the agent-native patch candidate: source validation, installed-tarball smoke, release smoke coverage, pending-state registry readback, and owner approval to publish are recorded locally. Schemas, validator, action, and readback are published at `0.2.1`; uploader remains pending at `0.2.1` for the publish retry. New registry/package availability closeout remains pending until registry readback verifies the full `0.2.1` set, clean install smoke passes for `0.2.1`, rollback/unpublish evidence is recorded, and branch cleanup is complete.
 
 Current public-safe evidence is recorded in [release-evidence.md](release-evidence.md).
 
@@ -85,7 +85,7 @@ Current public-safe evidence is recorded in [release-evidence.md](release-eviden
 - Current release gate refresh passed package tests, starter validation, release checks, workflow posture, package dry-run, URL inventory, registry readback, install smoke, go/no-go, content scan, diff check, and production dependency audits.
 - Parser/variant package surface smoke passes from locally packed tarballs, and registry readback plus registry install smoke verify the same surfaces are included in package version `0.2.0`.
 - Catalog/download package surface smoke passes from locally packed tarballs, live metadata checks passed for public list/detail/download-metadata endpoints, registry install smoke passed for existing `0.2.0` packages, and owner-approved disposable byte-transfer evidence is recorded for the patch candidate.
-- Agent-native package surface smoke passes from locally packed tarballs, pending-state registry readback verifies `0.2.1` is not published, and release go/no-go records the agent-native patch candidate as owner-approved for the coordinated release workflow.
+- Agent-native package surface smoke passes from locally packed tarballs, registry readback verifies the published `0.2.1` schemas, validator, action, and readback packages plus pending `0.2.1` uploader package, and release go/no-go records the agent-native patch candidate as owner-approved for the coordinated release workflow.
 - Public `main` branch protection is enabled.
 - Final public URLs are approved.
 - `agentique.io` public links are approved.

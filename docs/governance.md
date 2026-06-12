@@ -58,7 +58,7 @@ Local validation is not platform approval. Local validation is not safety certif
 
 Parser/variant package changes are Go for the coordinated `0.2.0` package-release claim. Registry readback shows schemas, validator, action, readback, and uploader at version `0.2.0`. Owner approval to use the manual GitHub Actions publishing workflow for target version `0.2.0` is recorded, and registry install smoke passed.
 
-Catalog/download behavior already published in `0.2.0` remains limited to the evidence recorded for that release. Canonical catalog envelope fixes, ticket-backed byte-transfer fixes, and agent-native schema/validator/readback/uploader dry-run surfaces are separate source-revision changes in the owner-approved coordinated `0.2.1` patch candidate and are not yet published on npm at this source checkpoint. Registry readback shows the existing package set at version `0.2.0`, and pending-state registry readback verifies the `0.2.1` package set is not published. Owner-approved disposable byte-transfer evidence is recorded for a public catalog resource.
+Catalog/download behavior already published in `0.2.0` remains limited to the evidence recorded for that release. Canonical catalog envelope fixes, ticket-backed byte-transfer fixes, and agent-native schema/validator/readback/uploader dry-run surfaces are part of the owner-approved coordinated `0.2.1` patch candidate. Registry readback shows schemas, validator, action, and readback published at `0.2.1`; uploader remains published at `0.2.0` with `0.2.1` pending for the publish retry. Owner-approved disposable byte-transfer evidence is recorded for a public catalog resource.
 
 ## Support Routing
 

@@ -55,4 +55,4 @@ External intake output is advisory review evidence. Registry trust and parser/va
 
 ## Status
 
-Published on npm as `@agentique.io/validator` at `0.2.0`. This source revision is part of the coordinated `0.2.1` patch candidate and is not yet published. Local validation output is not platform approval and is not safety certification.
+Published on npm as `@agentique.io/validator` at `0.2.1`. Local validation output is not platform approval and is not safety certification.

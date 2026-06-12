@@ -4,7 +4,7 @@ This file records public-safe release evidence for the companion repository. Do 
 
 ## Evidence Snapshot
 
-- Latest local source validation: 2026-06-11
+- Latest local source validation: 2026-06-13
 - Environment: Windows PowerShell
 - Node.js: v24.13.1
 - npm: 11.8.0
@@ -25,7 +25,7 @@ This file records public-safe release evidence for the companion repository. Do 
 | Workflow posture | Pass | `npm run workflow:check` passed. |
 | Package dry run | Pass | `npm run pack:dry-run` passed schemas, validator, action, readback, and uploader package checks. |
 | Parser/variant, agent-native, and catalog/download package surface smoke | Pass | `npm run install:smoke` installs locally packed tarballs with lifecycle scripts disabled and checks parser-variant and agent-native schemas, readback parser/variant and agent-native exports, readback catalog/download exports, uploader import/variant/agent-native help, uploader catalog help, and uploader direct-download help. |
-| Registry readback | Pass | `npm run registry:readback` confirms the existing package set is published at `0.2.0` and the coordinated `0.2.1` patch candidate package set is not yet published. |
+| Registry readback | Pass | `npm run registry:readback` confirms schemas, validator, action, and readback are published at `0.2.1`; uploader remains published at `0.2.0` with `0.2.1` pending for the publish retry. |
 | URL inventory check | Pass | `npm run urls:check` passed. |
 | Go/no-go check | Pass | `npm run release:go-no-go` passed with existing advertised channels as Go and with catalog/download plus agent-native patch candidates owner-approved for the coordinated `0.2.1` release workflow. |
 | Package publication release gate refresh | Pass | Hosted Release Check passed on `main`, GitHub Actions publication completed, registry readback passed for all `0.2.0` packages, and registry install smoke passed. |
@@ -62,7 +62,7 @@ Uploader source alignment and npm package checks were refreshed on 2026-06-07.
 
 Current command-line finding:
 
-- `@agentique.io/uploader` is implemented in this source revision at candidate version `0.2.1`; npm registry availability remains `0.2.0` until a patch publish is approved and completed.
+- `@agentique.io/uploader` is implemented in this source revision at candidate version `0.2.1`; npm registry availability remains `0.2.0` until the uploader publish retry completes.
 - Uploader CLI source includes redacted auth status, upload-plan evidence, creator checkpoint readiness, local draft output, local patch/delta output, review-only submit/status helpers, bearer/storage separation, bounded transfer retry, and server completion verification checks.
 - This source revision additionally includes GET-only catalog list/detail/download-metadata commands and a direct byte-download command with explicit output path, no auth forwarding, signed URL redaction, no absolute output path in CLI output, redirect controls, max-byte checks, digest checks, and no install/extract/open/execute behavior.
 - `@agentique.io/uploader` is included in root tests, package dry-run, publish workflow validation, and root/workspace production dependency audit.
@@ -70,7 +70,7 @@ Current command-line finding:
 - Authenticated review-session access and final resource publication remain platform and account/token gated. Package checks do not advertise live publication or platform approval.
 - Final uploader publication closeout is Go for npm package availability after owner-approved publication, hosted CI evidence, npm registry readback, and clean install smoke from npm.
 
-Current documentation now describes registry trust metadata, creator checkpoints, trust readback, local draft output, patch/delta output, and the coordinated `0.2.1` patch-candidate boundary. Local release gates pass for this source revision. Owner approval to use the manual GitHub Actions package publishing workflow is recorded for prior published releases, the coordinated `0.2.0` package publication completed, and registry install smoke passed. The `0.2.1` patch candidate is not yet approved or published.
+Current documentation now describes registry trust metadata, creator checkpoints, trust readback, local draft output, patch/delta output, and the coordinated `0.2.1` patch-candidate boundary. Local release gates pass for this source revision. Owner approval to use the manual GitHub Actions package publishing workflow is recorded; schemas, validator, action, and readback are published at `0.2.1`; uploader `0.2.1` remains pending for the publish retry.
 
 ## Parser And Variant Branch-Local Evidence
 
@@ -80,7 +80,7 @@ Parser/variant evidence remains limited to static metadata, local dry-runs, and 
 
 ## Agent-Native Branch-Local Evidence
 
-This source revision includes public agent-native schema fixtures, validator summaries, readback projection helpers, uploader agent-native-plan dry-runs, and a synthetic local-review starter package. These package surfaces are part of the coordinated `0.2.1` patch candidate and are not yet published on npm.
+This source revision includes public agent-native schema fixtures, validator summaries, readback projection helpers, uploader agent-native-plan dry-runs, and a synthetic local-review starter package. Schemas, validator, action, and readback are published at `0.2.1`; uploader `0.2.1` remains pending for the publish retry.
 
 Agent-native evidence remains limited to public namespace, non-certifying provenance labels, source-only or guidance-only install guidance, public boundary labels, local resolver intent, local dry-runs, and read-only public projection helpers. It does not advertise live resolver availability, direct install support, credential handling, runtime compatibility, approval, publication, or safety outcomes.
 
@@ -96,11 +96,11 @@ Parser/variant package publication is currently Go for the coordinated `0.2.0` p
 
 This source revision includes readback catalog list/detail/download-metadata helpers, catalog metadata normalizers, a safe direct-download utility, uploader catalog read commands, uploader direct download, and package-surface smoke coverage for installed tarballs.
 
-This source revision additionally includes canonical-host live envelope compatibility and an unauthenticated POST ticket byte-transfer path. It is a coordinated `0.2.1` patch candidate; the behavior changes are concentrated in readback and uploader. Those patch versions are not yet published.
+This source revision additionally includes canonical-host live envelope compatibility and an unauthenticated POST ticket byte-transfer path. It is a coordinated `0.2.1` patch candidate; readback is published at `0.2.1`, and uploader `0.2.1` remains pending for the publish retry.
 
 Catalog/download evidence includes local source behavior, local tests, installed-tarball smoke, existing registry install smoke for `0.2.0`, the live metadata checks below, and owner-approved disposable byte-transfer smoke. It does not approve resources, certify safety, install or execute downloaded content, or replace platform review.
 
-Registry readback proves schemas, validator, action, readback, and uploader at existing published version `0.2.0`, and verifies that the coordinated `0.2.1` patch candidate is not yet published. Catalog/download patch publication is owner-approved for execution through the manual GitHub Actions Trusted Publishing workflow; registry readback for the patch versions, clean install smoke for the patch versions, rollback/unpublish evidence, and branch cleanup remain required post-publish closeout evidence.
+Registry readback proves schemas, validator, action, and readback at published version `0.2.1`; uploader remains published at `0.2.0` and verifies the `0.2.1` uploader patch candidate is not yet published. Catalog/download patch publication is owner-approved for execution through the manual GitHub Actions Trusted Publishing workflow; uploader registry readback, clean install smoke for the full patch set, rollback/unpublish evidence, and branch cleanup remain required post-publish closeout evidence.
 
 ## Catalog And Download Live Metadata Evidence
 
@@ -124,11 +124,11 @@ Source closeout evidence is complete for local preparation only:
 - The safe direct-download utility is covered by package tests with path, overwrite, redirect, size, digest, cleanup, and token-forwarding boundaries.
 - Uploader catalog and direct-download commands are covered by package tests.
 - Installed-tarball smoke covers readback catalog/download exports and uploader catalog/direct-download help surfaces.
-- Registry readback proves schemas, validator, action, readback, and uploader at existing published version `0.2.0`, and verifies the coordinated `0.2.1` patch candidate package set is not yet published.
+- Registry readback proves schemas, validator, action, and readback at published version `0.2.1`; uploader remains published at `0.2.0` and verifies the coordinated `0.2.1` uploader patch candidate is not yet published.
 - Owner-approved disposable byte-transfer smoke passed for a public catalog resource; size matched CLI byte count, local SHA-256 was computed, no auth was used, the server-provided byte URL was not logged, and the artifact was not opened, extracted, or executed.
 - Live metadata smoke proves the public list/detail/download-metadata endpoints for the sampled public resource.
 
-Current closeout evidence includes local tests, installed-tarball smoke, full registry readback for existing `0.2.0` packages, pending-state registry readback for the `0.2.1` patch candidates, owner-approved disposable byte-transfer smoke, and owner approval to publish. Catalog/download patch publication is owner-approved for execution through the manual GitHub Actions Trusted Publishing workflow; registry readback for the patch versions, clean install smoke for the patch versions, rollback/unpublish evidence, and branch cleanup remain required post-publish closeout evidence.
+Current closeout evidence includes local tests, installed-tarball smoke, registry readback for published `0.2.1` schemas, validator, action, and readback packages, pending-state registry readback for the `0.2.1` uploader patch candidate, owner-approved disposable byte-transfer smoke, and owner approval to publish. Catalog/download patch publication is owner-approved for execution through the manual GitHub Actions Trusted Publishing workflow; uploader registry readback, clean install smoke for the full patch set, rollback/unpublish evidence, and branch cleanup remain required post-publish closeout evidence.
 
 ## Agent-Native Patch-Candidate Closeout Evidence
 
@@ -139,10 +139,10 @@ Source closeout evidence is complete for local preparation only:
 - Readback package tests cover agent-native projection helpers and badge states.
 - Uploader package tests cover the local `agent-native-plan` dry-run command.
 - Installed-tarball smoke covers `agent-native.schema.json`, `normalizeAgentNativeReadback()`, and uploader `agent-native-plan` help.
-- Registry readback proves schemas, validator, action, readback, and uploader at existing published version `0.2.0`, and verifies the coordinated `0.2.1` patch candidate package set is not yet published.
+- Registry readback proves schemas, validator, action, and readback at published version `0.2.1`; uploader remains published at `0.2.0` and verifies the coordinated `0.2.1` uploader patch candidate is not yet published.
 - Release go/no-go records agent-native patch publication as owner-approved for the coordinated `0.2.1` release workflow while preserving resolver, direct-install, runtime, approval, and safety-claim No-Go boundaries.
 
-Current closeout evidence includes local tests, starter validation, release checks, installed-tarball smoke, package dry-run, URL inventory, full registry readback for existing `0.2.0` packages, pending-state registry readback for the `0.2.1` patch candidates, and owner approval to publish. Agent-native patch publication is owner-approved for execution through the manual GitHub Actions Trusted Publishing workflow; registry readback for the patch versions, clean install smoke for the patch versions, rollback evidence, and branch cleanup remain required post-publish closeout evidence.
+Current closeout evidence includes local tests, starter validation, release checks, installed-tarball smoke, package dry-run, URL inventory, registry readback for the published `0.2.1` schemas, validator, action, and readback packages, pending-state registry readback for the `0.2.1` uploader patch candidate, and owner approval to publish. Agent-native patch publication is owner-approved for execution through the manual GitHub Actions Trusted Publishing workflow; uploader registry readback, clean install smoke for the full patch set, rollback evidence, and branch cleanup remain required post-publish closeout evidence.
 
 ## All-Channel Public URL Mode
 
@@ -186,10 +186,10 @@ Command-line package registry checks were refreshed on 2026-06-07.
 Current command-line finding:
 
 - npm registry connectivity passed.
-- `@agentique.io/schemas` is published at version `0.2.0`.
-- `@agentique.io/validator` is published at version `0.2.0`.
-- `@agentique.io/action` is published at version `0.2.0`.
-- `@agentique.io/readback` is published at version `0.2.0`.
+- `@agentique.io/schemas` is published at version `0.2.1`.
+- `@agentique.io/validator` is published at version `0.2.1`.
+- `@agentique.io/action` is published at version `0.2.1`.
+- `@agentique.io/readback` is published at version `0.2.1`.
 - `@agentique.io/uploader` is published at version `0.2.0`.
 - Package manifests include public access and provenance publish configuration.
 - Package dry-run passed for schemas, validator, action, readback, and uploader packages.
