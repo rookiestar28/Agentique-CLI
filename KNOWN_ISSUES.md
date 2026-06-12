@@ -1,6 +1,6 @@
 # Known Issues
 
-Last reviewed: 2026-06-05
+Last reviewed: 2026-06-13
 
 This document catalogues all known defects, edge cases, and potential risks
 identified through static analysis, code review, and test-suite evaluation of
@@ -11,7 +11,7 @@ root cause, severity assessment, and a recommended remediation path.
 
 ## Table Of Contents
 
-- [KI-001: Trusted publishing owner-side setup still requires confirmation](#ki-001-trusted-publishing-owner-side-setup-still-requires-confirmation)
+- [KI-001: Trusted publishing owner-side setup is confirmed for the current release](#ki-001-trusted-publishing-owner-side-setup-is-confirmed-for-the-current-release)
 - [KI-002: External intake scanner prefix truncation bypass](#ki-002-external-intake-scanner-prefix-truncation-bypass)
 - [KI-003: Fuzzy path matching in package contract schema resolver](#ki-003-fuzzy-path-matching-in-package-contract-schema-resolver)
 - [KI-004: Word boundary anchor unreliable for dotfile patterns](#ki-004-word-boundary-anchor-unreliable-for-dotfile-patterns)
@@ -23,14 +23,14 @@ root cause, severity assessment, and a recommended remediation path.
 
 ---
 
-## KI-001: Trusted publishing owner-side setup still requires confirmation
+## KI-001: Trusted publishing owner-side setup is confirmed for the current release
 
 | Field | Value |
 |---|---|
 | **Severity** | Medium |
 | **Module** | CI / CD |
 | **File** | `.github/workflows/publish-packages.yml`; `docs/package-release-provenance.md`; `scripts/lib/workflow-posture.mjs` |
-| **Status** | Partially addressed — workflow posture is ready; npm owner-side Trusted Publisher setup must still be confirmed before token-free publication |
+| **Status** | Resolved for the current `0.2.1` release — GitHub Actions Trusted Publishing succeeded; future publisher, workflow, package, or environment changes still require owner-side confirmation |
 
 ### Description
 
@@ -40,10 +40,12 @@ The repository-side posture now requires a manual workflow, `contents: read`,
 `id-token: write`, no repository secret references, and explicit `--provenance`
 on every `npm publish` command.
 
-The remaining risk is external to the repository: the npm organization/package
-owner must configure each package's Trusted Publisher entry on npmjs.org. If
-that owner-side setup is absent or mismatched, a token-free trusted publish can
-still fail with an HTTP 401 or 403 error.
+The coordinated `0.2.1` package release completed through GitHub Actions
+Trusted Publishing. The remaining risk is future drift: if the npm
+organization/package owner changes package ownership, workflow file paths,
+environments, or repository linkage, a later token-free trusted publish can
+fail with an HTTP 401 or 403 error until the npm Trusted Publisher entries are
+confirmed again.
 
 ### Current Repository Guard
 
@@ -65,12 +67,12 @@ still fail with an HTTP 401 or 403 error.
   run: npm publish --access public --provenance
 ```
 
-### Remaining Confirmation
+### Future Confirmation Guard
 
-1. Each package is linked to the GitHub repository on npmjs.org under
+1. Keep each package linked to the GitHub repository on npmjs.org under
    Settings -> Trusted publishing.
-2. The trusted publisher entry matches this repository, workflow file, package,
-   and environment expectations.
+2. Confirm the trusted publisher entry still matches this repository, workflow
+   file, package, and environment expectations before future release changes.
 3. Any token fallback is owner-approved, short-lived, and performed outside the
    checked-in trusted-publishing workflow.
 
@@ -481,18 +483,18 @@ according to owner review.
 | **Severity** | Medium |
 | **Module** | `@agentique.io/uploader` — Release and Registry State |
 | **File** | `packages/uploader`; `docs/package-release-provenance.md`; `docs/public-url-inventory.json`; `docs/release-go-no-go.json` |
-| **Status** | Resolved — uploader `0.2.0` npm registry publication, registry readback, and install smoke are recorded |
+| **Status** | Resolved — uploader `0.2.1` npm registry publication, registry readback, and install smoke are recorded |
 
 ### Description
 
 The uploader package is implemented in source and included in local tests,
 package dry-run, workflow posture checks, and production dependency audit.
-npm registry readback reports `@agentique.io/uploader` as published at `0.2.0`,
-and registry install smoke passes for the full `0.2.0` package set.
+npm registry readback reports `@agentique.io/uploader` as published at `0.2.1`,
+and registry install smoke passes for the full `0.2.1` package set.
 
 The public URL inventory tracks the uploader package page as approved.
 Published package pages for schemas, validator, action, readback, and uploader
-remain approved advertised channels and now read back at `0.2.0`.
+remain approved advertised channels and now read back at `0.2.1`.
 
 ### Required Closeout
 
@@ -500,7 +502,7 @@ Closeout evidence recorded:
 
 1. The exact reviewed package version was published through the approved package
    publishing route.
-2. Registry readback verifies version and dist-tag state for `0.2.0`.
+2. Registry readback verifies version and dist-tag state for `0.2.1`.
 3. Clean install smoke passed without lifecycle scripts.
 4. CLI smoke proves help/version and review-only behavior through the registry
    install smoke.

@@ -34,7 +34,7 @@ The coordinated package release `0.2.1` is published for schemas, validator, act
 
 Use registry trusted publishing where available. Trusted publishing uses CI identity instead of long-lived package tokens and can publish provenance attestations for packages.
 
-The checked-in package publishing workflow is manual-only, uses GitHub OIDC with `id-token: write`, does not reference repository secrets, and passes `--provenance` explicitly to each `npm publish` command. The npm organization/package owner must still configure the matching Trusted Publisher entry in npm before the workflow can publish without a token.
+The checked-in package publishing workflow is manual-only, uses GitHub OIDC with `id-token: write`, does not reference repository secrets, and passes `--provenance` explicitly to each `npm publish` command. The npm organization/package owner configured matching Trusted Publisher entries for the coordinated trusted-publishing releases; future package, workflow, repository, or environment changes must be confirmed on npm before the workflow can continue publishing without a token.
 
 Provenance helps consumers trace package source and build context. It does not mean a package is risk-free, platform-approved, or safety-certified.
 
