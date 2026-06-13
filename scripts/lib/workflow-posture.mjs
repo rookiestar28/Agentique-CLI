@@ -30,6 +30,7 @@ export function collectWorkflowPostureFindings(repoRoot) {
       failures.push(...collectTrustedPublishWorkflowFindings(content, relativePath));
     }
     failures.push(...collectNpmInstallPostureFindings(content, relativePath));
+    failures.push(...collectNpmAuditLockfileFindings(content, relativePath));
     failures.push(...collectSecretScannerInstallFindings(repoRoot, content, relativePath));
     if (!hasReadOnlyContentsPermission(content)) {
       failures.push(`workflow must declare read-only contents permission: ${relativePath}`);
@@ -197,6 +198,22 @@ function collectNpmInstallPostureFindings(content, relativePath) {
     if (/\bnpm(?:\s+--prefix\s+\S+)?\s+ci\b/i.test(command) && !/\s--ignore-scripts(?:\s|$)/i.test(command)) {
       failures.push(`workflow uses npm ci without --ignore-scripts: ${relativePath}`);
     }
+  }
+
+  return failures;
+}
+
+function collectNpmAuditLockfileFindings(content, relativePath) {
+  const failures = [];
+  const auditPattern = /\bnpm\s+--prefix\s+packages\/uploader\s+audit\b/i;
+  const auditIndex = content.search(auditPattern);
+  if (auditIndex === -1) {
+    return failures;
+  }
+
+  const beforeAudit = content.slice(0, auditIndex);
+  if (!/\bnpm\s+--prefix\s+packages\/uploader\s+install\b[^\n]*\s--package-lock-only(?:\s|$)/i.test(beforeAudit)) {
+    failures.push(`workflow audits packages/uploader without a transient lockfile: ${relativePath}`);
   }
 
   return failures;

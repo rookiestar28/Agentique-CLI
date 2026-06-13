@@ -171,6 +171,55 @@ test("accepts lifecycle-disabled npm installs", async () => {
   assert.deepEqual(collectWorkflowPostureFindings(repoRoot), []);
 });
 
+test("rejects package audits that run without a transient lockfile", async () => {
+  const repoRoot = await createWorkflowRepo({
+    "publish-packages.yml": [
+      "name: Publish Packages",
+      "on:",
+      "  workflow_dispatch:",
+      "permissions:",
+      "  contents: read",
+      "  id-token: write",
+      "jobs:",
+      "  publish:",
+      "    if: ${{ github.ref == 'refs/heads/main' }}",
+      "    runs-on: ubuntu-latest",
+      "    steps:",
+      "      - name: Unsafe uploader audit",
+      "        run: |",
+      "          npm --prefix packages/uploader install --ignore-scripts --package-lock=false --no-audit --no-fund",
+      "          npm --prefix packages/uploader audit --omit=dev"
+    ].join("\n")
+  });
+
+  const findings = collectWorkflowPostureFindings(repoRoot).join("\n");
+
+  assert.match(findings, /audits packages\/uploader without a transient lockfile/);
+});
+
+test("accepts package audits after transient lockfile generation", async () => {
+  const repoRoot = await createWorkflowRepo({
+    "release-check.yml": [
+      "name: Safe uploader audit",
+      "on:",
+      "  pull_request:",
+      "permissions:",
+      "  contents: read",
+      "jobs:",
+      "  test:",
+      "    runs-on: ubuntu-latest",
+      "    steps:",
+      "      - name: Verify uploader package dependencies",
+      "        run: |",
+      "          npm --prefix packages/uploader install --package-lock-only --ignore-scripts --no-audit --no-fund",
+      "          npm --prefix packages/uploader audit --omit=dev",
+      "          rm -f packages/uploader/package-lock.json"
+    ].join("\n")
+  });
+
+  assert.deepEqual(collectWorkflowPostureFindings(repoRoot), []);
+});
+
 test("rejects unbounded detect-secrets workflow installs", async () => {
   const repoRoot = await createWorkflowRepo({
     "release-check.yml": [
