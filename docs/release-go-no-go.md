@@ -8,11 +8,9 @@ The source repository is public. The public repository URL, package registry pag
 
 Package registry pages, badge/readback documentation, and action usage documentation are approved after publication and smoke testing. GitHub Marketplace-style promotion remains a separate future channel.
 
-`@agentique.io/uploader` is published on npm at version `0.2.1` after owner-approved publication, hosted Release Check evidence, registry readback, and clean install smoke. The package remains review-only; it does not publish, approve, certify, host, or moderate resources.
+`@agentique.io/uploader` is published on npm at version `0.2.2` after owner-approved publication, hosted Release Check evidence, registry readback, and clean install smoke. The package remains review-only; it does not publish, approve, certify, host, or moderate resources.
 
-The coordinated `0.2.1` package publish is complete. Registry readback shows schemas, validator, action, readback, and uploader at `0.2.1`.
-
-The coordinated `0.2.2` package candidate is prepared in this source tree for schemas, validator, action, readback, and uploader. The registry-advertised package set remains `0.2.1` until the manual publishing workflow completes and post-publish registry readback plus clean install smoke confirm `0.2.2`.
+The coordinated `0.2.2` package publish is complete. Registry readback shows schemas, validator, action, readback, and uploader at `0.2.2`.
 
 ## Uploader Publication Decision
 
@@ -30,7 +28,7 @@ The uploader package page is approved for advertising. Authenticated review-sess
 
 Current parser/variant package release decision: **Go** for the coordinated package-release claim.
 
-Reason: parser/variant source changes are published in the coordinated package releases, and owner approval to use the manual GitHub Actions package publishing workflow is recorded. Hosted Release Check passed on `main`, GitHub Actions publication completed, registry readback confirms all companion packages at `0.2.1`, registry install smoke passed, and the public rollback/unpublish procedure is documented.
+Reason: parser/variant source changes are published in the coordinated package releases, and owner approval for package publication is recorded. Hosted Release Check passed on `main`, registry publication completed, registry readback confirms all companion packages at `0.2.2`, registry install smoke passed, and the public rollback/unpublish procedure is documented.
 
 Current blockers:
 
@@ -40,59 +38,57 @@ Parser/variant schemas, validator findings, readback helpers, uploader dry-runs,
 
 ## Catalog And Download Package Release Decision
 
-Current catalog/download package release decision: **Go** for the coordinated `0.2.1` patch package release.
+Current catalog/download package release decision: **Go** for the coordinated `0.2.2` package release.
 
-Existing catalog/download surfaces that were already published in the coordinated `0.2.0` package set remain advertised only within the evidence recorded for that release. The canonical-host live envelope compatibility and unauthenticated POST ticket byte-transfer path are published in the coordinated `0.2.1` patch package set.
+Existing catalog/download surfaces that were already published in the coordinated `0.2.0` package set remain advertised only within the evidence recorded for that release. The canonical-host live envelope compatibility and unauthenticated POST ticket byte-transfer path are published in the coordinated `0.2.2` package set.
 
-Reason: local source validation, installed-tarball smoke, live metadata checks, owner-approved disposable byte-transfer evidence, hosted Release Check, GitHub Actions Trusted Publishing, registry readback, clean install smoke, rollback/unpublish evidence, and branch cleanup passed for the coordinated `0.2.1` patch package release.
+Reason: local source validation, installed-tarball smoke, live metadata checks, owner-approved disposable byte-transfer evidence, hosted Release Check, registry publication, registry readback, clean install smoke, rollback/unpublish evidence, and branch cleanup passed for the coordinated `0.2.2` package release.
 
 Current blockers:
 
-- None for the `0.2.1` package-release claim.
+- None for the `0.2.2` package-release claim.
 
 Catalog list/detail/download-metadata commands, download command behavior, readback catalog normalizers, ticket-flow byte transfer, live metadata smoke, disposable byte-transfer smoke, and release smoke coverage are package and local-preparation evidence for the patch candidate. They do not approve resources, certify safety, install or execute downloaded content, guarantee every public resource is downloadable, or replace platform review.
 
-Closeout evidence for the patch candidate: source validation, installed-tarball smoke, live metadata checks, owner-approved disposable byte-transfer smoke, owner approval to publish, registry readback for the full `0.2.1` set, clean install smoke for `0.2.1`, rollback/unpublish evidence, and branch cleanup are recorded.
+Closeout evidence for the patch release: source validation, installed-tarball smoke, live metadata checks, owner-approved disposable byte-transfer smoke, owner approval to publish, registry readback for the full `0.2.2` set, clean install smoke for `0.2.2`, rollback/unpublish evidence, and branch cleanup are recorded.
 
 ## Agent-Native Package Release Decision
 
-Current agent-native package release decision: **Go** for the coordinated `0.2.1` patch package release.
+Current agent-native package release decision: **Go** for the coordinated `0.2.2` package release.
 
-Agent-native schema, validator, readback, badge, uploader dry-run, and starter surfaces are published in the coordinated `0.2.1` patch package set.
+Agent-native schema, validator, readback, badge, uploader dry-run, and starter surfaces are published in the coordinated `0.2.2` package set.
 
-Reason: local source validation, installed-tarball smoke, package-surface smoke, hosted Release Check, GitHub Actions Trusted Publishing, registry readback, clean install smoke, rollback/unpublish evidence, and branch cleanup passed for the coordinated `0.2.1` patch package release.
+Reason: local source validation, installed-tarball smoke, package-surface smoke, hosted Release Check, registry publication, registry readback, clean install smoke, rollback/unpublish evidence, and branch cleanup passed for the coordinated `0.2.2` package release.
 
 Current blockers:
 
-- None for the `0.2.1` package-release claim.
+- None for the `0.2.2` package-release claim.
 
 Agent-native schemas, validator findings, readback projection helpers, badge states, uploader dry-runs, starter metadata, and release smoke coverage are package and local-preparation evidence for the patch candidate. They do not approve resources, certify safety, provide resolver availability, install or execute downloaded content, prove runtime compatibility, provide credential handling, create direct-install support, or replace platform review.
 
-Closeout evidence for the agent-native patch candidate: source validation, installed-tarball smoke, release smoke coverage, owner approval to publish, registry readback for the full `0.2.1` set, clean install smoke for `0.2.1`, rollback/unpublish evidence, and branch cleanup are recorded.
+Closeout evidence for the agent-native package release: source validation, installed-tarball smoke, release smoke coverage, owner approval to publish, registry readback for the full `0.2.2` set, clean install smoke for `0.2.2`, rollback/unpublish evidence, and branch cleanup are recorded.
 
 ## Portable Profile Package Release Decision
 
-Current portable profile package release decision: **Go** for the coordinated `0.2.2` package-candidate workflow.
+Current portable profile package release decision: **Go** for the coordinated `0.2.2` package release.
 
 Portable profile schemas, generated adapter manifests, descriptor-only generator output, drift checks, parity checks, deferred-risk ledger reports, sandbox-gated measurement preflights, and starter metadata are source-checkout local preparation surfaces in this revision.
 
 Current blockers:
 
-- None for preparing and running the `0.2.2` package publishing workflow.
-- Public advertising of these package changes remains disabled until the `0.2.2` registry readback and clean install smoke pass.
+- None for the `0.2.2` package-release claim.
 
 These local surfaces do not install files into agent clients, execute generated content, trust lifecycle hooks, provide runtime compatibility, approve resources, certify safety, or replace platform review.
 
 ## Graph Block Package Release Decision
 
-Current graph/block package release decision: **Go** for the coordinated `0.2.2` package-candidate workflow.
+Current graph/block package release decision: **Go** for the coordinated `0.2.2` package release.
 
 Graph/block schemas, bundle validation, import/export plan output, generated block fixture manifests, diagnostic ledger inspection, replay diagnostics, workspace artifact metadata scans, API drift checks, and starter metadata are source-checkout local preparation surfaces in this revision.
 
 Current blockers:
 
-- None for preparing and running the `0.2.2` package publishing workflow.
-- Public advertising, runtime, and direct-install claims remain disabled until the `0.2.2` registry readback and clean install smoke pass.
+- None for the `0.2.2` package-release claim.
 
 These local surfaces do not install packages, execute graph nodes, load block runtimes, fetch artifact bytes, start services, mutate user agent configuration, provide runtime compatibility, approve resources, certify safety, or replace platform review.
 
@@ -111,11 +107,11 @@ Current public-safe evidence is recorded in [release-evidence.md](release-eviden
 - Readback helper docs describe context bundle and selection projections as read-only public projections.
 - Hosted Release Check evidence is recorded for the latest pushed public release candidate; later branch changes require a fresh hosted run before downstream release claims.
 - Current release gate refresh passed package tests, starter validation, release checks, workflow posture, package dry-run, URL inventory, registry readback, install smoke, go/no-go, content scan, diff check, and production dependency audits.
-- Parser/variant package surface smoke passes from locally packed tarballs, and registry readback plus registry install smoke verify the same surfaces are included in package version `0.2.1`.
-- Catalog/download package surface smoke passes from locally packed tarballs, live metadata checks passed for public list/detail/download-metadata endpoints, registry install smoke passed for `0.2.1` packages, and owner-approved disposable byte-transfer evidence is recorded.
-- Agent-native package surface smoke passes from locally packed tarballs, registry readback verifies the published `0.2.1` package set, and release go/no-go records the agent-native package release as Go while preserving resolver, direct-install, runtime, approval, and safety-claim No-Go boundaries.
-- Portable profile source tests, starter validation, and package-surface smoke are required for the `0.2.2` package candidate; advertising remains disabled until post-publish registry evidence exists.
-- Graph/block source tests, starter validation, and package-surface smoke are required for the `0.2.2` package candidate; advertising and runtime claims remain disabled until post-publish registry evidence exists.
+- Parser/variant package surface smoke passes from locally packed tarballs, and registry readback plus registry install smoke verify the same surfaces are included in package version `0.2.2`.
+- Catalog/download package surface smoke passes from locally packed tarballs, live metadata checks passed for public list/detail/download-metadata endpoints, registry install smoke passed for `0.2.2` packages, and owner-approved disposable byte-transfer evidence is recorded.
+- Agent-native package surface smoke passes from locally packed tarballs, registry readback verifies the published `0.2.2` package set, and release go/no-go records the agent-native package release as Go while preserving resolver, direct-install, runtime, approval, and safety-claim No-Go boundaries.
+- Portable profile source tests, starter validation, package-surface smoke, registry readback, and registry install smoke pass for the `0.2.2` package set.
+- Graph/block source tests, starter validation, package-surface smoke, registry readback, and registry install smoke pass for the `0.2.2` package set.
 - Public `main` branch protection is enabled.
 - Final public URLs are approved.
 - `agentique.io` public links are approved.

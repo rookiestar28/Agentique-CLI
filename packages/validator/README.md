@@ -70,4 +70,4 @@ External intake output is advisory review evidence. Registry trust, parser/varia
 
 ## Status
 
-Published on npm as `@agentique.io/validator`; registry readback currently records the published package set at `0.2.1`. This source package is prepared as the coordinated `0.2.2` package candidate with portable profile and graph/block local-preparation checks. Package-change advertising, runtime claims, and direct-install claims remain disabled until hosted publication, registry readback, and clean registry install smoke confirm `0.2.2`. Local validation output is not platform approval and is not safety certification.
+Published on npm as `@agentique.io/validator`; registry readback currently records the published package set at `0.2.2`. Portable profile and graph/block local-preparation checks are included in the published package set. Runtime claims and direct-install claims remain disabled. Local validation output is not platform approval and is not safety certification.

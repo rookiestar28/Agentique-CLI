@@ -23,33 +23,27 @@
   },
   "packagePublicationState": {
     "publishedPackages": {
-      "@agentique.io/schemas": "0.2.1",
-      "@agentique.io/validator": "0.2.1",
-      "@agentique.io/action": "0.2.1",
-      "@agentique.io/readback": "0.2.1",
-      "@agentique.io/uploader": "0.2.1"
-    },
-    "pendingPackages": {
       "@agentique.io/schemas": "0.2.2",
       "@agentique.io/validator": "0.2.2",
       "@agentique.io/action": "0.2.2",
       "@agentique.io/readback": "0.2.2",
       "@agentique.io/uploader": "0.2.2"
-    }
+    },
+    "pendingPackages": {}
   },
   "uploaderPublicationDecision": {
     "decision": "go",
     "releaseBlocked": false,
     "advertisePackage": true,
     "liveUploadAvailable": false,
-    "reason": "Uploader publication is owner-approved, hosted Release Check evidence is recorded, npm registry readback returns @agentique.io/uploader@0.2.1, and clean install smoke from the npm registry package passes. The package remains review-only and does not publish, approve, certify, host, or moderate resources.",
+    "reason": "Uploader publication is owner-approved, hosted Release Check evidence is recorded, npm registry readback returns @agentique.io/uploader@0.2.2, and clean install smoke from the npm registry package passes. The package remains review-only and does not publish, approve, certify, host, or moderate resources.",
     "blockers": []
   },
   "parserVariantPublicationDecision": {
     "decision": "go",
     "releaseBlocked": false,
     "advertisePackageChanges": true,
-    "reason": "Parser/variant package changes are published in the coordinated package releases. Hosted Release Check passed on main, GitHub Actions trusted publishing completed, registry readback confirms all companion packages at 0.2.1, registry install smoke passed, and the public rollback/unpublish procedure is documented.",
+    "reason": "Parser/variant package changes are published in the coordinated package releases. Hosted Release Check passed on main, registry publication completed, registry readback confirms all companion packages at 0.2.2, registry install smoke passed, and the public rollback/unpublish procedure is documented.",
     "blockers": []
   },
   "catalogDownloadPublicationDecision": {
@@ -81,15 +75,15 @@
     },
     "canonicalTicketPatchCandidate": {
       "targetPackages": {
-        "@agentique.io/schemas": "0.2.1",
-        "@agentique.io/validator": "0.2.1",
-        "@agentique.io/action": "0.2.1",
-        "@agentique.io/readback": "0.2.1",
-        "@agentique.io/uploader": "0.2.1"
+        "@agentique.io/schemas": "0.2.2",
+        "@agentique.io/validator": "0.2.2",
+        "@agentique.io/action": "0.2.2",
+        "@agentique.io/readback": "0.2.2",
+        "@agentique.io/uploader": "0.2.2"
       },
-      "reason": "The canonical-host POST ticket flow and live envelope compatibility are source-revision patch changes after the published 0.2.0 package set. The coordinated 0.2.1 patch candidate keeps companion package versions aligned; the behavior changes are concentrated in readback and uploader."
+      "reason": "The canonical-host POST ticket flow and live envelope compatibility are carried forward in the coordinated 0.2.2 package set. The coordinated package release keeps companion package versions aligned; the behavior changes are concentrated in readback and uploader."
     },
-    "reason": "The coordinated 0.2.1 patch publication completed through the checked-in GitHub Actions Trusted Publishing workflow. Registry readback and clean install smoke pass for the full package set. The release remains scoped to package availability for catalog/download helper changes; direct broad byte-transfer availability, resource approval, safety certification, installation, extraction, and execution claims remain excluded.",
+    "reason": "The coordinated 0.2.2 package publication completed through owner-approved local token fallback after hosted Release Check and registry settings validation. Registry readback and clean install smoke pass for the full package set. The release remains scoped to package availability for catalog/download helper changes; direct broad byte-transfer availability, resource approval, safety certification, installation, extraction, and execution claims remain excluded.",
     "blockers": []
   },
   "agentNativePublicationDecision": {
@@ -111,31 +105,31 @@
       "branchCleanup": true
     },
     "targetPackages": {
-      "@agentique.io/schemas": "0.2.1",
-      "@agentique.io/validator": "0.2.1",
-      "@agentique.io/action": "0.2.1",
-      "@agentique.io/readback": "0.2.1",
-      "@agentique.io/uploader": "0.2.1"
+      "@agentique.io/schemas": "0.2.2",
+      "@agentique.io/validator": "0.2.2",
+      "@agentique.io/action": "0.2.2",
+      "@agentique.io/readback": "0.2.2",
+      "@agentique.io/uploader": "0.2.2"
     },
-    "reason": "The coordinated 0.2.1 patch publication completed through the checked-in GitHub Actions Trusted Publishing workflow. Registry readback and clean install smoke pass for the full package set. The release remains scoped to package availability for agent-native schemas, validator findings, readback/badge helpers, uploader dry-runs, and starter metadata; resolver availability, direct install, credential handling, runtime compatibility, approval, publication of resources, and safety claims remain excluded.",
+    "reason": "The coordinated 0.2.2 package publication completed through owner-approved local token fallback after hosted Release Check and registry settings validation. Registry readback and clean install smoke pass for the full package set. The release remains scoped to package availability for agent-native schemas, validator findings, readback/badge helpers, uploader dry-runs, and starter metadata; resolver availability, direct install, credential handling, runtime compatibility, approval, publication of resources, and safety claims remain excluded.",
     "blockers": []
   },
   "portableProfilePublicationDecision": {
     "decision": "go",
     "releaseBlocked": false,
-    "advertisePackageChanges": false,
+    "advertisePackageChanges": true,
     "advertiseRuntimeSupport": false,
     "advertiseDirectInstall": false,
-    "reason": "Portable profile schema and validator source changes are ready for the owner-approved coordinated 0.2.2 package candidate workflow. Public advertising and runtime claims remain disabled until post-publish registry readback and clean install smoke confirm the 0.2.2 package set.",
+    "reason": "Portable profile schema and validator source changes are published in the coordinated 0.2.2 package set. Registry readback and clean install smoke pass. Runtime and direct-install claims remain disabled.",
     "blockers": []
   },
   "graphBlockPublicationDecision": {
     "decision": "go",
     "releaseBlocked": false,
-    "advertisePackageChanges": false,
+    "advertisePackageChanges": true,
     "advertiseRuntimeSupport": false,
     "advertiseDirectInstall": false,
-    "reason": "Graph/block schema and validator source changes are ready for the owner-approved coordinated 0.2.2 package candidate workflow. Public advertising, runtime, and direct-install claims remain disabled until post-publish registry readback and clean install smoke confirm the 0.2.2 package set.",
+    "reason": "Graph/block schema and validator source changes are published in the coordinated 0.2.2 package set. Registry readback and clean install smoke pass. Runtime and direct-install claims remain disabled.",
     "blockers": []
   },
   "blockers": []
