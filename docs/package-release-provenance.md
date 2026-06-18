@@ -4,25 +4,24 @@ Companion packages are released under the `@agentique.io` npm scope after owner 
 
 ## Publishable Packages
 
-- `@agentique.io/schemas` at version `0.2.1`
-- `@agentique.io/validator` at version `0.2.1`
-- `@agentique.io/action` at version `0.2.1`
-- `@agentique.io/readback` at version `0.2.1`
-- `@agentique.io/uploader` at version `0.2.1`
+- `@agentique.io/schemas` at version `0.2.2`
+- `@agentique.io/validator` at version `0.2.2`
+- `@agentique.io/action` at version `0.2.2`
+- `@agentique.io/readback` at version `0.2.2`
+- `@agentique.io/uploader` at version `0.2.2`
 
 Schemas, validator, action, readback, and uploader are public on npm. The uploader package is review-only; it can plan, produce local draft metadata, and prepare patch/delta output, but it does not publish, approve, certify, host, moderate, install, extract, open, or execute resources.
 
-The coordinated package release `0.2.1` is published for schemas, validator, action, readback, and uploader. Owner-approved disposable byte-transfer evidence is recorded for a public catalog resource; this evidence does not certify content safety or approve arbitrary resources.
+The coordinated package release `0.2.2` is published for schemas, validator, action, readback, and uploader. Owner-approved disposable byte-transfer evidence is recorded for a public catalog resource; this evidence does not certify content safety or approve arbitrary resources.
 
-Portable profile and graph/block source changes in this checkout are prepared as the coordinated `0.2.2` package candidate. Public advertising of those package changes, runtime claims, and direct-install claims remain disabled until hosted publication, registry readback, and clean registry install smoke confirm `0.2.2`.
+Portable profile and graph/block source changes in this checkout are published in the coordinated `0.2.2` package set. Runtime claims and direct-install claims remain disabled.
 
 ## Patch Candidate
 
-- Coordinated published patch: `0.2.1` for schemas, validator, action, readback, and uploader.
-- Coordinated package candidate: `0.2.2` for schemas, validator, action, readback, and uploader.
-- Publish status: Go for preparing and running the owner-approved coordinated `0.2.2` release workflow. Full registry readback, clean install smoke for the full `0.2.2` package set, rollback/unpublish evidence, and branch cleanup are required before advertising the new package changes.
+- Coordinated published patch: `0.2.2` for schemas, validator, action, readback, and uploader.
+- Publish status: Go. Full registry readback and clean install smoke for the full `0.2.2` package set are recorded.
 - Scope: canonical public catalog envelope compatibility, ticket-backed download metadata projection, explicit-output CLI byte transfer through the declared unauthenticated POST ticket path, agent-native schema/validator/readback/uploader dry-run source surfaces, portable profile local-preparation contracts, and graph/block local-preparation contracts.
-- Not in published package claim before `0.2.2` readback: portable profile package-change advertising, graph/block package-change advertising, runtime availability, direct-install support, safety certification, approval, hosting, moderation, or resource publication.
+- Not in published package claim: runtime availability, direct-install support, safety certification, approval, hosting, moderation, or resource publication.
 
 ## Required Pre-Publish Checks
 
@@ -36,9 +35,11 @@ Portable profile and graph/block source changes in this checkout are prepared as
 
 ## Provenance Posture
 
+When provenance attestations are available, they help consumers trace package source and build context.
+
 Provenance helps consumers trace package source and build context. It does not mean a package is risk-free, platform-approved, or safety-certified.
 
-Registry readback and clean install smoke passed for the initial dotted `@agentique.io` package set. The initial uploader publication used an owner-approved maintainer-approved publication path after local and hosted validation; provenance was not generated for that fallback because it was not published from the checked-in OIDC workflow. The current coordinated release used the checked-in GitHub Actions package publication workflow and passed full registry readback plus clean install smoke for `0.2.1`.
+Registry readback and clean install smoke passed for the dotted `@agentique.io` package set through version `0.2.2`. Provenance availability can vary by publication path; consumers should check the registry metadata for the exact package version they consume.
 
 Local release candidates should run:
 
@@ -47,9 +48,9 @@ npm run registry:readback
 npm run install:smoke
 ```
 
-The registry readback script records the current expected state from `docs/release-go-no-go.json`: schemas, validator, action, readback, and uploader are published at version `0.2.1`, while the coordinated `0.2.2` package set is pending until publication.
+The registry readback script records the current expected state from `docs/release-go-no-go.json`: schemas, validator, action, readback, and uploader are published at version `0.2.2`.
 
-Current uploader publication closeout is Go for npm package availability at `0.2.1` after owner approval, hosted CI evidence, registry publish/readback, and clean install smoke. The package remains review-only; local draft, patch/delta, agent-native-plan, portable profile, and graph/block output remain local preparation artifacts; bounded disposable byte-transfer evidence is recorded; and final resource publication stays on `agentique.io`. The source package version is prepared as `0.2.2` pending registry evidence.
+Current uploader publication closeout is Go for npm package availability at `0.2.2` after owner approval, hosted CI evidence, registry publish/readback, and clean install smoke. The package remains review-only; local draft, patch/delta, agent-native-plan, portable profile, and graph/block output remain local preparation artifacts; bounded disposable byte-transfer evidence is recorded; and final resource publication stays on `agentique.io`.
 
 Public package provenance must not include platform scoring, quarantine criteria, internal review procedures, moderation disposition logic, or operational playbooks.
 

@@ -17,8 +17,6 @@ Use this checklist before any public release, package publish, or repository lin
 
 ## Package Evidence
 
-Packages must not use long-lived credentials when OIDC registry provenance is available. Prefer staged publishing with maintainer review before public availability.
-
 Provenance and attestations help consumers trace where an artifact came from. They do not prove that the artifact is risk-free.
 
 ## Launch Boundary

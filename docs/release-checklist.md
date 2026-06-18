@@ -26,24 +26,20 @@ Use this checklist before any public release, package publish, repository link c
 - Parser/variant docs do not claim platform download availability, hosted execution, runtime compatibility, publication, approval, or safety outcomes.
 - Portable profile docs do not claim agent-client installation, generated-content execution, lifecycle-hook trust, runtime compatibility, publication, approval, or safety outcomes.
 - Graph/block docs do not claim graph execution, block runtime loading, service startup, artifact byte-transfer availability, generated-code execution, runtime compatibility, publication, approval, or safety outcomes.
-- Public docs describe already-published catalog/download behavior as `0.2.0` release evidence and canonical catalog envelope, ticket-backed byte-transfer fixes, and agent-native source changes as owner-approved coordinated `0.2.1` patch-package changes with full registry readback and clean install smoke.
-- Public docs describe portable profile and graph/block source changes as prepared for the coordinated `0.2.2` package-candidate workflow while package-change advertising, runtime claims, and direct-install claims remain disabled until hosted release evidence, package publication, registry readback, and clean registry install smoke exist.
+- Public docs describe already-published catalog/download behavior as `0.2.0` release evidence and canonical catalog envelope, ticket-backed byte-transfer fixes, agent-native source changes, portable profile source changes, and graph/block source changes as owner-approved coordinated `0.2.2` package changes with full registry readback and clean install smoke.
+- Public docs describe portable profile and graph/block source changes as published package-local preparation surfaces while runtime claims and direct-install claims remain disabled.
 - Catalog/download docs do not claim hosted execution, package installation, archive extraction, runtime compatibility, publication, approval, safety outcomes, or universal direct-download availability for every public resource.
 - Uploader package status, local draft/patch output, and review-only submit are documented separately from platform publication and live resource availability.
-- There are no pending `0.2.1` package pages in the URL inventory; the coordinated `0.2.2` package set remains pending until registry readback and install smoke pass after publication.
+- There are no pending package pages in the URL inventory; the coordinated `0.2.2` package set passed registry readback and install smoke after publication.
 - Registry readback passed with expected published package states.
 - Package install smoke passed from locally packed tarballs with lifecycle scripts disabled.
 - Parser/variant, agent-native, catalog/download, portable profile, and graph/block package surface smoke passed from locally packed tarballs: parser-variant schema file, agent-native schema file, portable profile schema file, generated adapter manifest schema file, graph/block schema files, readback parser/variant and agent-native exports, readback catalog/download exports, uploader import-plan / variant-plan / agent-native-plan help, uploader catalog help, uploader direct-download help, validator portable profile help, and validator graph/block help are present.
 
-## Package Evidence
-
-Packages must not use long-lived credentials when OIDC registry provenance is available. Prefer staged publishing with maintainer review before public availability.
+## Package Publication Evidence
 
 Provenance and attestations help consumers trace where an artifact came from. They do not prove that the artifact is risk-free.
 
-The first public npm release used an owner-approved maintainer-approved publication path after local and hosted validation passed. The coordinated `0.2.0` package release used the checked-in manual GitHub Actions package publication workflow and passed registry readback plus clean install smoke for the full package set. The coordinated `0.2.1` package release also completed through the checked-in package publication workflow, registry readback, clean install smoke, rollback evidence, and branch cleanup.
-
-Before advertising any newly published package, run `npm run registry:readback`, run `npm run install:smoke`, and record version, dist-tag, tarball contents, clean install smoke, package CLI/import smoke, parser/variant package surface evidence, agent-native package surface evidence, catalog/download package surface evidence, portable profile package surface evidence, and graph/block package surface evidence for the exact version being advertised.
+Before advertising any newly published package, confirm registry readback, clean install smoke, version, dist-tag, tarball contents, package CLI/import smoke, parser/variant package surface evidence, agent-native package surface evidence, catalog/download package surface evidence, portable profile package surface evidence, and graph/block package surface evidence for the exact version being advertised.
 
 ## Launch Boundary
 

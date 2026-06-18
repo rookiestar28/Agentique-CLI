@@ -56,4 +56,4 @@ See [../starters/graph-block-review](../starters/graph-block-review) for a stati
 
 ## Release Status
 
-Graph/block source changes are local preparation surfaces in this source revision and are prepared as part of the coordinated `0.2.2` package candidate. Public package-change advertising, runtime claims, and direct-install claims remain disabled until hosted publication, registry readback, and clean registry install smoke confirm `0.2.2`.
+Graph/block source changes are local preparation surfaces in this source revision and are published as part of the coordinated `0.2.2` package set. Registry readback and clean registry install smoke confirm `0.2.2`; runtime claims and direct-install claims remain disabled.
