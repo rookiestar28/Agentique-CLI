@@ -20,6 +20,11 @@ import {
   validatePortableDrift,
   validatePortableParity
 } from "./portability.mjs";
+import {
+  RESOURCE_UPLOAD_COMMANDS,
+  formatResourceUploadHuman,
+  validateUploadCandidate
+} from "./resource-upload.mjs";
 import { defaultSchemasDir, validatePackage } from "./validator.mjs";
 
 const usage = `Usage:
@@ -39,6 +44,7 @@ const usage = `Usage:
   agentique-validator ledger-replay-diagnostics <execution-ledger.json> --output-dir <dir> [--schemas-dir <dir>] [--json]
   agentique-validator artifact-scan <workspace-artifact.json> [--schemas-dir <dir>] [--json]
   agentique-validator api-drift <api-drift.json> [--schemas-dir <dir>] [--json]
+  agentique-validator upload-candidate <candidate.json> --output <file> [--schemas-dir <dir>] [--json]
 `;
 
 const portabilityCommands = new Set([
@@ -56,6 +62,9 @@ async function main(argv) {
   }
   if (GRAPH_BLOCK_COMMANDS.has(command)) {
     return runGraphBlockCommand(command, packageDir, rest);
+  }
+  if (RESOURCE_UPLOAD_COMMANDS.has(command)) {
+    return runResourceUploadCommand(command, packageDir, rest);
   }
 
   if (!["validate", "upload-prep", "external-intake"].includes(command) || !packageDir) {
@@ -138,6 +147,54 @@ async function main(argv) {
     const message = error instanceof Error ? error.message : "unknown error";
     if (json) {
       process.stdout.write(`${JSON.stringify({ ok: false, command, packageDir: "unavailable", findings: [{ code: "cli-error", message, location: "cli" }] }, null, 2)}\n`);
+    } else {
+      process.stderr.write(`CLI error: ${message}\n`);
+    }
+    return 2;
+  }
+}
+
+async function runResourceUploadCommand(command, subject, rest) {
+  if (!subject) {
+    process.stderr.write(usage);
+    return 2;
+  }
+
+  const flags = parseResourceUploadFlags(rest);
+  if (flags.error) {
+    process.stderr.write(`${flags.error}\n${usage}`);
+    return 2;
+  }
+  if (!flags.values.output) {
+    process.stderr.write(`upload-candidate requires --output <file>.\n${usage}`);
+    return 2;
+  }
+
+  const schemasDir = flags.values.schemasDir ?? defaultSourceSchemasDir();
+  const json = flags.values.json === true;
+
+  try {
+    const report = await validateUploadCandidate({
+      sourcePath: subject,
+      outputPath: flags.values.output,
+      schemasDir
+    });
+
+    if (json) {
+      process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    } else {
+      process.stdout.write(formatResourceUploadHuman(report));
+    }
+    return report.ok ? 0 : 1;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "unknown error";
+    const report = {
+      ok: false,
+      command,
+      findings: [{ code: "cli-error", message, location: "cli" }]
+    };
+    if (json) {
+      process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
     } else {
       process.stderr.write(`CLI error: ${message}\n`);
     }
@@ -370,6 +427,35 @@ function parseGraphBlockFlags(args) {
       values.json = true;
     } else if (arg === "--output-dir") {
       values.outputDir = args[index + 1];
+      index += 1;
+    } else if (arg === "--schemas-dir") {
+      values.schemasDir = args[index + 1];
+      index += 1;
+    } else {
+      return { error: `Unknown argument: ${arg}` };
+    }
+
+    if (args[index] === undefined && arg !== "--json") {
+      return { error: `${arg} requires a value.` };
+    }
+  }
+
+  return { values };
+}
+
+function parseResourceUploadFlags(args) {
+  const values = {
+    json: false,
+    output: null,
+    schemasDir: null
+  };
+
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+    if (arg === "--json") {
+      values.json = true;
+    } else if (arg === "--output") {
+      values.output = args[index + 1];
       index += 1;
     } else if (arg === "--schemas-dir") {
       values.schemasDir = args[index + 1];

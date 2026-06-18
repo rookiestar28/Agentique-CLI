@@ -25,6 +25,7 @@ node packages\validator\src\cli.mjs ledger-inspect <execution-ledger.json> --sch
 node packages\validator\src\cli.mjs ledger-replay-diagnostics <execution-ledger.json> --output-dir <dir> --schemas-dir schemas --json
 node packages\validator\src\cli.mjs artifact-scan <workspace-artifact.json> --schemas-dir schemas --json
 node packages\validator\src\cli.mjs api-drift <api-drift.json> --schemas-dir schemas --json
+node packages\validator\src\cli.mjs upload-candidate <candidate.json> --output <report.json> --schemas-dir schemas --json
 ```
 
 Exit codes:
@@ -45,6 +46,7 @@ Exit codes:
 - Parser/variant checks for static parser evidence, sanitized resource graph summaries, compatibility reasons, and source-only variant states.
 - Portable profile checks for canonical source metadata, generated adapter manifest provenance, descriptor drift, command/profile parity, deferred-risk markers, and sandbox-gated measurement preflights.
 - Graph/block checks for descriptor-only graph topology, static block manifests, diagnostic-only ledgers, redacted workspace artifact metadata, API drift snapshots, generated fixture manifests, and no-execution boundaries.
+- Upload-candidate checks for skill source and role/plugin metadata, license/provenance, scanner summaries, runtime-risk disclosure, explicit report output, redaction, and no-overclaim boundaries.
 
 ## External Intake
 
