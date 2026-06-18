@@ -145,6 +145,53 @@ export function collectPortableProfilePackageSurfaceFailures({
   return failures;
 }
 
+export function collectGraphBlockPackageSurfaceFailures({
+  graphBlockBundleSchemaExists,
+  blockManifestSchemaExists,
+  executionLedgerSchemaExists,
+  workspaceArtifactSchemaExists,
+  apiDriftSchemaExists,
+  generatedBlockFixturesManifestSchemaExists,
+  validatorHelpText
+}) {
+  const failures = [];
+
+  if (!graphBlockBundleSchemaExists) {
+    failures.push("schemas package missing graph-block-bundle.schema.json");
+  }
+  if (!blockManifestSchemaExists) {
+    failures.push("schemas package missing block-manifest.schema.json");
+  }
+  if (!executionLedgerSchemaExists) {
+    failures.push("schemas package missing execution-ledger.schema.json");
+  }
+  if (!workspaceArtifactSchemaExists) {
+    failures.push("schemas package missing workspace-artifact.schema.json");
+  }
+  if (!apiDriftSchemaExists) {
+    failures.push("schemas package missing api-drift.schema.json");
+  }
+  if (!generatedBlockFixturesManifestSchemaExists) {
+    failures.push("schemas package missing generated-block-fixtures-manifest.schema.json");
+  }
+  for (const command of [
+    "bundle-validate",
+    "bundle-import-plan",
+    "bundle-export-plan",
+    "block-fixtures-generate",
+    "ledger-inspect",
+    "ledger-replay-diagnostics",
+    "artifact-scan",
+    "api-drift"
+  ]) {
+    if (!new RegExp(`\\b${command}\\b`).test(validatorHelpText ?? "")) {
+      failures.push(`validator help missing ${command} command`);
+    }
+  }
+
+  return failures;
+}
+
 export function packPackage(packagePath, tarballDir, { npmCli = process.env.npm_execpath } = {}) {
   if (!npmCli) {
     throw new Error("npm_execpath is unavailable; run through npm run install:smoke");
@@ -262,6 +309,48 @@ export function runInstalledSmoke(consumerDir) {
     "schemas",
     "generated-adapter-manifest.schema.json"
   );
+  const graphBlockBundleSchemaFile = path.join(
+    consumerDir,
+    "node_modules",
+    "@agentique.io",
+    "schemas",
+    "graph-block-bundle.schema.json"
+  );
+  const blockManifestSchemaFile = path.join(
+    consumerDir,
+    "node_modules",
+    "@agentique.io",
+    "schemas",
+    "block-manifest.schema.json"
+  );
+  const executionLedgerSchemaFile = path.join(
+    consumerDir,
+    "node_modules",
+    "@agentique.io",
+    "schemas",
+    "execution-ledger.schema.json"
+  );
+  const workspaceArtifactSchemaFile = path.join(
+    consumerDir,
+    "node_modules",
+    "@agentique.io",
+    "schemas",
+    "workspace-artifact.schema.json"
+  );
+  const apiDriftSchemaFile = path.join(
+    consumerDir,
+    "node_modules",
+    "@agentique.io",
+    "schemas",
+    "api-drift.schema.json"
+  );
+  const generatedBlockFixturesManifestSchemaFile = path.join(
+    consumerDir,
+    "node_modules",
+    "@agentique.io",
+    "schemas",
+    "generated-block-fixtures-manifest.schema.json"
+  );
   const actionModule = pathToFileURL(
     path.join(consumerDir, "node_modules", "@agentique.io", "action", "src", "action.mjs")
   ).href;
@@ -346,6 +435,19 @@ export function runInstalledSmoke(consumerDir) {
   });
   if (portableProfileFailures.length > 0) {
     throw new Error(`portable profile package smoke failed: ${portableProfileFailures.join("; ")}`);
+  }
+
+  const graphBlockFailures = collectGraphBlockPackageSurfaceFailures({
+    graphBlockBundleSchemaExists: existsSync(graphBlockBundleSchemaFile),
+    blockManifestSchemaExists: existsSync(blockManifestSchemaFile),
+    executionLedgerSchemaExists: existsSync(executionLedgerSchemaFile),
+    workspaceArtifactSchemaExists: existsSync(workspaceArtifactSchemaFile),
+    apiDriftSchemaExists: existsSync(apiDriftSchemaFile),
+    generatedBlockFixturesManifestSchemaExists: existsSync(generatedBlockFixturesManifestSchemaFile),
+    validatorHelpText
+  });
+  if (graphBlockFailures.length > 0) {
+    throw new Error(`graph/block package smoke failed: ${graphBlockFailures.join("; ")}`);
   }
 }
 

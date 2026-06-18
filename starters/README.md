@@ -8,7 +8,7 @@ Upload, platform scan, moderation, publication, distribution state, and readback
 
 Newer starters include contract examples for surfacing hints, permission and risk declarations, output shape boundaries, and bounded context bundles. Public manifests may also include registry trust metadata for creator checkpoints, package context, generated draft metadata, explicit patch/delta metadata, or parser and variant metadata. These fields are descriptive package metadata so reviewers and integrators can see why a resource should be selected, what it can access, and how much context it is expected to consume.
 
-Parser, variant, and agent-native starters use static evidence and source-only or guidance-only metadata for local review. Blocked, unsupported, stale, private-denied, and resolver-ambiguous cases stay in the schema fixture corpus so the validating starter set remains green.
+Parser, variant, agent-native, portable profile, and graph/block starters use static evidence and source-only or guidance-only metadata for local review. Blocked, unsupported, stale, private-denied, resolver-ambiguous, and runtime-overclaim cases stay in the schema fixture corpus so the validating starter set remains green.
 
 ## Starters
 
@@ -21,6 +21,7 @@ Parser, variant, and agent-native starters use static evidence and source-only o
 - `parser-variant-import-review` - static parser evidence and source-only variant metadata for local review.
 - `agent-native-review` - static namespace, provenance, install-guidance, private-boundary, and resolver-intent metadata for local review.
 - `portable-profile-review` - static portable profile metadata, generated adapter manifest, and descriptor-only target output for local review.
+- `graph-block-review` - static graph, block manifest, diagnostic ledger, workspace artifact, API drift, and generated fixture metadata for local review.
 
 Keep starter files static and inspectable. Do not add restricted auth material, personal data, local machine paths, generated archives, or executable payloads.
 
@@ -29,6 +30,10 @@ Generated draft and patch/delta metadata should stay local and unsubmitted until
 ## Non-Static Lane Descriptors
 
 The `non-static-lane-descriptors` starter provides static JSON examples for the lane types described in [../docs/non-static-lane-examples.md](../docs/non-static-lane-examples.md). These descriptors are local preparation examples only. They do not route live endpoint work, run package content, provide hosting, publish resources, approve submissions, provide safety guarantees, or decide moderation outcomes.
+
+## Graph Block Review
+
+The `graph-block-review` starter provides static JSON examples for graph topology, block manifests, diagnostic ledger events, workspace artifact metadata, API drift snapshots, and generated fixture manifests. These descriptors are local preparation examples only. They do not execute graph nodes, load block runtimes, fetch artifact bytes, start services, mutate user agent configuration, publish resources, approve submissions, certify safety, or replace platform review.
 
 ## Source URL Policy
 

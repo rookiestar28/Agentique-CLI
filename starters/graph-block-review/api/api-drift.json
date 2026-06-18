@@ -1,0 +1,33 @@
+{
+  "contractVersion": "agentique.apiDrift.v1",
+  "snapshot": {
+    "openapiDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "schemaDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "publicSchemaVersions": {
+      "graph-block-bundle": "1.0"
+    }
+  },
+  "generated": {
+    "openapiDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "schemaDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "clientDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "mockDigest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "generatorVersion": "static-review-v1",
+    "generatedAt": "2026-06-18T00:00:00.000Z"
+  },
+  "mockCoverage": {
+    "requiredStatuses": ["200", "400", "500"],
+    "coveredStatuses": ["200", "400", "500"]
+  },
+  "forbiddenPrivateFields": [],
+  "publicProjection": {
+    "redacted": true,
+    "internalPathsIncluded": false,
+    "secretsIncluded": false
+  },
+  "safety": {
+    "noServiceStart": true,
+    "noCodeGeneration": true,
+    "noNetwork": true
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "contractVersion": "agentique.workspaceArtifact.v1",
+  "artifactId": "artifact:review-result",
+  "scope": "persistent-workspace-artifact",
+  "uri": {
+    "kind": "virtual-uri",
+    "value": "agentique://workspace/artifact:review-result"
+  },
+  "checksum": "sha256:abcdef123456",
+  "mimeType": "application/json",
+  "sizeBytes": 4096,
+  "scanState": "passed",
+  "retentionState": "active",
+  "signedDownload": {
+    "signed": true,
+    "host": "downloads.agentique.local",
+    "expiresAt": "2026-06-18T01:00:00.000Z",
+    "queryMaterialRedacted": true
+  },
+  "softDeleted": false
+}

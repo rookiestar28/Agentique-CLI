@@ -19,15 +19,15 @@ This file records public-safe release evidence for the companion repository. Do 
 |---|---:|---|
 | Dependency install | Pass | `npm ci --ignore-scripts` completed with 0 vulnerabilities. |
 | Secret scan | Pass | `python -m detect_secrets scan --all-files --exclude-files '(\\.git/|\\.git\\\\|node_modules/|node_modules\\\\)'` completed with empty `results`. |
-| Tests | Pass | `npm test` passed 206 tests across root scripts, validator, action, readback, and uploader. |
-| Starter validation | Pass | `npm run validate:starters` passed 9 starter packages. |
+| Tests | Pass | `npm test` passed 214 tests across root scripts, validator, action, readback, and uploader. |
+| Starter validation | Pass | `npm run validate:starters` passed 10 starter packages. |
 | Release allowlist and public-content check | Pass | `npm run release:check` passed. |
 | Workflow posture | Pass | `npm run workflow:check` passed. |
 | Package dry run | Pass | `npm run pack:dry-run` passed schemas, validator, action, readback, and uploader package checks. |
-| Parser/variant, agent-native, catalog/download, and portable profile package surface smoke | Pass | `npm run install:smoke` installs locally packed tarballs with lifecycle scripts disabled and checks parser-variant, agent-native, portable-profile, and generated-adapter manifest schemas; readback parser/variant and agent-native exports; readback catalog/download exports; uploader import/variant/agent-native help; uploader catalog help; uploader direct-download help; and validator portable profile help. |
+| Parser/variant, agent-native, catalog/download, portable profile, and graph/block package surface smoke | Pass | `npm run install:smoke` installs locally packed tarballs with lifecycle scripts disabled and checks parser-variant, agent-native, portable-profile, generated-adapter manifest, graph/block, block manifest, execution ledger, workspace artifact, API drift, and generated block fixture schemas; readback parser/variant and agent-native exports; readback catalog/download exports; uploader import/variant/agent-native help; uploader catalog help; uploader direct-download help; validator portable profile help; and validator graph/block help. |
 | Registry readback | Pass | `AGENTIQUE_REGISTRY_MODE=published AGENTIQUE_PACKAGE_VERSION=0.2.1 npm run registry:readback` confirms all five companion packages are published at `0.2.1`. |
 | URL inventory check | Pass | `npm run urls:check` passed. |
-| Go/no-go check | Pass | `npm run release:go-no-go` passed with existing advertised channels as Go, catalog/download plus agent-native patch candidates owner-approved for the coordinated `0.2.1` release workflow, and portable profile package publication claims scoped No-Go pending hosted release and registry evidence. |
+| Go/no-go check | Pass | `npm run release:go-no-go` passed with existing advertised channels as Go, catalog/download plus agent-native patch candidates owner-approved for the coordinated `0.2.1` release workflow, and portable profile plus graph/block package publication claims scoped No-Go pending hosted release and registry evidence. |
 | Package publication release gate refresh | Pass | Hosted Release Check passed on `main`, GitHub Actions publication completed in run `27432379534`, registry readback passed for all `0.2.1` packages, and registry install smoke passed. |
 | Root production dependency audit | Pass | `npm audit --omit=dev` found 0 vulnerabilities. |
 | Validator production dependency audit | Pass | `npm --prefix packages/validator audit --omit=dev` found 0 vulnerabilities. |
@@ -157,6 +157,19 @@ Current source evidence:
 - `npm run install:smoke` packs schemas and validator tarballs with lifecycle scripts disabled, then confirms `portable-profile.schema.json`, `generated-adapter-manifest.schema.json`, and validator portable profile help survive packaging.
 - `npm run release:go-no-go` records portable profile package publication as scoped No-Go until hosted release, package publication, registry readback, and registry install smoke evidence exist.
 
+## Graph Block Source Evidence
+
+This source revision includes public graph/block schemas, block manifest schemas, execution ledger schemas, workspace artifact metadata schemas, API drift schemas, generated block fixture manifest schemas, validator CLI commands, and a static starter package.
+
+Graph/block evidence remains limited to local preparation and package-surface smoke. It does not advertise package publication for these changes, graph execution, block runtime loading, artifact byte transfer, service startup, user agent configuration mutation, resource approval, safety certification, runtime compatibility, or platform review replacement.
+
+Current source evidence:
+
+- `npm --prefix packages/validator test` passes 68 tests including graph/block schema validation, bundle validate/import/export commands, fixture generation, diagnostic ledger inspection, replay diagnostics, artifact metadata scanning, and API drift checks.
+- `npm run validate:starters` passes 10 starter packages including `graph-block-review`.
+- `npm run install:smoke` packs schemas and validator tarballs with lifecycle scripts disabled, then confirms graph/block schemas and validator graph/block help survive packaging.
+- `npm run release:go-no-go` records graph/block package publication and runtime claims as scoped No-Go until hosted release, package publication, registry readback, and registry install smoke evidence exist.
+
 ## All-Channel Public URL Mode
 
 Approved advertised URL checks pass for source, published packages, action usage, badge/readback documentation, schema, docs, and platform links:
@@ -249,6 +262,9 @@ Catalog/download behavior already published in `0.2.0` remains limited to that
 release evidence. The canonical-host live envelope, POST-ticket byte-transfer
 compatibility, and agent-native local-review/readback-helper surfaces in this
 source revision are published in the coordinated `0.2.1` package set.
+Portable profile and graph/block source changes remain scoped No-Go for package
+publication and runtime claims until fresh hosted release and registry evidence
+exist.
 Authenticated review-session access and final resource publication remain
 platform-owned and account/token gated. GitHub Marketplace-style promotion
 remains separate from this source/package release.

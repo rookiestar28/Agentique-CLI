@@ -10,6 +10,7 @@ import {
 import {
   collectAgentNativePackageSurfaceFailures,
   collectCatalogDownloadPackageSurfaceFailures,
+  collectGraphBlockPackageSurfaceFailures,
   collectParserVariantPackageSurfaceFailures,
   collectPortableProfilePackageSurfaceFailures,
   collectForbiddenPackedFiles,
@@ -103,6 +104,23 @@ test("release go/no-go accepts scoped portable profile publication no-go", () =>
         decision: "no_go",
         releaseBlocked: true,
         blockers: ["portable profile source changes need hosted release and registry readback before publication claims"]
+      }
+    }),
+    []
+  );
+});
+
+test("release go/no-go accepts scoped graph block publication no-go", () => {
+  assert.deepEqual(
+    collectReleaseDecisionFailures({
+      decision: "go",
+      releaseBlocked: false,
+      localChecks: { tests: true },
+      externalEvidence: { ownerApproval: true },
+      graphBlockPublicationDecision: {
+        decision: "no_go",
+        releaseBlocked: true,
+        blockers: ["graph block source changes need hosted release and registry readback before publication claims"]
       }
     }),
     []
@@ -262,6 +280,58 @@ test("install smoke covers portable profile package surface", () => {
       "validator help missing portable-parity command",
       "validator help missing debt-ledger command",
       "validator help missing portable-eval command"
+    ]
+  );
+});
+
+test("install smoke covers graph block package surface", () => {
+  assert.deepEqual(
+    collectGraphBlockPackageSurfaceFailures({
+      graphBlockBundleSchemaExists: true,
+      blockManifestSchemaExists: true,
+      executionLedgerSchemaExists: true,
+      workspaceArtifactSchemaExists: true,
+      apiDriftSchemaExists: true,
+      generatedBlockFixturesManifestSchemaExists: true,
+      validatorHelpText: [
+        "agentique-validator bundle-validate",
+        "agentique-validator bundle-import-plan",
+        "agentique-validator bundle-export-plan",
+        "agentique-validator block-fixtures-generate",
+        "agentique-validator ledger-inspect",
+        "agentique-validator ledger-replay-diagnostics",
+        "agentique-validator artifact-scan",
+        "agentique-validator api-drift"
+      ].join("\n")
+    }),
+    []
+  );
+
+  assert.deepEqual(
+    collectGraphBlockPackageSurfaceFailures({
+      graphBlockBundleSchemaExists: false,
+      blockManifestSchemaExists: false,
+      executionLedgerSchemaExists: false,
+      workspaceArtifactSchemaExists: false,
+      apiDriftSchemaExists: false,
+      generatedBlockFixturesManifestSchemaExists: false,
+      validatorHelpText: "agentique-validator validate ./pkg"
+    }),
+    [
+      "schemas package missing graph-block-bundle.schema.json",
+      "schemas package missing block-manifest.schema.json",
+      "schemas package missing execution-ledger.schema.json",
+      "schemas package missing workspace-artifact.schema.json",
+      "schemas package missing api-drift.schema.json",
+      "schemas package missing generated-block-fixtures-manifest.schema.json",
+      "validator help missing bundle-validate command",
+      "validator help missing bundle-import-plan command",
+      "validator help missing bundle-export-plan command",
+      "validator help missing block-fixtures-generate command",
+      "validator help missing ledger-inspect command",
+      "validator help missing ledger-replay-diagnostics command",
+      "validator help missing artifact-scan command",
+      "validator help missing api-drift command"
     ]
   );
 });

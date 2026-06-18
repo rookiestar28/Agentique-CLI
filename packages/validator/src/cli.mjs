@@ -2,6 +2,17 @@
 import { scanExternalIntake } from "./intake/scanner.mjs";
 import { fileURLToPath } from "node:url";
 import {
+  GRAPH_BLOCK_COMMANDS,
+  checkApiDrift,
+  formatGraphBlockHuman,
+  generateBlockFixtures,
+  inspectExecutionLedger,
+  scanWorkspaceArtifact,
+  validateGraphBlockBundle,
+  writeBundlePlan,
+  writeReplayDiagnostics
+} from "./graph-block.mjs";
+import {
   collectDeferredRiskLedger,
   evaluatePortableProfile,
   formatPortabilityHuman,
@@ -20,6 +31,14 @@ const usage = `Usage:
   agentique-validator portable-parity <portable-profile.json> --manifest <generated-adapter-manifest.json> --output-dir <dir> [--schemas-dir <dir>] [--json]
   agentique-validator debt-ledger <root-dir> [--json]
   agentique-validator portable-eval <portable-profile.json> --output-dir <dir> --sandbox no-exec-temp [--schemas-dir <dir>] [--json]
+  agentique-validator bundle-validate <graph-block-bundle.json> [--schemas-dir <dir>] [--json]
+  agentique-validator bundle-import-plan <graph-block-bundle.json> --output-dir <dir> [--schemas-dir <dir>] [--json]
+  agentique-validator bundle-export-plan <graph-block-bundle.json> --output-dir <dir> [--schemas-dir <dir>] [--json]
+  agentique-validator block-fixtures-generate <output-dir> [--schemas-dir <dir>] [--json]
+  agentique-validator ledger-inspect <execution-ledger.json> [--schemas-dir <dir>] [--json]
+  agentique-validator ledger-replay-diagnostics <execution-ledger.json> --output-dir <dir> [--schemas-dir <dir>] [--json]
+  agentique-validator artifact-scan <workspace-artifact.json> [--schemas-dir <dir>] [--json]
+  agentique-validator api-drift <api-drift.json> [--schemas-dir <dir>] [--json]
 `;
 
 const portabilityCommands = new Set([
@@ -34,6 +53,9 @@ async function main(argv) {
   const [command, packageDir, ...rest] = argv;
   if (portabilityCommands.has(command)) {
     return runPortabilityCommand(command, packageDir, rest);
+  }
+  if (GRAPH_BLOCK_COMMANDS.has(command)) {
+    return runGraphBlockCommand(command, packageDir, rest);
   }
 
   if (!["validate", "upload-prep", "external-intake"].includes(command) || !packageDir) {
@@ -116,6 +138,78 @@ async function main(argv) {
     const message = error instanceof Error ? error.message : "unknown error";
     if (json) {
       process.stdout.write(`${JSON.stringify({ ok: false, command, packageDir: "unavailable", findings: [{ code: "cli-error", message, location: "cli" }] }, null, 2)}\n`);
+    } else {
+      process.stderr.write(`CLI error: ${message}\n`);
+    }
+    return 2;
+  }
+}
+
+async function runGraphBlockCommand(command, subject, rest) {
+  if (!subject) {
+    process.stderr.write(usage);
+    return 2;
+  }
+
+  const flags = parseGraphBlockFlags(rest);
+  if (flags.error) {
+    process.stderr.write(`${flags.error}\n${usage}`);
+    return 2;
+  }
+
+  const schemasDir = flags.values.schemasDir ?? defaultSourceSchemasDir();
+  const json = flags.values.json === true;
+
+  try {
+    let report;
+    if (command === "bundle-validate") {
+      report = await validateGraphBlockBundle({ sourcePath: subject, schemasDir });
+    } else if (command === "bundle-import-plan") {
+      if (!flags.values.outputDir) {
+        process.stderr.write(`bundle-import-plan requires --output-dir <dir>.\n${usage}`);
+        return 2;
+      }
+      report = await writeBundlePlan({ sourcePath: subject, outputDir: flags.values.outputDir, schemasDir, transferKind: "import" });
+    } else if (command === "bundle-export-plan") {
+      if (!flags.values.outputDir) {
+        process.stderr.write(`bundle-export-plan requires --output-dir <dir>.\n${usage}`);
+        return 2;
+      }
+      report = await writeBundlePlan({ sourcePath: subject, outputDir: flags.values.outputDir, schemasDir, transferKind: "export" });
+    } else if (command === "block-fixtures-generate") {
+      report = await generateBlockFixtures({ outputDir: subject, schemasDir });
+    } else if (command === "ledger-inspect") {
+      report = await inspectExecutionLedger({ sourcePath: subject, schemasDir });
+    } else if (command === "ledger-replay-diagnostics") {
+      if (!flags.values.outputDir) {
+        process.stderr.write(`ledger-replay-diagnostics requires --output-dir <dir>.\n${usage}`);
+        return 2;
+      }
+      report = await writeReplayDiagnostics({ sourcePath: subject, outputDir: flags.values.outputDir, schemasDir });
+    } else if (command === "artifact-scan") {
+      report = await scanWorkspaceArtifact({ sourcePath: subject, schemasDir });
+    } else if (command === "api-drift") {
+      report = await checkApiDrift({ sourcePath: subject, schemasDir });
+    } else {
+      process.stderr.write(usage);
+      return 2;
+    }
+
+    if (json) {
+      process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    } else {
+      process.stdout.write(formatGraphBlockHuman(report));
+    }
+    return report.ok ? 0 : 1;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "unknown error";
+    const report = {
+      ok: false,
+      command,
+      findings: [{ code: "cli-error", message, location: "cli" }]
+    };
+    if (json) {
+      process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
     } else {
       process.stderr.write(`CLI error: ${message}\n`);
     }
@@ -250,6 +344,35 @@ function parsePortabilityFlags(args) {
       index += 1;
     } else if (arg === "--target") {
       values.target = args[index + 1];
+      index += 1;
+    } else {
+      return { error: `Unknown argument: ${arg}` };
+    }
+
+    if (args[index] === undefined && arg !== "--json") {
+      return { error: `${arg} requires a value.` };
+    }
+  }
+
+  return { values };
+}
+
+function parseGraphBlockFlags(args) {
+  const values = {
+    json: false,
+    outputDir: null,
+    schemasDir: null
+  };
+
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+    if (arg === "--json") {
+      values.json = true;
+    } else if (arg === "--output-dir") {
+      values.outputDir = args[index + 1];
+      index += 1;
+    } else if (arg === "--schemas-dir") {
+      values.schemasDir = args[index + 1];
       index += 1;
     } else {
       return { error: `Unknown argument: ${arg}` };

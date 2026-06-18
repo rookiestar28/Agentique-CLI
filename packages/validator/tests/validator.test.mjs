@@ -18,8 +18,13 @@ const schemasDir = path.resolve(packageDir, "schemas");
 const execFileAsync = promisify(execFile);
 const schemaFiles = [
   "agent-native.schema.json",
+  "api-drift.schema.json",
+  "block-manifest.schema.json",
   "distribution-mode.schema.json",
+  "execution-ledger.schema.json",
   "generated-adapter-manifest.schema.json",
+  "generated-block-fixtures-manifest.schema.json",
+  "graph-block-bundle.schema.json",
   "context-bundle.schema.json",
   "output-contract.schema.json",
   "package-manifest.schema.json",
@@ -32,6 +37,7 @@ const schemaFiles = [
   "skill-metadata.schema.json",
   "surfacing-metadata.schema.json",
   "tool-listing.schema.json",
+  "workspace-artifact.schema.json",
   "workflow-metadata.schema.json"
 ];
 

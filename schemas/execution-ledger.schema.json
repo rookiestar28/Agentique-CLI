@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.agentique.io/execution-ledger.schema.json",
+  "title": "Agentique Execution Ledger",
+  "$ref": "#/$defs/executionLedger",
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 96,
+      "pattern": "^[a-z0-9][a-z0-9:_-]*$"
+    },
+    "boundedText": { "type": "string", "minLength": 1, "maxLength": 1000 },
+    "noExecution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rawCommandsIncluded",
+        "packageManagersExecuted",
+        "lifecycleHooksExecuted",
+        "graphExecuted",
+        "blockRuntimeLoaded",
+        "networkRequestsPerformed",
+        "filesystemAccessGranted",
+        "schedulerStarted",
+        "webhookReceiverStarted"
+      ],
+      "properties": {
+        "rawCommandsIncluded": { "type": "boolean", "const": false },
+        "packageManagersExecuted": { "type": "boolean", "const": false },
+        "lifecycleHooksExecuted": { "type": "boolean", "const": false },
+        "graphExecuted": { "type": "boolean", "const": false },
+        "blockRuntimeLoaded": { "type": "boolean", "const": false },
+        "networkRequestsPerformed": { "type": "boolean", "const": false },
+        "filesystemAccessGranted": { "type": "boolean", "const": false },
+        "schedulerStarted": { "type": "boolean", "const": false },
+        "webhookReceiverStarted": { "type": "boolean", "const": false }
+      }
+    },
+    "artifactRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifactId", "kind"],
+      "properties": {
+        "artifactId": { "$ref": "#/$defs/identifier" },
+        "kind": { "type": "string", "enum": ["workspace-artifact", "execution-media", "diagnostic", "cleanup-receipt"] },
+        "checksum": { "type": "string", "pattern": "^sha256:[a-f0-9]{6,64}$" }
+      }
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["eventId", "executionId", "entityKind", "entityId", "state", "timestamp", "sequence", "message", "publicSummary", "artifactRefs", "replaySafe"],
+      "properties": {
+        "eventId": { "$ref": "#/$defs/identifier" },
+        "executionId": { "$ref": "#/$defs/identifier" },
+        "parentEventId": { "$ref": "#/$defs/identifier" },
+        "entityKind": { "type": "string", "enum": ["graph", "node", "queue"] },
+        "entityId": { "$ref": "#/$defs/identifier" },
+        "state": { "type": "string", "enum": ["started", "running", "completed", "failed", "canceled", "timed-out", "skipped", "cleanup-required"] },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "sequence": { "type": "integer", "minimum": 1 },
+        "message": { "$ref": "#/$defs/boundedText" },
+        "publicSummary": { "$ref": "#/$defs/boundedText" },
+        "boundedLog": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["text", "redacted", "maxBytes", "truncated"],
+          "properties": {
+            "text": { "$ref": "#/$defs/boundedText" },
+            "redacted": { "type": "boolean" },
+            "maxBytes": { "type": "integer", "minimum": 1, "maximum": 4096 },
+            "truncated": { "type": "boolean" }
+          }
+        },
+        "artifactRefs": { "type": "array", "maxItems": 50, "items": { "$ref": "#/$defs/artifactRef" } },
+        "errorClass": { "type": "string", "enum": ["validation", "policy", "timeout", "canceled", "runtime-unavailable", "artifact", "cleanup", "unknown"] },
+        "replaySafe": { "type": "boolean", "const": true }
+      }
+    },
+    "executionLedger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "ledgerId", "graphId", "graphExecutionId", "state", "replayDiagnosticOnly", "noExecution", "events"],
+      "properties": {
+        "contractVersion": { "type": "string", "const": "agentique.executionLedger.v1" },
+        "ledgerId": { "$ref": "#/$defs/identifier" },
+        "graphId": { "$ref": "#/$defs/identifier" },
+        "graphExecutionId": { "$ref": "#/$defs/identifier" },
+        "state": { "type": "string", "enum": ["started", "running", "completed", "failed", "canceled", "timed-out", "skipped", "cleanup-required"] },
+        "replayDiagnosticOnly": { "type": "boolean", "const": true },
+        "noExecution": { "$ref": "#/$defs/noExecution" },
+        "events": { "type": "array", "minItems": 1, "maxItems": 1000, "items": { "$ref": "#/$defs/event" } }
+      }
+    }
+  }
+}

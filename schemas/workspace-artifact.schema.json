@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.agentique.io/workspace-artifact.schema.json",
+  "title": "Agentique Workspace Artifact",
+  "$ref": "#/$defs/workspaceArtifact",
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 96,
+      "pattern": "^[a-z0-9][a-z0-9:_-]*$"
+    },
+    "workspaceArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "artifactId", "scope", "uri", "checksum", "mimeType", "sizeBytes", "scanState", "retentionState", "softDeleted"],
+      "properties": {
+        "contractVersion": { "type": "string", "const": "agentique.workspaceArtifact.v1" },
+        "artifactId": { "$ref": "#/$defs/identifier" },
+        "scope": { "type": "string", "enum": ["persistent-workspace-artifact", "ephemeral-execution-media"] },
+        "uri": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "value"],
+          "properties": {
+            "kind": { "type": "string", "enum": ["virtual-uri", "storage-ref", "local-temp-ref", "data-uri", "http-url"] },
+            "value": { "type": "string", "minLength": 6, "maxLength": 600 }
+          }
+        },
+        "checksum": { "type": "string", "pattern": "^sha256:[a-f0-9]{6,64}$" },
+        "mimeType": { "type": "string", "enum": ["application/json", "text/plain", "image/png", "image/jpeg", "application/zip"] },
+        "sizeBytes": { "type": "integer", "minimum": 0, "maximum": 52428800 },
+        "scanState": { "type": "string", "enum": ["queued", "passed", "failed", "quarantined", "unscanned"] },
+        "retentionState": { "type": "string", "enum": ["active", "expiring", "expired", "cleanup-required", "soft-deleted"] },
+        "signedDownload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["signed", "host", "expiresAt", "queryMaterialRedacted"],
+          "properties": {
+            "signed": { "type": "boolean" },
+            "host": { "type": "string", "minLength": 3, "maxLength": 200 },
+            "expiresAt": { "type": "string" },
+            "queryMaterialRedacted": { "type": "boolean" }
+          }
+        },
+        "softDeleted": { "type": "boolean" },
+        "cleanupReceipt": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["receiptId", "cleanedAt", "actor"],
+          "properties": {
+            "receiptId": { "$ref": "#/$defs/identifier" },
+            "cleanedAt": { "type": "string", "format": "date-time" },
+            "actor": { "type": "string", "enum": ["system", "operator"] }
+          }
+        }
+      }
+    }
+  }
+}
