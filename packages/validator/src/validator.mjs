@@ -7,11 +7,13 @@ import addFormats from "ajv-formats";
 const schemaFiles = [
   "agent-native.schema.json",
   "distribution-mode.schema.json",
+  "generated-adapter-manifest.schema.json",
   "context-bundle.schema.json",
   "output-contract.schema.json",
   "package-manifest.schema.json",
   "parser-variant.schema.json",
   "permission-risk.schema.json",
+  "portable-profile.schema.json",
   "public-readback.schema.json",
   "registry-trust.schema.json",
   "resource-manifest.schema.json",
@@ -830,6 +832,12 @@ function schemaIdForPackageJson(normalizedRel) {
   }
   if (isContextBundlePackageJson(normalizedRel)) {
     return "https://schemas.agentique.io/context-bundle.schema.json";
+  }
+  if (normalizedRel === "portable/portable-profile.json" || normalizedRel.endsWith("/portable-profile.json")) {
+    return "https://schemas.agentique.io/portable-profile.schema.json";
+  }
+  if (normalizedRel === "portable/generated-adapter-manifest.json" || normalizedRel.endsWith("/generated-adapter-manifest.json")) {
+    return "https://schemas.agentique.io/generated-adapter-manifest.schema.json";
   }
   return null;
 }

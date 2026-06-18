@@ -2,7 +2,7 @@
 
 Static local upload-preparation validator for Agentique resource packages.
 
-`agentique-validator` is a no-execution checker that validates public manifests, package inventory, path safety, registry trust metadata, parser/variant metadata, and upload-prep metadata without uploading, publishing, installing dependencies, or executing submitted code.
+`agentique-validator` is a no-execution checker that validates public manifests, package inventory, path safety, registry trust metadata, parser/variant metadata, portable profile metadata, and upload-prep metadata without uploading, publishing, installing dependencies, mutating user agent configuration, or executing submitted code.
 
 Local validation is not platform approval and is not safety certification. `agentique.io` remains the source of truth for upload, scan, review, moderation, publication, distribution state, and readback.
 
@@ -12,6 +12,11 @@ Local validation is not platform approval and is not safety certification. `agen
 node packages\validator\src\cli.mjs validate <package-dir> --schemas-dir schemas --json
 node packages\validator\src\cli.mjs upload-prep <package-dir> --schemas-dir schemas --json
 node packages\validator\src\cli.mjs external-intake <repo-or-dir> --json
+node packages\validator\src\cli.mjs portable-generate <portable-profile.json> --target codex-skill --output <dir> --schemas-dir schemas --json
+node packages\validator\src\cli.mjs portable-drift <portable-profile.json> --manifest <dir>\portable\generated-adapter-manifest.json --output-dir <dir> --schemas-dir schemas --json
+node packages\validator\src\cli.mjs portable-parity <portable-profile.json> --manifest <dir>\portable\generated-adapter-manifest.json --output-dir <dir> --schemas-dir schemas --json
+node packages\validator\src\cli.mjs debt-ledger <root-dir> --json
+node packages\validator\src\cli.mjs portable-eval <portable-profile.json> --output-dir <dir> --sandbox no-exec-temp --schemas-dir schemas --json
 ```
 
 Exit codes:
@@ -30,6 +35,7 @@ Exit codes:
 - Forbidden public-content path and term checks.
 - Registry trust checks for creator-safe package context, creator checkpoints, generated draft boundaries, and explicit patch/delta metadata.
 - Parser/variant checks for static parser evidence, sanitized resource graph summaries, compatibility reasons, and source-only variant states.
+- Portable profile checks for canonical source metadata, generated adapter manifest provenance, descriptor drift, command/profile parity, deferred-risk markers, and sandbox-gated measurement preflights.
 
 ## External Intake
 

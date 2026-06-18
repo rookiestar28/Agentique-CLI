@@ -114,5 +114,18 @@
     "reason": "The coordinated 0.2.1 patch publication completed through the checked-in GitHub Actions Trusted Publishing workflow. Registry readback and clean install smoke pass for the full package set. The release remains scoped to package availability for agent-native schemas, validator findings, readback/badge helpers, uploader dry-runs, and starter metadata; resolver availability, direct install, credential handling, runtime compatibility, approval, publication of resources, and safety claims remain excluded.",
     "blockers": []
   },
+  "portableProfilePublicationDecision": {
+    "decision": "no_go",
+    "releaseBlocked": true,
+    "advertisePackageChanges": false,
+    "advertiseRuntimeSupport": false,
+    "advertiseDirectInstall": false,
+    "reason": "Portable profile schema and validator source changes are present in this checkout for local preparation. Hosted release evidence, package publication, registry readback, and clean install smoke for a future package version are not recorded yet, so publication claims remain blocked.",
+    "blockers": [
+      "hosted release check for the portable profile source changes is not recorded",
+      "package publication and registry readback for a version containing portable profile schemas and validator commands are not recorded",
+      "registry install smoke for a version containing portable profile schemas and validator commands is not recorded"
+    ]
+  },
   "blockers": []
 }

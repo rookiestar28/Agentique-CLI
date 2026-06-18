@@ -1,4 +1,316 @@
 {
+  "generated-adapter-manifest.schema.json": {
+    "valid": {
+      "contractVersion": "1.0",
+      "generator": {
+        "name": "agentique-portable-adapter-generator",
+        "version": "0.1.0",
+        "generatedAt": "2026-06-18T00:00:00.000Z"
+      },
+      "source": {
+        "profileId": "source-reviewer",
+        "sourceDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "schemaId": "https://schemas.agentique.io/portable-profile.schema.json"
+      },
+      "target": {
+        "targetId": "codex-skill",
+        "support": "instruction-only",
+        "artifactKind": "skill",
+        "noExecution": true
+      },
+      "files": [
+        {
+          "path": "codex-skill/SKILL.md",
+          "role": "descriptor",
+          "bytes": 256,
+          "sha256": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      ],
+      "commandMappings": [
+        {
+          "commandId": "summarize-public-source",
+          "profileId": "review",
+          "mode": "summarize",
+          "path": "codex-skill/SKILL.md",
+          "invariantPhrases": ["do not install or execute", "descriptor-only"]
+        }
+      ],
+      "invariantPhrases": ["do not install or execute", "descriptor-only"],
+      "safety": {
+        "noExecution": true,
+        "installsDependencies": false,
+        "writesUserConfig": false,
+        "trustsLifecycleHooks": false,
+        "networkAccess": false,
+        "referenceExecution": false
+      },
+      "drift": {
+        "status": "current",
+        "checkedAt": "2026-06-18T00:00:00.000Z"
+      }
+    },
+    "invalid": {
+      "missing-required": {
+        "contractVersion": "1.0"
+      },
+      "extra-property": {
+        "contractVersion": "1.0",
+        "generator": {
+          "name": "agentique-portable-adapter-generator",
+          "version": "0.1.0",
+          "generatedAt": "2026-06-18T00:00:00.000Z"
+        },
+        "source": {
+          "profileId": "source-reviewer",
+          "sourceDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "schemaId": "https://schemas.agentique.io/portable-profile.schema.json"
+        },
+        "target": {
+          "targetId": "codex-skill",
+          "support": "instruction-only",
+          "artifactKind": "skill",
+          "noExecution": true
+        },
+        "files": [],
+        "commandMappings": [],
+        "invariantPhrases": ["descriptor-only"],
+        "safety": {
+          "noExecution": true,
+          "installsDependencies": false,
+          "writesUserConfig": false,
+          "trustsLifecycleHooks": false,
+          "networkAccess": false,
+          "referenceExecution": false
+        },
+        "drift": {
+          "status": "current"
+        },
+        "platformApprovalClaim": true
+      },
+      "boundary": {
+        "contractVersion": "1.0",
+        "generator": {
+          "name": "agentique-portable-adapter-generator",
+          "version": "*",
+          "generatedAt": "not-a-date"
+        },
+        "source": {
+          "profileId": "source-reviewer",
+          "sourceDigest": "sha256:not-a-digest",
+          "schemaId": "https://schemas.agentique.io/portable-profile.schema.json"
+        },
+        "target": {
+          "targetId": "codex-skill",
+          "support": "instruction-only",
+          "artifactKind": "skill",
+          "noExecution": false
+        },
+        "files": [
+          {
+            "path": "../SKILL.md",
+            "role": "descriptor",
+            "bytes": 0,
+            "sha256": "sha256:not-a-digest"
+          }
+        ],
+        "commandMappings": [
+          {
+            "commandId": "summarize-public-source",
+            "profileId": "review",
+            "mode": "summarize",
+            "path": "..\\skills\\SKILL.md",
+            "invariantPhrases": []
+          }
+        ],
+        "invariantPhrases": [],
+        "safety": {
+          "noExecution": false,
+          "installsDependencies": true,
+          "writesUserConfig": true,
+          "trustsLifecycleHooks": true,
+          "networkAccess": true,
+          "referenceExecution": true
+        },
+        "drift": {
+          "status": "approved"
+        }
+      }
+    }
+  },
+  "portable-profile.schema.json": {
+    "valid": {
+      "contractVersion": "1.0",
+      "profileId": "source-reviewer",
+      "displayName": "Source Reviewer",
+      "summary": "Reviews public source notes and produces a bounded summary.",
+      "canonicalSource": {
+        "sourceId": "source-reviewer-skill",
+        "sourceType": "markdown",
+        "sourceDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "license": "Apache-2.0",
+        "provenance": {
+          "sourceUrl": "https://github.com/agentique/examples",
+          "declaredBy": "example-creator",
+          "declaredAt": "2026-06-18T00:00:00.000Z"
+        },
+        "noExecution": true,
+        "lifecycleHooksTrusted": false
+      },
+      "profiles": [
+        {
+          "profileId": "review",
+          "modes": ["summarize"],
+          "aliases": ["summary"],
+          "defaultMode": "summarize"
+        }
+      ],
+      "commands": [
+        {
+          "commandId": "summarize-public-source",
+          "profileId": "review",
+          "mode": "summarize",
+          "aliases": ["summarize"],
+          "summary": "Summarizes public source notes with no execution.",
+          "instruction": "Read the provided public notes and produce a concise summary with open questions."
+        }
+      ],
+      "targetHosts": [
+        {
+          "targetId": "codex-skill",
+          "support": "instruction-only",
+          "artifactKind": "skill",
+          "noExecution": true,
+          "writesUserConfig": false,
+          "lifecycleHooksTrusted": false,
+          "reasons": ["static-adapter"]
+        }
+      ],
+      "blockedStates": [
+        {
+          "code": "lifecycle-hooks",
+          "reason": "Lifecycle hooks are not trusted by local tooling."
+        }
+      ],
+      "publicProjection": {
+        "nonCertifying": true,
+        "noRuntimeClaim": true,
+        "noApprovalClaim": true,
+        "redaction": {
+          "secrets": true,
+          "privatePaths": true,
+          "internalPlanning": true
+        }
+      },
+      "deferredRisks": [
+        {
+          "marker": "adapter-hand-tuning",
+          "ceiling": "low",
+          "upgradeTrigger": "new-target-family",
+          "status": "monitoring"
+        }
+      ]
+    },
+    "invalid": {
+      "missing-required": {
+        "contractVersion": "1.0"
+      },
+      "extra-property": {
+        "contractVersion": "1.0",
+        "profileId": "source-reviewer",
+        "displayName": "Source Reviewer",
+        "summary": "Reviews public source notes and produces a bounded summary.",
+        "canonicalSource": {
+          "sourceId": "source-reviewer-skill",
+          "sourceType": "markdown",
+          "sourceDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "license": "Apache-2.0",
+          "provenance": {
+            "sourceUrl": "https://github.com/agentique/examples",
+            "declaredBy": "example-creator",
+            "declaredAt": "2026-06-18T00:00:00.000Z"
+          },
+          "noExecution": true,
+          "lifecycleHooksTrusted": false
+        },
+        "profiles": [],
+        "commands": [],
+        "targetHosts": [],
+        "blockedStates": [],
+        "publicProjection": {
+          "nonCertifying": true,
+          "noRuntimeClaim": true,
+          "noApprovalClaim": true,
+          "redaction": {
+            "secrets": true,
+            "privatePaths": true,
+            "internalPlanning": true
+          }
+        },
+        "platformApprovalClaim": true
+      },
+      "boundary": {
+        "contractVersion": "1.0",
+        "profileId": "x",
+        "displayName": "x",
+        "summary": "too short",
+        "canonicalSource": {
+          "sourceId": "../private",
+          "sourceType": "binary",
+          "sourceDigest": "sha256:not-a-digest",
+          "license": "Unknown",
+          "provenance": {
+            "sourceUrl": "http://example.com/source",
+            "declaredBy": "example creator",
+            "declaredAt": "not-a-date"
+          },
+          "noExecution": false,
+          "lifecycleHooksTrusted": true
+        },
+        "profiles": [
+          {
+            "profileId": "review",
+            "modes": [],
+            "defaultMode": "summarize"
+          }
+        ],
+        "commands": [
+          {
+            "commandId": "summarize-public-source",
+            "profileId": "review",
+            "mode": "summarize",
+            "summary": "too short",
+            "instruction": ""
+          }
+        ],
+        "targetHosts": [
+          {
+            "targetId": "codex-skill",
+            "support": "instruction-only",
+            "artifactKind": "skill",
+            "noExecution": false,
+            "writesUserConfig": true,
+            "lifecycleHooksTrusted": true
+          }
+        ],
+        "blockedStates": [
+          {
+            "code": "x",
+            "reason": "too short"
+          }
+        ],
+        "publicProjection": {
+          "nonCertifying": false,
+          "noRuntimeClaim": false,
+          "noApprovalClaim": false,
+          "redaction": {
+            "secrets": false,
+            "privatePaths": false,
+            "internalPlanning": false
+          }
+        }
+      }
+    }
+  },
   "agent-native.schema.json": {
     "validCases": {
       "creator-metadata": {

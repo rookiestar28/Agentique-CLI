@@ -19,11 +19,13 @@ const execFileAsync = promisify(execFile);
 const schemaFiles = [
   "agent-native.schema.json",
   "distribution-mode.schema.json",
+  "generated-adapter-manifest.schema.json",
   "context-bundle.schema.json",
   "output-contract.schema.json",
   "package-manifest.schema.json",
   "parser-variant.schema.json",
   "permission-risk.schema.json",
+  "portable-profile.schema.json",
   "public-readback.schema.json",
   "registry-trust.schema.json",
   "resource-manifest.schema.json",

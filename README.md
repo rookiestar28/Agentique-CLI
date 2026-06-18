@@ -33,6 +33,7 @@ Local tools in this repository do not publish, approve, certify, edit, delete, m
 - [Resource Package Workflow](#resource-package-workflow)
 - [Starters](#starters)
 - [Non-Static Lane Examples](#non-static-lane-examples)
+- [Portable Profile Tools](#portable-profile-tools)
 - [Validator CLI](#validator-cli)
 - [Uploader CLI](#uploader-cli)
 - [GitHub Action](#github-action)
@@ -123,6 +124,18 @@ node packages/validator/src/cli.mjs external-intake <repo-or-dir> --json
 ```
 
 The external intake scan is a local advisory preflight. It does not install dependencies, run lifecycle scripts, fetch submodules, download Git LFS objects, extract archives, or approve the candidate for publication.
+
+Review portable profile behavior locally:
+
+```bash
+node packages/validator/src/cli.mjs portable-generate starters/portable-profile-review/portable/portable-profile.json --target codex-skill --output .tmp/portable-profile-output --schemas-dir schemas --json
+node packages/validator/src/cli.mjs portable-drift starters/portable-profile-review/portable/portable-profile.json --manifest .tmp/portable-profile-output/portable/generated-adapter-manifest.json --output-dir .tmp/portable-profile-output --schemas-dir schemas --json
+node packages/validator/src/cli.mjs portable-parity starters/portable-profile-review/portable/portable-profile.json --manifest .tmp/portable-profile-output/portable/generated-adapter-manifest.json --output-dir .tmp/portable-profile-output --schemas-dir schemas --json
+node packages/validator/src/cli.mjs debt-ledger starters/portable-profile-review --json
+node packages/validator/src/cli.mjs portable-eval starters/portable-profile-review/portable/portable-profile.json --output-dir .tmp/portable-profile-eval --sandbox no-exec-temp --schemas-dir schemas --json
+```
+
+Portable profile commands are local preparation tools. They generate descriptor-only files into explicit output directories, validate drift and parity, scan explicit deferred-risk markers, and run measurement-only sandbox preflights. They do not install adapters into agent clients, execute generated content, trust lifecycle hooks, call private APIs, approve resources, certify safety, or change user configuration.
 
 Review uploader source behavior locally:
 
@@ -230,6 +243,7 @@ Available examples:
 - `starters/non-static-lane-descriptors` - static descriptors for agent cards, external endpoints, downloadable packages, tool-enabled packages, static skill/workflow resources, and hosted-deferred readback records.
 - `starters/parser-variant-import-review` - static parser evidence and source-only variant metadata for local review.
 - `starters/agent-native-review` - static namespace, provenance, install-guidance, public boundary, and resolver-intent metadata for local review.
+- `starters/portable-profile-review` - static portable profile, generated adapter manifest, and descriptor-only target output for local review.
 
 Validate every starter:
 
@@ -257,6 +271,14 @@ Agent-native examples are metadata for local review. They do not execute package
 
 Parser/variant examples are metadata for local review. They do not execute imported content, prove runtime compatibility, create platform downloads, publish resources, approve submissions, or replace platform review.
 
+## Portable Profile Tools
+
+The portable profile starter in [starters/portable-profile-review](starters/portable-profile-review) shows a canonical instruction source, profile/mode aliases, command mappings, target host support, blocked states, provenance, license metadata, and public redaction boundaries.
+
+The validator package includes source-checkout commands for descriptor-only adapter generation, drift validation, command/profile parity, deferred-risk ledger scanning, and opt-in measurement-only evaluation preflight. See [docs/agent-resource-portability.md](docs/agent-resource-portability.md).
+
+Portable profile outputs are local preparation artifacts. They do not install files into agent clients, execute generated content, trust lifecycle hooks, approve resources, certify safety, provide runtime compatibility, or replace platform review.
+
 ## Validator CLI
 
 The validator is a static checker. It does not install package dependencies, execute package code, upload files, or call private platform APIs.
@@ -277,6 +299,16 @@ Run no-execution external intake preflight on a raw candidate directory:
 
 ```bash
 node packages/validator/src/cli.mjs external-intake <repo-or-dir> --json
+```
+
+Run portable profile local preparation commands:
+
+```bash
+node packages/validator/src/cli.mjs portable-generate <portable-profile.json> --target codex-skill --output <dir> --schemas-dir schemas --json
+node packages/validator/src/cli.mjs portable-drift <portable-profile.json> --manifest <dir>/portable/generated-adapter-manifest.json --output-dir <dir> --schemas-dir schemas --json
+node packages/validator/src/cli.mjs portable-parity <portable-profile.json> --manifest <dir>/portable/generated-adapter-manifest.json --output-dir <dir> --schemas-dir schemas --json
+node packages/validator/src/cli.mjs debt-ledger <root-dir> --json
+node packages/validator/src/cli.mjs portable-eval <portable-profile.json> --output-dir <dir> --sandbox no-exec-temp --schemas-dir schemas --json
 ```
 
 Exit codes:
@@ -453,12 +485,16 @@ Schemas are stored in `schemas/` and can be used by local tooling or external va
 - `output-contract.schema.json`
 - `tool-listing.schema.json`
 - `context-bundle.schema.json`
+- `portable-profile.schema.json`
+- `generated-adapter-manifest.schema.json`
 
 The validator CLI uses these schemas through `--schemas-dir schemas`.
 
 `parser-variant.schema.json` defines public parser evidence, sanitized resource graph summaries, compatibility reasons, and platform variant states. Creator manifests may describe source-only variant metadata, but they must not claim platform-managed validation, platform download availability, publication, approval, or runtime compatibility. This schema is included in the coordinated package releases through `0.2.1`.
 
 `agent-native.schema.json` defines public preparation metadata and readback projection shapes for namespace coordinates, non-certifying provenance evidence labels, install-target guidance, public-boundary summaries, and resolver-result summaries. Creator manifests may declare preparation hints, but platform-managed latest pointers, resolver results, access availability, and download-backed install states remain public readback fields owned by `agentique.io`.
+
+`portable-profile.schema.json` and `generated-adapter-manifest.schema.json` define static portability metadata for canonical sources, profile modes, command surfaces, target host support, generated descriptor provenance, drift state, and no-execution safety flags. They are local preparation contracts and do not create runtime or publication claims.
 
 ## Contract Evaluation Fixtures
 
