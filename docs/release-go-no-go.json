@@ -29,7 +29,13 @@
       "@agentique.io/readback": "0.2.1",
       "@agentique.io/uploader": "0.2.1"
     },
-    "pendingPackages": {}
+    "pendingPackages": {
+      "@agentique.io/schemas": "0.2.2",
+      "@agentique.io/validator": "0.2.2",
+      "@agentique.io/action": "0.2.2",
+      "@agentique.io/readback": "0.2.2",
+      "@agentique.io/uploader": "0.2.2"
+    }
   },
   "uploaderPublicationDecision": {
     "decision": "go",
@@ -115,30 +121,22 @@
     "blockers": []
   },
   "portableProfilePublicationDecision": {
-    "decision": "no_go",
-    "releaseBlocked": true,
+    "decision": "go",
+    "releaseBlocked": false,
     "advertisePackageChanges": false,
     "advertiseRuntimeSupport": false,
     "advertiseDirectInstall": false,
-    "reason": "Portable profile schema and validator source changes are present in this checkout for local preparation. Hosted release evidence, package publication, registry readback, and clean install smoke for a future package version are not recorded yet, so publication claims remain blocked.",
-    "blockers": [
-      "hosted release check for the portable profile source changes is not recorded",
-      "package publication and registry readback for a version containing portable profile schemas and validator commands are not recorded",
-      "registry install smoke for a version containing portable profile schemas and validator commands is not recorded"
-    ]
+    "reason": "Portable profile schema and validator source changes are ready for the owner-approved coordinated 0.2.2 package candidate workflow. Public advertising and runtime claims remain disabled until post-publish registry readback and clean install smoke confirm the 0.2.2 package set.",
+    "blockers": []
   },
   "graphBlockPublicationDecision": {
-    "decision": "no_go",
-    "releaseBlocked": true,
+    "decision": "go",
+    "releaseBlocked": false,
     "advertisePackageChanges": false,
     "advertiseRuntimeSupport": false,
     "advertiseDirectInstall": false,
-    "reason": "Graph/block schema and validator source changes are present in this checkout for local preparation. Hosted release evidence, package publication, registry readback, and clean install smoke for a future package version are not recorded yet, so publication and runtime claims remain blocked.",
-    "blockers": [
-      "hosted release check for the graph/block source changes is not recorded",
-      "package publication and registry readback for a version containing graph/block schemas and validator commands are not recorded",
-      "registry install smoke for a version containing graph/block schemas and validator commands is not recorded"
-    ]
+    "reason": "Graph/block schema and validator source changes are ready for the owner-approved coordinated 0.2.2 package candidate workflow. Public advertising, runtime, and direct-install claims remain disabled until post-publish registry readback and clean install smoke confirm the 0.2.2 package set.",
+    "blockers": []
   },
   "blockers": []
 }

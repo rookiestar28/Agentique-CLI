@@ -1,6 +1,6 @@
 export const UPLOADER_PACKAGE_BOUNDARY = Object.freeze({
   packageName: "@agentique.io/uploader",
-  version: "0.2.1",
+  version: "0.2.2",
   commandName: "agentique",
   status: "boundary-only",
   submissionMode: "review-only",

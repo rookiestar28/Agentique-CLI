@@ -6,7 +6,7 @@ This package helps integrators consume public Agentique resource status from `ag
 
 `agentique.io` remains the source of truth for upload, scan, review, moderation, publication, distribution state, and readback. This package does not publish, edit, delete, moderate, approve, certify, install, extract, open, or execute resources.
 
-Catalog and direct-download helpers are included in the published `0.2.1` package for canonical public catalog envelopes, ticket-backed byte transfer, and agent-native readback projection helpers. The helpers remain read-only or explicit-output only. Owner-approved disposable byte-transfer evidence is recorded for a public catalog resource, but this evidence does not certify content safety, approve arbitrary resources, or guarantee every public resource is downloadable.
+Catalog and direct-download helpers are included in the published `0.2.1` package for canonical public catalog envelopes, ticket-backed byte transfer, and agent-native readback projection helpers. This source package is prepared as the coordinated `0.2.2` package candidate. The helpers remain read-only or explicit-output only. Owner-approved disposable byte-transfer evidence is recorded for a public catalog resource, but this evidence does not certify content safety, approve arbitrary resources, or guarantee every public resource is downloadable.
 
 ## Install
 
@@ -101,4 +101,4 @@ Badge output is a public readback summary, not a safety guarantee.
 
 ## Status
 
-Published on npm as `@agentique.io/readback` at `0.2.1`. Agent-native readback helpers remain public projection helpers, not resolver availability, platform approval, or safety certification. Badge output is a public readback summary, not a platform approval or safety guarantee.
+Published on npm as `@agentique.io/readback`; registry readback currently records the published package set at `0.2.1`. This source package is prepared as the coordinated `0.2.2` package candidate. Agent-native readback helpers remain public projection helpers, not resolver availability, platform approval, or safety certification. Badge output is a public readback summary, not a platform approval or safety guarantee.
