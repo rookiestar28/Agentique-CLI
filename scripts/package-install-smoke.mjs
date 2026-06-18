@@ -113,6 +113,38 @@ export function collectCatalogDownloadPackageSurfaceFailures({
   return failures;
 }
 
+export function collectPortableProfilePackageSurfaceFailures({
+  portableProfileSchemaExists,
+  generatedAdapterManifestSchemaExists,
+  validatorHelpText
+}) {
+  const failures = [];
+
+  if (!portableProfileSchemaExists) {
+    failures.push("schemas package missing portable-profile.schema.json");
+  }
+  if (!generatedAdapterManifestSchemaExists) {
+    failures.push("schemas package missing generated-adapter-manifest.schema.json");
+  }
+  if (!/\bportable-generate\b/.test(validatorHelpText ?? "")) {
+    failures.push("validator help missing portable-generate command");
+  }
+  if (!/\bportable-drift\b/.test(validatorHelpText ?? "")) {
+    failures.push("validator help missing portable-drift command");
+  }
+  if (!/\bportable-parity\b/.test(validatorHelpText ?? "")) {
+    failures.push("validator help missing portable-parity command");
+  }
+  if (!/\bdebt-ledger\b/.test(validatorHelpText ?? "")) {
+    failures.push("validator help missing debt-ledger command");
+  }
+  if (!/\bportable-eval\b/.test(validatorHelpText ?? "")) {
+    failures.push("validator help missing portable-eval command");
+  }
+
+  return failures;
+}
+
 export function packPackage(packagePath, tarballDir, { npmCli = process.env.npm_execpath } = {}) {
   if (!npmCli) {
     throw new Error("npm_execpath is unavailable; run through npm run install:smoke");
@@ -216,6 +248,20 @@ export function runInstalledSmoke(consumerDir) {
     "schemas",
     "agent-native.schema.json"
   );
+  const portableProfileSchemaFile = path.join(
+    consumerDir,
+    "node_modules",
+    "@agentique.io",
+    "schemas",
+    "portable-profile.schema.json"
+  );
+  const generatedAdapterManifestSchemaFile = path.join(
+    consumerDir,
+    "node_modules",
+    "@agentique.io",
+    "schemas",
+    "generated-adapter-manifest.schema.json"
+  );
   const actionModule = pathToFileURL(
     path.join(consumerDir, "node_modules", "@agentique.io", "action", "src", "action.mjs")
   ).href;
@@ -281,6 +327,25 @@ export function runInstalledSmoke(consumerDir) {
     if (error.status !== 2 || !/agentique-validator validate/.test(error.stderr ?? "")) {
       throw error;
     }
+  }
+
+  let validatorHelpText = "";
+  try {
+    execFileSync(process.execPath, [validatorCli], {
+      cwd: consumerDir,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+  } catch (error) {
+    validatorHelpText = `${error.stdout ?? ""}\n${error.stderr ?? ""}`;
+  }
+  const portableProfileFailures = collectPortableProfilePackageSurfaceFailures({
+    portableProfileSchemaExists: existsSync(portableProfileSchemaFile),
+    generatedAdapterManifestSchemaExists: existsSync(generatedAdapterManifestSchemaFile),
+    validatorHelpText
+  });
+  if (portableProfileFailures.length > 0) {
+    throw new Error(`portable profile package smoke failed: ${portableProfileFailures.join("; ")}`);
   }
 }
 

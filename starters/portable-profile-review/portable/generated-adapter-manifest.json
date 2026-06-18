@@ -1,0 +1,55 @@
+{
+  "contractVersion": "1.0",
+  "generator": {
+    "name": "agentique-portable-adapter-generator",
+    "version": "0.1.0",
+    "generatedAt": "2026-06-18T06:47:05.731Z"
+  },
+  "source": {
+    "profileId": "source-reviewer",
+    "sourceDigest": "sha256:0d3ba6dc6ae470c7670799428f5ca845e621eb9ec130b8653f5c51cd23067077",
+    "schemaId": "https://schemas.agentique.io/portable-profile.schema.json"
+  },
+  "target": {
+    "targetId": "codex-skill",
+    "support": "instruction-only",
+    "artifactKind": "skill",
+    "noExecution": true
+  },
+  "files": [
+    {
+      "path": "codex-skill/SKILL.md",
+      "role": "descriptor",
+      "bytes": 585,
+      "sha256": "sha256:f60d0338c2e505b2eb16ad8919f9f98109326afc915c82c6b6515ae75e34461c"
+    }
+  ],
+  "commandMappings": [
+    {
+      "commandId": "summarize-public-source",
+      "profileId": "review",
+      "mode": "summarize",
+      "path": "codex-skill/SKILL.md",
+      "invariantPhrases": [
+        "do not install or execute",
+        "descriptor-only"
+      ]
+    }
+  ],
+  "invariantPhrases": [
+    "do not install or execute",
+    "descriptor-only"
+  ],
+  "safety": {
+    "noExecution": true,
+    "installsDependencies": false,
+    "writesUserConfig": false,
+    "trustsLifecycleHooks": false,
+    "networkAccess": false,
+    "referenceExecution": false
+  },
+  "drift": {
+    "status": "current",
+    "checkedAt": "2026-06-18T06:47:05.731Z"
+  }
+}

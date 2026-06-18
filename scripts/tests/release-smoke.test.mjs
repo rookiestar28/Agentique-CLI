@@ -11,6 +11,7 @@ import {
   collectAgentNativePackageSurfaceFailures,
   collectCatalogDownloadPackageSurfaceFailures,
   collectParserVariantPackageSurfaceFailures,
+  collectPortableProfilePackageSurfaceFailures,
   collectForbiddenPackedFiles,
   PACKAGE_PATHS,
   summarizePackResult
@@ -85,6 +86,23 @@ test("release go/no-go accepts scoped agent-native publication no-go", () => {
         decision: "no_go",
         releaseBlocked: true,
         blockers: ["agent-native patch candidate has no owner-approved package publication"]
+      }
+    }),
+    []
+  );
+});
+
+test("release go/no-go accepts scoped portable profile publication no-go", () => {
+  assert.deepEqual(
+    collectReleaseDecisionFailures({
+      decision: "go",
+      releaseBlocked: false,
+      localChecks: { tests: true },
+      externalEvidence: { ownerApproval: true },
+      portableProfilePublicationDecision: {
+        decision: "no_go",
+        releaseBlocked: true,
+        blockers: ["portable profile source changes need hosted release and registry readback before publication claims"]
       }
     }),
     []
@@ -210,6 +228,40 @@ test("install smoke covers agent-native package surface", () => {
       "schemas package missing agent-native.schema.json",
       "readback package missing normalizeAgentNativeReadback export",
       "uploader help missing upload agent-native-plan command"
+    ]
+  );
+});
+
+test("install smoke covers portable profile package surface", () => {
+  assert.deepEqual(
+    collectPortableProfilePackageSurfaceFailures({
+      portableProfileSchemaExists: true,
+      generatedAdapterManifestSchemaExists: true,
+      validatorHelpText: [
+        "agentique-validator portable-generate",
+        "agentique-validator portable-drift",
+        "agentique-validator portable-parity",
+        "agentique-validator debt-ledger",
+        "agentique-validator portable-eval"
+      ].join("\n")
+    }),
+    []
+  );
+
+  assert.deepEqual(
+    collectPortableProfilePackageSurfaceFailures({
+      portableProfileSchemaExists: false,
+      generatedAdapterManifestSchemaExists: false,
+      validatorHelpText: "agentique-validator validate ./pkg"
+    }),
+    [
+      "schemas package missing portable-profile.schema.json",
+      "schemas package missing generated-adapter-manifest.schema.json",
+      "validator help missing portable-generate command",
+      "validator help missing portable-drift command",
+      "validator help missing portable-parity command",
+      "validator help missing debt-ledger command",
+      "validator help missing portable-eval command"
     ]
   );
 });

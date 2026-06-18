@@ -5,7 +5,8 @@ export const SCOPED_DECISION_KEYS = Object.freeze([
   "uploaderPublicationDecision",
   "parserVariantPublicationDecision",
   "catalogDownloadPublicationDecision",
-  "agentNativePublicationDecision"
+  "agentNativePublicationDecision",
+  "portableProfilePublicationDecision"
 ]);
 
 export function collectReleaseDecisionFailures(decision) {

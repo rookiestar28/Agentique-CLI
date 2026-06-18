@@ -1,0 +1,59 @@
+{
+  "formatVersion": "1.0",
+  "name": "portable-profile-review",
+  "summary": "A static portable profile and descriptor-only adapter example for local review.",
+  "source": {
+    "type": "git",
+    "url": "https://github.com/rookiestar28/Agentique-CLI/tree/main/starters/portable-profile-review"
+  },
+  "distribution": {
+    "mode": "metadata_view",
+    "notes": "Prepared as static portable profile metadata for local review."
+  },
+  "surfacing": {
+    "taskIntents": ["source-review", "package-preparation", "agent-selection"],
+    "audience": ["developer", "integrator", "reviewer", "agent"],
+    "priority": 0.7,
+    "recency": {
+      "lastReviewedAt": "2026-06-18T00:00:00Z",
+      "reviewCadenceDays": 90
+    },
+    "compatibility": {
+      "runtimeFamilies": ["markdown", "metadata"],
+      "protocols": ["https"]
+    },
+    "contextBudget": {
+      "maxTokens": 1800,
+      "maxBytes": 16384,
+      "preferredSummaryBytes": 2048
+    },
+    "notes": "Surface this starter when creators need a static portable profile example."
+  },
+  "permissionRisk": {
+    "readOnly": true,
+    "destructive": false,
+    "idempotent": true,
+    "openWorld": false,
+    "externalNetwork": false,
+    "credentialed": false,
+    "approvalRequired": false,
+    "dataSensitivity": "public",
+    "capabilities": ["read-public-content"],
+    "reviewNotes": "Synthetic metadata only; the example does not execute, authenticate, proxy, install, or mutate state."
+  },
+  "package": {
+    "formatVersion": "1.0",
+    "files": [
+      "README.md",
+      "portable/portable-profile.json",
+      "portable/generated-adapter-manifest.json",
+      "codex-skill/SKILL.md"
+    ],
+    "hashes": {
+      "README.md": "sha256:4a811d3756505a50e03e741c4782778b2a4fefd73de81674aba2865cf85f2858",
+      "portable/portable-profile.json": "sha256:0d3ba6dc6ae470c7670799428f5ca845e621eb9ec130b8653f5c51cd23067077",
+      "portable/generated-adapter-manifest.json": "sha256:30948217be8117f668ac618a5927e86c5dd294440ec996569f30d0606c82fb1d",
+      "codex-skill/SKILL.md": "sha256:f60d0338c2e505b2eb16ad8919f9f98109326afc915c82c6b6515ae75e34461c"
+    }
+  }
+}
