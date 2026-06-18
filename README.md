@@ -45,6 +45,7 @@ Local tools in this repository do not publish, approve, certify, edit, delete, m
 - [Schemas](#schemas)
 - [Contract Evaluation Fixtures](#contract-evaluation-fixtures)
 - [Release And Publication Gates](#release-and-publication-gates)
+- [npm Package Publishing](#npm-package-publishing)
 - [Support And Security](#support-and-security)
 - [License](#license)
 
@@ -590,6 +591,10 @@ npm --prefix packages/readback audit --omit=dev
 When `@agentique.io/uploader` depends on newly published companion package versions, package-local uploader dependency verification runs after companion registry readback and before publishing uploader. The publish workflow then runs full registry readback plus registry install smoke after the full package set is published.
 
 Release status and follow-up boundaries are documented in [docs/release-go-no-go.md](docs/release-go-no-go.md). Package release expectations are documented in [docs/package-release-provenance.md](docs/package-release-provenance.md).
+
+## npm Package Publishing
+
+The npm publishing procedure, package-level MFA settings, Trusted Publishing expectations, token fallback rules, failure diagnosis, and post-publish closeout requirements are documented in [docs/npm-package-publishing.md](docs/npm-package-publishing.md).
 
 ## Support And Security
 

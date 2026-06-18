@@ -2,6 +2,8 @@
 
 Companion packages are released under the `@agentique.io` npm scope after owner review and registry readback.
 
+The repeatable npm publishing procedure is documented in [npm-package-publishing.md](npm-package-publishing.md).
+
 ## Publishable Packages
 
 - `@agentique.io/schemas` at version `0.2.2`
