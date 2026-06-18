@@ -1,0 +1,364 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.agentique.io/portable-profile.schema.json",
+  "title": "Agentique Portable Profile Metadata",
+  "$ref": "#/$defs/portableProfile",
+  "$defs": {
+    "fingerprint": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "identifier": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 80,
+      "pattern": "^[a-z0-9][a-z0-9._-]*$"
+    },
+    "pathSegment": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 120,
+      "pattern": "^[a-z0-9][a-z0-9._/-]*$"
+    },
+    "boundedText": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4000
+    },
+    "summaryText": {
+      "type": "string",
+      "minLength": 16,
+      "maxLength": 320
+    },
+    "reasonCode": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 80,
+      "pattern": "^[a-z0-9][a-z0-9._-]*$"
+    },
+    "publicHttpsUrl": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://"
+    },
+    "licenseExpression": {
+      "type": "string",
+      "enum": [
+        "Apache-2.0",
+        "MIT",
+        "BSD-2-Clause",
+        "BSD-3-Clause",
+        "ISC",
+        "MPL-2.0",
+        "CC0-1.0",
+        "0BSD",
+        "Unlicense",
+        "NOASSERTION",
+        "custom-review-required"
+      ]
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceUrl", "declaredBy", "declaredAt"],
+      "properties": {
+        "sourceUrl": {
+          "$ref": "#/$defs/publicHttpsUrl"
+        },
+        "declaredBy": {
+          "$ref": "#/$defs/reasonCode"
+        },
+        "declaredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "sourceRevision": {
+          "$ref": "#/$defs/reasonCode"
+        }
+      }
+    },
+    "canonicalSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceId", "sourceType", "sourceDigest", "license", "provenance", "noExecution", "lifecycleHooksTrusted"],
+      "properties": {
+        "sourceId": {
+          "$ref": "#/$defs/pathSegment"
+        },
+        "sourceType": {
+          "type": "string",
+          "enum": ["markdown", "json", "directory-summary"]
+        },
+        "sourceDigest": {
+          "$ref": "#/$defs/fingerprint"
+        },
+        "license": {
+          "$ref": "#/$defs/licenseExpression"
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        },
+        "noExecution": {
+          "type": "boolean",
+          "const": true
+        },
+        "lifecycleHooksTrusted": {
+          "type": "boolean",
+          "const": false
+        }
+      }
+    },
+    "profileMode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profileId", "modes", "defaultMode"],
+      "properties": {
+        "profileId": {
+          "$ref": "#/$defs/identifier"
+        },
+        "modes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 12,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/reasonCode"
+          }
+        },
+        "aliases": {
+          "type": "array",
+          "maxItems": 12,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/reasonCode"
+          }
+        },
+        "defaultMode": {
+          "$ref": "#/$defs/reasonCode"
+        }
+      }
+    },
+    "command": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commandId", "profileId", "mode", "summary", "instruction"],
+      "properties": {
+        "commandId": {
+          "$ref": "#/$defs/identifier"
+        },
+        "profileId": {
+          "$ref": "#/$defs/identifier"
+        },
+        "mode": {
+          "$ref": "#/$defs/reasonCode"
+        },
+        "aliases": {
+          "type": "array",
+          "maxItems": 12,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/reasonCode"
+          }
+        },
+        "summary": {
+          "$ref": "#/$defs/summaryText"
+        },
+        "instruction": {
+          "$ref": "#/$defs/boundedText"
+        }
+      }
+    },
+    "targetHost": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["targetId", "support", "artifactKind", "noExecution", "writesUserConfig", "lifecycleHooksTrusted"],
+      "properties": {
+        "targetId": {
+          "type": "string",
+          "enum": ["source-package", "codex-skill", "claude-code-skill", "gemini-cli", "opencode", "other"]
+        },
+        "support": {
+          "type": "string",
+          "enum": ["instruction-only", "static-commands", "guidance-only", "unsupported", "blocked"]
+        },
+        "artifactKind": {
+          "type": "string",
+          "enum": ["skill", "subagent", "command", "guidance", "metadata", "source-package"]
+        },
+        "noExecution": {
+          "type": "boolean",
+          "const": true
+        },
+        "writesUserConfig": {
+          "type": "boolean",
+          "const": false
+        },
+        "lifecycleHooksTrusted": {
+          "type": "boolean",
+          "const": false
+        },
+        "reasons": {
+          "type": "array",
+          "maxItems": 12,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/reasonCode"
+          }
+        }
+      }
+    },
+    "blockedState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "reason"],
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/reasonCode"
+        },
+        "reason": {
+          "$ref": "#/$defs/summaryText"
+        }
+      }
+    },
+    "redaction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["secrets", "privatePaths", "internalPlanning"],
+      "properties": {
+        "secrets": {
+          "type": "boolean",
+          "const": true
+        },
+        "privatePaths": {
+          "type": "boolean",
+          "const": true
+        },
+        "internalPlanning": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "publicProjection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nonCertifying", "noRuntimeClaim", "noApprovalClaim", "redaction"],
+      "properties": {
+        "nonCertifying": {
+          "type": "boolean",
+          "const": true
+        },
+        "noRuntimeClaim": {
+          "type": "boolean",
+          "const": true
+        },
+        "noApprovalClaim": {
+          "type": "boolean",
+          "const": true
+        },
+        "redaction": {
+          "$ref": "#/$defs/redaction"
+        }
+      }
+    },
+    "deferredRisk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["marker", "ceiling", "upgradeTrigger", "status"],
+      "properties": {
+        "marker": {
+          "$ref": "#/$defs/reasonCode"
+        },
+        "ceiling": {
+          "type": "string",
+          "enum": ["low", "medium", "high"]
+        },
+        "upgradeTrigger": {
+          "$ref": "#/$defs/reasonCode"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["monitoring", "open", "review-required", "blocked"]
+        }
+      }
+    },
+    "portableProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contractVersion",
+        "profileId",
+        "displayName",
+        "summary",
+        "canonicalSource",
+        "profiles",
+        "commands",
+        "targetHosts",
+        "blockedStates",
+        "publicProjection"
+      ],
+      "properties": {
+        "contractVersion": {
+          "type": "string",
+          "const": "1.0"
+        },
+        "profileId": {
+          "$ref": "#/$defs/identifier"
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 120
+        },
+        "summary": {
+          "$ref": "#/$defs/summaryText"
+        },
+        "canonicalSource": {
+          "$ref": "#/$defs/canonicalSource"
+        },
+        "profiles": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 12,
+          "items": {
+            "$ref": "#/$defs/profileMode"
+          }
+        },
+        "commands": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 50,
+          "items": {
+            "$ref": "#/$defs/command"
+          }
+        },
+        "targetHosts": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 12,
+          "items": {
+            "$ref": "#/$defs/targetHost"
+          }
+        },
+        "blockedStates": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 24,
+          "items": {
+            "$ref": "#/$defs/blockedState"
+          }
+        },
+        "publicProjection": {
+          "$ref": "#/$defs/publicProjection"
+        },
+        "deferredRisks": {
+          "type": "array",
+          "maxItems": 24,
+          "items": {
+            "$ref": "#/$defs/deferredRisk"
+          }
+        }
+      }
+    }
+  }
+}

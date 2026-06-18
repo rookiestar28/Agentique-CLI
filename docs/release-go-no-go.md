@@ -68,6 +68,20 @@ Agent-native schemas, validator findings, readback projection helpers, badge sta
 
 Closeout evidence for the agent-native patch candidate: source validation, installed-tarball smoke, release smoke coverage, owner approval to publish, registry readback for the full `0.2.1` set, clean install smoke for `0.2.1`, rollback/unpublish evidence, and branch cleanup are recorded.
 
+## Portable Profile Package Release Decision
+
+Current portable profile package release decision: **No-Go** for package publication claims.
+
+Portable profile schemas, generated adapter manifests, descriptor-only generator output, drift checks, parity checks, deferred-risk ledger reports, sandbox-gated measurement preflights, and starter metadata are source-checkout local preparation surfaces in this revision.
+
+Current blockers:
+
+- Hosted release evidence for these source changes is not recorded.
+- Package publication and registry readback for a version containing these source changes are not recorded.
+- Registry install smoke for a version containing these source changes is not recorded.
+
+These local surfaces do not install files into agent clients, execute generated content, trust lifecycle hooks, provide runtime compatibility, approve resources, certify safety, or replace platform review.
+
 Current public-safe evidence is recorded in [release-evidence.md](release-evidence.md).
 
 ## Local Evidence
@@ -86,6 +100,7 @@ Current public-safe evidence is recorded in [release-evidence.md](release-eviden
 - Parser/variant package surface smoke passes from locally packed tarballs, and registry readback plus registry install smoke verify the same surfaces are included in package version `0.2.1`.
 - Catalog/download package surface smoke passes from locally packed tarballs, live metadata checks passed for public list/detail/download-metadata endpoints, registry install smoke passed for `0.2.1` packages, and owner-approved disposable byte-transfer evidence is recorded.
 - Agent-native package surface smoke passes from locally packed tarballs, registry readback verifies the published `0.2.1` package set, and release go/no-go records the agent-native package release as Go while preserving resolver, direct-install, runtime, approval, and safety-claim No-Go boundaries.
+- Portable profile source tests, starter validation, and package-surface smoke are required before any future package publication claim; current scoped decision is No-Go until hosted release and registry evidence exist.
 - Public `main` branch protection is enabled.
 - Final public URLs are approved.
 - `agentique.io` public links are approved.

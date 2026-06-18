@@ -1,0 +1,72 @@
+{
+  "contractVersion": "1.0",
+  "profileId": "source-reviewer",
+  "displayName": "Source Reviewer",
+  "summary": "Reviews public source notes and produces a bounded summary.",
+  "canonicalSource": {
+    "sourceId": "source-reviewer-skill",
+    "sourceType": "markdown",
+    "sourceDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "license": "Apache-2.0",
+    "provenance": {
+      "sourceUrl": "https://github.com/rookiestar28/Agentique-CLI/tree/main/starters/portable-profile-review",
+      "declaredBy": "example-creator",
+      "declaredAt": "2026-06-18T00:00:00.000Z"
+    },
+    "noExecution": true,
+    "lifecycleHooksTrusted": false
+  },
+  "profiles": [
+    {
+      "profileId": "review",
+      "modes": ["summarize"],
+      "aliases": ["summary"],
+      "defaultMode": "summarize"
+    }
+  ],
+  "commands": [
+    {
+      "commandId": "summarize-public-source",
+      "profileId": "review",
+      "mode": "summarize",
+      "aliases": ["summarize"],
+      "summary": "Summarizes public source notes with no execution.",
+      "instruction": "Read the provided public notes and produce a concise summary with open questions."
+    }
+  ],
+  "targetHosts": [
+    {
+      "targetId": "codex-skill",
+      "support": "instruction-only",
+      "artifactKind": "skill",
+      "noExecution": true,
+      "writesUserConfig": false,
+      "lifecycleHooksTrusted": false,
+      "reasons": ["static-adapter"]
+    }
+  ],
+  "blockedStates": [
+    {
+      "code": "lifecycle-hooks",
+      "reason": "Lifecycle hooks are not trusted by local tooling."
+    }
+  ],
+  "publicProjection": {
+    "nonCertifying": true,
+    "noRuntimeClaim": true,
+    "noApprovalClaim": true,
+    "redaction": {
+      "secrets": true,
+      "privatePaths": true,
+      "internalPlanning": true
+    }
+  },
+  "deferredRisks": [
+    {
+      "marker": "adapter-hand-tuning",
+      "ceiling": "low",
+      "upgradeTrigger": "new-target-family",
+      "status": "monitoring"
+    }
+  ]
+}

@@ -20,6 +20,7 @@ Parser, variant, and agent-native starters use static evidence and source-only o
 - `non-static-lane-descriptors` - static descriptors for agent cards, external endpoints, downloadable packages, tool-enabled packages, static skills/workflows, and hosted-deferred records.
 - `parser-variant-import-review` - static parser evidence and source-only variant metadata for local review.
 - `agent-native-review` - static namespace, provenance, install-guidance, private-boundary, and resolver-intent metadata for local review.
+- `portable-profile-review` - static portable profile metadata, generated adapter manifest, and descriptor-only target output for local review.
 
 Keep starter files static and inspectable. Do not add restricted auth material, personal data, local machine paths, generated archives, or executable payloads.
 

@@ -4,12 +4,12 @@ This file records public-safe release evidence for the companion repository. Do 
 
 ## Evidence Snapshot
 
-- Latest local source validation: 2026-06-13
+- Latest local source validation: 2026-06-18
 - Environment: Windows PowerShell
 - Node.js: v24.13.1
 - npm: 11.8.0
 - Git: 2.53.0.windows.1
-- Latest local validation branch: docs/package-release-closeout
+- Latest local validation branch: dev
 - Public repository: `https://github.com/rookiestar28/Agentique`
 - Commit evidence: hosted CI is tracked through GitHub Actions for the latest pushed public release candidate. Latest recorded public evidence is the successful hosted Release Check for the latest pushed release candidate. Later pushes require a fresh hosted run before downstream release claims.
 
@@ -19,15 +19,15 @@ This file records public-safe release evidence for the companion repository. Do 
 |---|---:|---|
 | Dependency install | Pass | `npm ci --ignore-scripts` completed with 0 vulnerabilities. |
 | Secret scan | Pass | `python -m detect_secrets scan --all-files --exclude-files '(\\.git/|\\.git\\\\|node_modules/|node_modules\\\\)'` completed with empty `results`. |
-| Tests | Pass | `npm test` passed 195 tests across root scripts, validator, action, readback, and uploader. |
-| Starter validation | Pass | `npm run validate:starters` passed 8 starter packages. |
+| Tests | Pass | `npm test` passed 206 tests across root scripts, validator, action, readback, and uploader. |
+| Starter validation | Pass | `npm run validate:starters` passed 9 starter packages. |
 | Release allowlist and public-content check | Pass | `npm run release:check` passed. |
 | Workflow posture | Pass | `npm run workflow:check` passed. |
 | Package dry run | Pass | `npm run pack:dry-run` passed schemas, validator, action, readback, and uploader package checks. |
-| Parser/variant, agent-native, and catalog/download package surface smoke | Pass | `npm run install:smoke` installs locally packed tarballs with lifecycle scripts disabled and checks parser-variant and agent-native schemas, readback parser/variant and agent-native exports, readback catalog/download exports, uploader import/variant/agent-native help, uploader catalog help, and uploader direct-download help. |
+| Parser/variant, agent-native, catalog/download, and portable profile package surface smoke | Pass | `npm run install:smoke` installs locally packed tarballs with lifecycle scripts disabled and checks parser-variant, agent-native, portable-profile, and generated-adapter manifest schemas; readback parser/variant and agent-native exports; readback catalog/download exports; uploader import/variant/agent-native help; uploader catalog help; uploader direct-download help; and validator portable profile help. |
 | Registry readback | Pass | `AGENTIQUE_REGISTRY_MODE=published AGENTIQUE_PACKAGE_VERSION=0.2.1 npm run registry:readback` confirms all five companion packages are published at `0.2.1`. |
 | URL inventory check | Pass | `npm run urls:check` passed. |
-| Go/no-go check | Pass | `npm run release:go-no-go` passed with existing advertised channels as Go and with catalog/download plus agent-native patch candidates owner-approved for the coordinated `0.2.1` release workflow. |
+| Go/no-go check | Pass | `npm run release:go-no-go` passed with existing advertised channels as Go, catalog/download plus agent-native patch candidates owner-approved for the coordinated `0.2.1` release workflow, and portable profile package publication claims scoped No-Go pending hosted release and registry evidence. |
 | Package publication release gate refresh | Pass | Hosted Release Check passed on `main`, GitHub Actions publication completed in run `27432379534`, registry readback passed for all `0.2.1` packages, and registry install smoke passed. |
 | Root production dependency audit | Pass | `npm audit --omit=dev` found 0 vulnerabilities. |
 | Validator production dependency audit | Pass | `npm --prefix packages/validator audit --omit=dev` found 0 vulnerabilities. |
@@ -143,6 +143,19 @@ Source closeout evidence is complete for local preparation only:
 - Release go/no-go records agent-native patch publication as owner-approved for the coordinated `0.2.1` release workflow while preserving resolver, direct-install, runtime, approval, and safety-claim No-Go boundaries.
 
 Current closeout evidence includes local tests, starter validation, release checks, installed-tarball smoke, package dry-run, URL inventory, registry readback for the published `0.2.1` package set, owner approval to publish, GitHub Actions registry provenance evidence, clean install smoke for the full patch set, rollback evidence, and branch cleanup.
+
+## Portable Profile Source Evidence
+
+This source revision includes public portable profile schemas, generated adapter manifest schemas, validator CLI commands for descriptor-only generation, drift validation, command/profile parity, deferred-risk ledger reporting, and sandbox-gated measurement preflight, plus a static starter package.
+
+Portable profile evidence remains limited to local preparation and package-surface smoke. It does not advertise package publication for these changes, runtime compatibility, direct install support, resource approval, safety certification, lifecycle-hook trust, or platform review replacement.
+
+Current source evidence:
+
+- `npm --prefix packages/validator test` passes 62 tests including portable schema, generator, drift, parity, debt ledger, and sandbox preflight coverage.
+- `npm run validate:starters` passes 9 starter packages including `portable-profile-review`.
+- `npm run install:smoke` packs schemas and validator tarballs with lifecycle scripts disabled, then confirms `portable-profile.schema.json`, `generated-adapter-manifest.schema.json`, and validator portable profile help survive packaging.
+- `npm run release:go-no-go` records portable profile package publication as scoped No-Go until hosted release, package publication, registry readback, and registry install smoke evidence exist.
 
 ## All-Channel Public URL Mode
 
