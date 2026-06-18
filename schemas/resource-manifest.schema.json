@@ -44,6 +44,12 @@
     "skill": {
       "$ref": "https://schemas.agentique.io/skill-metadata.schema.json"
     },
+    "skillSourcePackage": {
+      "$ref": "https://schemas.agentique.io/skill-source-package.schema.json"
+    },
+    "rolePluginPack": {
+      "$ref": "https://schemas.agentique.io/role-plugin-pack.schema.json"
+    },
     "workflow": {
       "$ref": "https://schemas.agentique.io/workflow-metadata.schema.json"
     },
