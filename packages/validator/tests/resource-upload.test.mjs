@@ -6,7 +6,7 @@ import path from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
-import { buildStaticPackageDryRun, validateUploadCandidate } from "../src/resource-upload.mjs";
+import { buildStaticPackageDryRun, createSourceNoGoReport, validateUploadCandidate } from "../src/resource-upload.mjs";
 
 const repoDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const packageDir = path.resolve(repoDir, "..", "..");
@@ -324,6 +324,152 @@ test("package dry-run CLI emits stable json and requires explicit output directo
   );
 });
 
+test("source no-go reports security scanner deferred prerequisites without descriptors", async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agentique-source-no-go-security-"));
+  const candidatePath = path.join(tempDir, "security-scanner.json");
+  const outputPath = path.join(tempDir, "source-no-go-report.json");
+  await writeJson(
+    candidatePath,
+    runtimeSkillCandidate({
+      packageId: "skill-source:security-scanner",
+      sourceId: "security-scanner",
+      runtimeClass: "security-scanner",
+      capabilities: ["package-lifecycle", "filesystem-read"],
+      reasons: ["runtime-sandbox-required", "security-review-required"]
+    })
+  );
+
+  const report = await createSourceNoGoReport({ sourcePath: candidatePath, outputPath, schemasDir });
+  const written = JSON.parse(await fs.readFile(outputPath, "utf8"));
+
+  assert.equal(report.ok, true);
+  assert.equal(report.decision, "runtime_deferred");
+  assert.equal(report.state, "deferred");
+  assert.equal(report.candidate.candidateId, "skill-source:security-scanner");
+  assert.equal(report.prerequisites.includes("sandbox-runtime-review"), true);
+  assert.equal(report.prerequisites.includes("security-tool-review"), true);
+  assert.equal(report.prerequisites.includes("scanner-review"), true);
+  assert.equal(report.safety.noExecution, true);
+  assert.equal(report.safety.noUpload, true);
+  assert.equal(written.command, "source-no-go");
+  assert.equal(await fileExists(path.join(tempDir, "package", "descriptors", "security-scanner.json")), false);
+  assert.equal(JSON.stringify(report).includes(tempDir), false);
+});
+
+test("source no-go maps memory and internet capability prerequisites", async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agentique-source-no-go-runtime-"));
+  const memoryPath = path.join(tempDir, "memory.json");
+  const internetPath = path.join(tempDir, "internet.json");
+  await writeJson(
+    memoryPath,
+    runtimeSkillCandidate({
+      packageId: "skill-source:memory-store",
+      sourceId: "memory-store",
+      runtimeClass: "memory-store",
+      capabilities: ["memory-store", "local-db"],
+      reasons: ["runtime-sandbox-required", "memory-privacy-review-required"]
+    })
+  );
+  await writeJson(
+    internetPath,
+    runtimeSkillCandidate({
+      packageId: "skill-source:internet-reach",
+      sourceId: "internet-reach",
+      runtimeClass: "internet-capability",
+      capabilities: ["external-network", "browser-state"],
+      reasons: ["runtime-sandbox-required"]
+    })
+  );
+
+  const memoryReport = await createSourceNoGoReport({
+    sourcePath: memoryPath,
+    outputPath: path.join(tempDir, "memory-report.json"),
+    schemasDir
+  });
+  const internetReport = await createSourceNoGoReport({
+    sourcePath: internetPath,
+    outputPath: path.join(tempDir, "internet-report.json"),
+    schemasDir
+  });
+
+  assert.equal(memoryReport.ok, true);
+  assert.equal(memoryReport.prerequisites.includes("memory-privacy-review"), true);
+  assert.equal(memoryReport.safety.noMemoryStoreRead, true);
+  assert.equal(internetReport.ok, true);
+  assert.equal(internetReport.prerequisites.includes("internet-capability-review"), true);
+  assert.equal(internetReport.prerequisites.includes("browser-session-consent"), true);
+  assert.equal(internetReport.safety.noBrowserAccess, true);
+  assert.equal(internetReport.safety.noNetwork, true);
+});
+
+test("source no-go blocks repository graph and noncommercial reference-only sources", async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agentique-source-no-go-reference-"));
+  const candidatePath = path.join(tempDir, "repository-graph.json");
+  await writeJson(
+    candidatePath,
+    runtimeSkillCandidate({
+      packageId: "skill-source:repository-graph",
+      sourceId: "repository-graph",
+      sourceKind: "reference-source",
+      disposition: "reference-only-blocked",
+      policy: "noncommercial-blocked",
+      licenseExpression: "PolyForm-Noncommercial-1.0.0",
+      runtimeClass: "repository-graph",
+      capabilities: ["repository-graph"],
+      gateStatus: "blocked",
+      reasons: ["noncommercial-license", "reference-only"]
+    })
+  );
+
+  const report = await createSourceNoGoReport({
+    sourcePath: candidatePath,
+    outputPath: path.join(tempDir, "reference-report.json"),
+    schemasDir
+  });
+
+  assert.equal(report.ok, true);
+  assert.equal(report.decision, "license_blocked");
+  assert.equal(report.state, "blocked");
+  assert.equal(report.prerequisites.includes("repository-graph-review"), true);
+  assert.equal(report.prerequisites.includes("noncommercial-license-review"), true);
+  assert.equal(report.safety.noRepositoryGraphRuntime, true);
+  assert.equal(report.safety.noPublication, true);
+});
+
+test("source no-go CLI emits stable json and requires explicit output", async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agentique-source-no-go-cli-"));
+  const candidatePath = path.join(tempDir, "candidate.json");
+  const outputPath = path.join(tempDir, "source-no-go-report.json");
+  await writeJson(candidatePath, runtimeSkillCandidate());
+
+  const { stdout } = await execFileAsync(process.execPath, [
+    cliPath,
+    "source-no-go",
+    candidatePath,
+    "--output",
+    outputPath,
+    "--schemas-dir",
+    schemasDir,
+    "--json"
+  ]);
+  const report = JSON.parse(stdout);
+
+  assert.equal(report.ok, true);
+  assert.equal(report.command, "source-no-go");
+  assert.equal(report.output, undefined);
+  assert.equal(report.files[0].path, "source-no-go-report.json");
+  assert.equal(JSON.stringify(report).includes(tempDir), false);
+
+  await assert.rejects(
+    () => execFileAsync(process.execPath, [cliPath, "source-no-go", candidatePath, "--schemas-dir", schemasDir, "--json"]),
+    (error) => {
+      assert.equal(error.code, 2);
+      assert.match(error.stderr, /requires --output <file>/);
+      return true;
+    }
+  );
+});
+
 function assertFindings(report, expectedCodes) {
   const codes = new Set(report.findings.map((finding) => finding.code));
   for (const code of expectedCodes) {
@@ -445,6 +591,47 @@ function rolePluginCandidate(overrides = {}) {
     ...base,
     ...overrides
   };
+}
+
+function runtimeSkillCandidate(overrides = {}) {
+  return skillCandidate({
+    packageId: overrides.packageId ?? "skill-source:runtime-source",
+    source: {
+      sourceId: overrides.sourceId ?? "runtime-source",
+      sourceName: "Runtime Source",
+      sourceUrl: "https://github.com/example/runtime-source",
+      snapshotDigest: "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      licenseExpression: overrides.licenseExpression ?? "MIT"
+    },
+    skills: [
+      {
+        ...skillCandidate().skills[0],
+        contentMode: "runtime-backed",
+        files: ["runtime/SKILL.md"],
+        licenseExpression: overrides.licenseExpression ?? "MIT"
+      }
+    ],
+    packagePlan: {
+      ...skillCandidate().packagePlan,
+      packageKind: "runtime-backed-source"
+    },
+    gate: gate({
+      disposition: overrides.disposition ?? "runtime-deferred",
+      sourceId: overrides.sourceId ?? "runtime-source",
+      sourceKind: overrides.sourceKind ?? "runtime-source",
+      sourceUrl: "https://github.com/example/runtime-source",
+      snapshotDigest: "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      policy: overrides.policy ?? "allowed",
+      licenseExpression: overrides.licenseExpression ?? "MIT",
+      staticScanState: overrides.staticScanState ?? "review-required",
+      runtimeClass: overrides.runtimeClass ?? "local-service",
+      requiresRuntime: overrides.requiresRuntime ?? true,
+      capabilities: overrides.capabilities ?? ["shell-command"],
+      qualityStatus: overrides.qualityStatus ?? "needs-review",
+      gateStatus: overrides.gateStatus ?? "deferred",
+      reasons: overrides.reasons ?? ["runtime-sandbox-required"]
+    })
+  });
 }
 
 function gate(overrides = {}) {

@@ -21,6 +21,7 @@ const schemaFiles = [
   "portable-profile.schema.json",
   "public-readback.schema.json",
   "registry-trust.schema.json",
+  "source-no-go.schema.json",
   "static-package-dry-run.schema.json",
   "upload-candidate-gate.schema.json",
   "skill-source-package.schema.json",

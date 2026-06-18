@@ -4,7 +4,7 @@ import path from "node:path";
 import Ajv from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
 
-export const RESOURCE_UPLOAD_COMMANDS = new Set(["upload-candidate", "package-dry-run"]);
+export const RESOURCE_UPLOAD_COMMANDS = new Set(["upload-candidate", "package-dry-run", "source-no-go"]);
 
 const RESOURCE_UPLOAD_SCHEMA_FILES = Object.freeze([
   "agent-native.schema.json",
@@ -16,6 +16,7 @@ const RESOURCE_UPLOAD_SCHEMA_FILES = Object.freeze([
   "registry-trust.schema.json",
   "resource-manifest.schema.json",
   "skill-metadata.schema.json",
+  "source-no-go.schema.json",
   "static-package-dry-run.schema.json",
   "surfacing-metadata.schema.json",
   "upload-candidate-gate.schema.json",
@@ -27,6 +28,7 @@ const RESOURCE_UPLOAD_SCHEMA_FILES = Object.freeze([
 const SKILL_SOURCE_SCHEMA_ID = "https://schemas.agentique.io/skill-source-package.schema.json";
 const ROLE_PLUGIN_SCHEMA_ID = "https://schemas.agentique.io/role-plugin-pack.schema.json";
 const STATIC_PACKAGE_DRY_RUN_SCHEMA_ID = "https://schemas.agentique.io/static-package-dry-run.schema.json";
+const SOURCE_NO_GO_SCHEMA_ID = "https://schemas.agentique.io/source-no-go.schema.json";
 
 const contractSchemaIds = new Map([
   ["agentique.skillSourcePackage.v1", SKILL_SOURCE_SCHEMA_ID],
@@ -191,6 +193,37 @@ export async function buildStaticPackageDryRun({ sourcePath, outputDir, schemasD
   });
 }
 
+export async function createSourceNoGoReport({ sourcePath, outputPath, schemasDir }) {
+  const outputSafety = validateExplicitOutputFile(outputPath);
+  const findings = [...outputSafety.findings];
+  const uploadReport = outputSafety.resolvedOutputFile
+    ? await validateUploadCandidate({ sourcePath, outputPath: outputSafety.resolvedOutputFile, schemasDir })
+    : null;
+  const loaded = await readJsonWithDigest(sourcePath, "candidate", findings);
+  const candidate = loaded.value;
+  const report = buildSourceNoGoProjection({ candidate, uploadReport, findings });
+  const schemaFindings = await validateSourceNoGoProjection({ report, schemasDir });
+  const finalReport = {
+    ...report,
+    ok: report.ok && schemaFindings.length === 0,
+    findings: uniqueFindings([...(report.findings ?? []), ...schemaFindings])
+  };
+
+  let files = [];
+  if (outputSafety.resolvedOutputFile) {
+    const reportForFile = { ...finalReport, files: [] };
+    await fs.mkdir(path.dirname(outputSafety.resolvedOutputFile), { recursive: true });
+    await writeJson(outputSafety.resolvedOutputFile, reportForFile);
+    const summary = await summarizeExistingFile(outputSafety.resolvedOutputFile, labelForPath(outputSafety.resolvedOutputFile), "source-no-go-report");
+    files = summary ? [summary] : [];
+  }
+
+  return {
+    ...finalReport,
+    files
+  };
+}
+
 export function formatResourceUploadHuman(report) {
   const lines = [`${report.ok ? "OK" : "FAILED"} ${report.command}`];
   lines.push(`- decision: ${report.decision}`);
@@ -210,6 +243,20 @@ export function formatPackageDryRunHuman(report) {
     lines.push(`- candidate: ${report.summary.candidateId}`);
   }
   lines.push(`- files: ${Array.isArray(report.files) ? report.files.length : 0}`);
+  for (const item of report.findings ?? []) {
+    lines.push(`- ${item.code} at ${item.location}: ${item.message}`);
+  }
+  return `${lines.join("\n")}\n`;
+}
+
+export function formatSourceNoGoHuman(report) {
+  const lines = [`${report.ok ? "OK" : "FAILED"} ${report.command}`];
+  lines.push(`- decision: ${report.decision}`);
+  lines.push(`- state: ${report.state}`);
+  if (report.candidate?.candidateId) {
+    lines.push(`- candidate: ${report.candidate.candidateId}`);
+  }
+  lines.push(`- prerequisites: ${(report.prerequisites ?? []).join(", ") || "none"}`);
   for (const item of report.findings ?? []) {
     lines.push(`- ${item.code} at ${item.location}: ${item.message}`);
   }
@@ -608,6 +655,122 @@ async function validateStaticPackageDryRunManifest({ manifest, schemasDir }) {
   return findings;
 }
 
+function buildSourceNoGoProjection({ candidate, uploadReport, findings }) {
+  const candidateType = candidateTypeFor(candidate);
+  const gate = candidate?.gate ?? {};
+  const licensePolicy = gate.licenseProvenance?.policy ?? "unknown";
+  const disposition = gate.disposition ?? "unknown";
+  const runtimeClass = gate.runtimeRisk?.runtimeClass ?? "unknown";
+  const capabilities = sortedStrings(gate.runtimeRisk?.capabilities);
+  const decision = sourceNoGoDecision({ disposition, licensePolicy, staticScanState: gate.securityEvidenceSummary?.staticScanState });
+  const state = decision === "runtime_deferred" ? "deferred" : "blocked";
+  const prerequisites = sourceNoGoPrerequisites({ gate, capabilities, licensePolicy, runtimeClass });
+  const ok = decision !== "not_no_go" && prerequisites.length > 0;
+  const projectionFindings = [...findings];
+
+  if (decision === "not_no_go") {
+    projectionFindings.push(finding("source-no-go-not-applicable", "Source No-Go report applies only to deferred or blocked candidates.", "candidate.gate.disposition"));
+  }
+
+  return {
+    contractVersion: "agentique.sourceNoGo.v1",
+    command: "source-no-go",
+    ok,
+    decision,
+    state,
+    candidate: {
+      candidateId: safeText(candidateType === "skill-source-package" ? candidate?.packageId : candidate?.packId) ?? "unknown",
+      candidateType,
+      sourceId: safeText(gate.sourceSnapshot?.sourceId) ?? "unknown",
+      sourceKind: safeText(gate.sourceSnapshot?.sourceKind) ?? "unknown",
+      disposition: safeText(disposition) ?? "unknown"
+    },
+    runtime: {
+      runtimeClass: safeText(runtimeClass) ?? "unknown",
+      requiresRuntime: gate.runtimeRisk?.requiresRuntime === true,
+      capabilities
+    },
+    prerequisites,
+    safety: sourceNoGoSafety(),
+    uploadCandidateSummary: {
+      ok: uploadReport?.ok === true,
+      findingCodes: sortedStrings((uploadReport?.findings ?? []).map((item) => item.code))
+    },
+    findings: uniqueFindings(projectionFindings)
+  };
+}
+
+async function validateSourceNoGoProjection({ report, schemasDir }) {
+  const findings = [];
+  try {
+    const ajv = await loadResourceUploadAjv(schemasDir);
+    const validate = ajv.getSchema(SOURCE_NO_GO_SCHEMA_ID);
+    if (!validate(report)) {
+      for (const error of validate.errors ?? []) {
+        findings.push(finding("source-no-go-schema", `${error.instancePath || "/"} ${error.message ?? "is invalid"}`, "source-no-go"));
+      }
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "unknown schema load error";
+    findings.push(finding("schema-loader", message, "schema"));
+  }
+  return findings;
+}
+
+function sourceNoGoDecision({ disposition, licensePolicy, staticScanState }) {
+  if (licensePolicy === "noncommercial-blocked" || licensePolicy === "unknown-blocked") return "license_blocked";
+  if (disposition === "reference-only-blocked" || disposition === "excluded") return "reference_blocked";
+  if (disposition === "runtime-deferred") return "runtime_deferred";
+  if (staticScanState && staticScanState !== "passed") return "security_review_required";
+  return "not_no_go";
+}
+
+function sourceNoGoPrerequisites({ gate, capabilities, licensePolicy, runtimeClass }) {
+  const prerequisites = new Set();
+  const reasons = sortedStrings(gate.gateState?.reasons);
+  const staticScanState = gate.securityEvidenceSummary?.staticScanState;
+
+  if (gate.runtimeRisk?.requiresRuntime === true || gate.sourceSnapshot?.sourceKind === "runtime-source") {
+    prerequisites.add("sandbox-runtime-review");
+  }
+  if (runtimeClass === "security-scanner") {
+    prerequisites.add("security-tool-review");
+  }
+  if (runtimeClass === "memory-store" || capabilities.some((capability) => ["memory-store", "local-db"].includes(capability))) {
+    prerequisites.add("memory-privacy-review");
+  }
+  if (runtimeClass === "internet-capability" || capabilities.includes("external-network")) {
+    prerequisites.add("internet-capability-review");
+  }
+  if (capabilities.includes("browser-state")) {
+    prerequisites.add("browser-session-consent");
+  }
+  if (runtimeClass === "repository-graph" || capabilities.includes("repository-graph")) {
+    prerequisites.add("repository-graph-review");
+  }
+  if (runtimeClass === "connector-required" || capabilities.some((capability) => ["connector-metadata", "mcp-metadata"].includes(capability))) {
+    prerequisites.add("connector-review");
+  }
+  if (licensePolicy === "noncommercial-blocked" || reasons.includes("noncommercial-license")) {
+    prerequisites.add("noncommercial-license-review");
+  } else if (licensePolicy === "unknown-blocked" || reasons.includes("unknown-license")) {
+    prerequisites.add("unknown-license-review");
+  } else if (licensePolicy === "needs-review" || reasons.includes("license-needs-review")) {
+    prerequisites.add("license-review");
+  }
+  if (gate.licenseProvenance?.provenanceReviewed !== true || gate.licenseProvenance?.perFileLicenseInventory !== true) {
+    prerequisites.add("source-provenance-review");
+  }
+  if (staticScanState && staticScanState !== "passed") {
+    prerequisites.add("scanner-review");
+  }
+  if (reasons.includes("runtime-sandbox-required")) prerequisites.add("sandbox-runtime-review");
+  if (reasons.includes("memory-privacy-review-required")) prerequisites.add("memory-privacy-review");
+  if (reasons.includes("security-review-required")) prerequisites.add("scanner-review");
+  if (reasons.includes("connector-review-required")) prerequisites.add("connector-review");
+  return [...prerequisites].sort();
+}
+
 function sourceInventoryForCandidate(candidate, candidateType) {
   if (candidateType === "skill-source-package") {
     return (candidate.skills ?? [])
@@ -658,6 +821,21 @@ function dryRunSafety() {
     noUpload: true,
     noPublication: true,
     localReviewOnly: true
+  };
+}
+
+function sourceNoGoSafety() {
+  return {
+    noExecution: true,
+    noInstall: true,
+    noNetwork: true,
+    noBrowserAccess: true,
+    noMemoryStoreRead: true,
+    noRepositoryGraphRuntime: true,
+    noConnectorActivation: true,
+    noUpload: true,
+    noPublication: true,
+    reportOnly: true
   };
 }
 

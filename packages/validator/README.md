@@ -27,6 +27,7 @@ node packages\validator\src\cli.mjs artifact-scan <workspace-artifact.json> --sc
 node packages\validator\src\cli.mjs api-drift <api-drift.json> --schemas-dir schemas --json
 node packages\validator\src\cli.mjs upload-candidate <candidate.json> --output <report.json> --schemas-dir schemas --json
 node packages\validator\src\cli.mjs package-dry-run <candidate.json> --output-dir <dir> --schemas-dir schemas --json
+node packages\validator\src\cli.mjs source-no-go <candidate.json> --output <report.json> --schemas-dir schemas --json
 ```
 
 Exit codes:
@@ -49,6 +50,7 @@ Exit codes:
 - Graph/block checks for descriptor-only graph topology, static block manifests, diagnostic-only ledgers, redacted workspace artifact metadata, API drift snapshots, generated fixture manifests, and no-execution boundaries.
 - Upload-candidate checks for skill source and role/plugin metadata, license/provenance, scanner summaries, runtime-risk disclosure, explicit report output, redaction, and no-overclaim boundaries.
 - Package dry-run checks generate descriptor-only review manifests for eligible static skill and role/plugin metadata, with explicit output directories and no install, execution, connector activation, upload, or publication behavior.
+- Source No-Go checks report runtime-backed, capability-backed, memory-backed, repository-graph, security-scanner, and reference-only sources as deferred or blocked without service start, browser access, external calls, source execution, upload, or publication behavior.
 
 ## External Intake
 

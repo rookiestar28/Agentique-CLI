@@ -2657,6 +2657,167 @@
       }
     }
   },
+  "source-no-go.schema.json": {
+    "validCases": {
+      "runtime-deferred": {
+        "contractVersion": "agentique.sourceNoGo.v1",
+        "command": "source-no-go",
+        "ok": true,
+        "decision": "runtime_deferred",
+        "state": "deferred",
+        "candidate": {
+          "candidateId": "skill-source:security-scanner",
+          "candidateType": "skill-source-package",
+          "sourceId": "security-scanner",
+          "sourceKind": "runtime-source",
+          "disposition": "runtime-deferred"
+        },
+        "runtime": {
+          "runtimeClass": "security-scanner",
+          "requiresRuntime": true,
+          "capabilities": ["package-lifecycle", "filesystem-read"]
+        },
+        "prerequisites": ["sandbox-runtime-review", "security-tool-review", "scanner-review"],
+        "safety": {
+          "noExecution": true,
+          "noInstall": true,
+          "noNetwork": true,
+          "noBrowserAccess": true,
+          "noMemoryStoreRead": true,
+          "noRepositoryGraphRuntime": true,
+          "noConnectorActivation": true,
+          "noUpload": true,
+          "noPublication": true,
+          "reportOnly": true
+        },
+        "uploadCandidateSummary": {
+          "ok": false,
+          "findingCodes": ["runtime-deferred", "runtime-sandbox-required"]
+        },
+        "findings": [
+          {
+            "code": "runtime-deferred",
+            "message": "Runtime-backed source requires a separate sandbox/runtime gate.",
+            "location": "candidate.gate.runtimeRisk"
+          }
+        ]
+      },
+      "reference-blocked": {
+        "contractVersion": "agentique.sourceNoGo.v1",
+        "command": "source-no-go",
+        "ok": true,
+        "decision": "license_blocked",
+        "state": "blocked",
+        "candidate": {
+          "candidateId": "skill-source:repository-graph",
+          "candidateType": "skill-source-package",
+          "sourceId": "repository-graph",
+          "sourceKind": "reference-source",
+          "disposition": "reference-only-blocked"
+        },
+        "runtime": {
+          "runtimeClass": "repository-graph",
+          "requiresRuntime": true,
+          "capabilities": ["repository-graph"]
+        },
+        "prerequisites": ["repository-graph-review", "noncommercial-license-review"],
+        "safety": {
+          "noExecution": true,
+          "noInstall": true,
+          "noNetwork": true,
+          "noBrowserAccess": true,
+          "noMemoryStoreRead": true,
+          "noRepositoryGraphRuntime": true,
+          "noConnectorActivation": true,
+          "noUpload": true,
+          "noPublication": true,
+          "reportOnly": true
+        },
+        "uploadCandidateSummary": {
+          "ok": false,
+          "findingCodes": ["source-disposition-blocked", "license-noncommercial"]
+        }
+      }
+    },
+    "invalid": {
+      "missing-required": {
+        "contractVersion": "agentique.sourceNoGo.v1"
+      },
+      "extra-property": {
+        "contractVersion": "agentique.sourceNoGo.v1",
+        "command": "source-no-go",
+        "ok": true,
+        "decision": "runtime_deferred",
+        "state": "deferred",
+        "candidate": {
+          "candidateId": "skill-source:security-scanner",
+          "candidateType": "skill-source-package",
+          "sourceId": "security-scanner",
+          "sourceKind": "runtime-source",
+          "disposition": "runtime-deferred"
+        },
+        "runtime": {
+          "runtimeClass": "security-scanner",
+          "requiresRuntime": true,
+          "capabilities": ["package-lifecycle"]
+        },
+        "prerequisites": ["sandbox-runtime-review"],
+        "safety": {
+          "noExecution": true,
+          "noInstall": true,
+          "noNetwork": true,
+          "noBrowserAccess": true,
+          "noMemoryStoreRead": true,
+          "noRepositoryGraphRuntime": true,
+          "noConnectorActivation": true,
+          "noUpload": true,
+          "noPublication": true,
+          "reportOnly": true
+        },
+        "uploadCandidateSummary": {
+          "ok": false,
+          "findingCodes": ["runtime-deferred"]
+        },
+        "readyForPublication": true
+      },
+      "boundary": {
+        "contractVersion": "agentique.sourceNoGo.v1",
+        "command": "source-no-go",
+        "ok": true,
+        "decision": "runtime_deferred",
+        "state": "blocked",
+        "candidate": {
+          "candidateId": "skill-source:security-scanner",
+          "candidateType": "skill-source-package",
+          "sourceId": "security-scanner",
+          "sourceKind": "runtime-source",
+          "disposition": "runtime-deferred"
+        },
+        "runtime": {
+          "runtimeClass": "security-scanner",
+          "requiresRuntime": true,
+          "capabilities": ["package-lifecycle"]
+        },
+        "prerequisites": [],
+        "safety": {
+          "noExecution": false,
+          "noInstall": false,
+          "noNetwork": false,
+          "noBrowserAccess": false,
+          "noMemoryStoreRead": false,
+          "noRepositoryGraphRuntime": false,
+          "noConnectorActivation": false,
+          "noUpload": false,
+          "noPublication": false,
+          "reportOnly": false
+        },
+        "uploadCandidateSummary": {
+          "ok": false,
+          "findingCodes": []
+        }
+      }
+    }
+  },
   "static-package-dry-run.schema.json": {
     "valid": {
       "contractVersion": "agentique.staticPackageDryRun.v1",

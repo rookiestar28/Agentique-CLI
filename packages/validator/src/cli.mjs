@@ -23,8 +23,10 @@ import {
 import {
   RESOURCE_UPLOAD_COMMANDS,
   buildStaticPackageDryRun,
+  createSourceNoGoReport,
   formatPackageDryRunHuman,
   formatResourceUploadHuman,
+  formatSourceNoGoHuman,
   validateUploadCandidate
 } from "./resource-upload.mjs";
 import { defaultSchemasDir, validatePackage } from "./validator.mjs";
@@ -48,6 +50,7 @@ const usage = `Usage:
   agentique-validator api-drift <api-drift.json> [--schemas-dir <dir>] [--json]
   agentique-validator upload-candidate <candidate.json> --output <file> [--schemas-dir <dir>] [--json]
   agentique-validator package-dry-run <candidate.json> --output-dir <dir> [--schemas-dir <dir>] [--json]
+  agentique-validator source-no-go <candidate.json> --output <file> [--schemas-dir <dir>] [--json]
 `;
 
 const portabilityCommands = new Set([
@@ -168,8 +171,8 @@ async function runResourceUploadCommand(command, subject, rest) {
     process.stderr.write(`${flags.error}\n${usage}`);
     return 2;
   }
-  if (command === "upload-candidate" && !flags.values.output) {
-    process.stderr.write(`upload-candidate requires --output <file>.\n${usage}`);
+  if ((command === "upload-candidate" || command === "source-no-go") && !flags.values.output) {
+    process.stderr.write(`${command} requires --output <file>.\n${usage}`);
     return 2;
   }
   if (command === "package-dry-run" && !flags.values.outputDir) {
@@ -188,6 +191,12 @@ async function runResourceUploadCommand(command, subject, rest) {
             outputDir: flags.values.outputDir,
             schemasDir
           })
+        : command === "source-no-go"
+          ? await createSourceNoGoReport({
+              sourcePath: subject,
+              outputPath: flags.values.output,
+              schemasDir
+            })
         : await validateUploadCandidate({
             sourcePath: subject,
             outputPath: flags.values.output,
@@ -197,7 +206,13 @@ async function runResourceUploadCommand(command, subject, rest) {
     if (json) {
       process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
     } else {
-      process.stdout.write(command === "package-dry-run" ? formatPackageDryRunHuman(report) : formatResourceUploadHuman(report));
+      process.stdout.write(
+        command === "package-dry-run"
+          ? formatPackageDryRunHuman(report)
+          : command === "source-no-go"
+            ? formatSourceNoGoHuman(report)
+            : formatResourceUploadHuman(report)
+      );
     }
     return report.ok ? 0 : 1;
   } catch (error) {
