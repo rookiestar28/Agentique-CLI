@@ -342,14 +342,23 @@ function inspectGatePolicy(gate, findings) {
   if (license.policy !== "allowed") {
     findings.push(
       finding(
-        license.policy === "noncommercial-blocked" ? "license-noncommercial" : "license-review-required",
+        licenseFindingCode(license.policy),
         "License and provenance policy is not allowed for package preparation.",
         "candidate.gate.licenseProvenance"
       )
     );
   }
-  if (license.provenanceReviewed !== true || license.perFileLicenseInventory !== true) {
-    findings.push(finding("provenance-incomplete", "License provenance and per-file inventory must be reviewed.", "candidate.gate.licenseProvenance"));
+  if (license.provenanceReviewed !== true) {
+    findings.push(finding("provenance-incomplete", "License provenance must be reviewed.", "candidate.gate.licenseProvenance.provenanceReviewed"));
+  }
+  if (license.perFileLicenseInventory !== true) {
+    findings.push(finding("per-file-license-incomplete", "Per-file license inventory must be reviewed.", "candidate.gate.licenseProvenance.perFileLicenseInventory"));
+  }
+  if (license.attributionRequired === true && license.provenanceReviewed !== true) {
+    findings.push(finding("attribution-review-required", "Attribution-required sources need completed provenance review.", "candidate.gate.licenseProvenance.attributionRequired"));
+  }
+  if (Array.isArray(gate.gateState?.reasons) && gate.gateState.reasons.includes("derived-source-review-required")) {
+    findings.push(finding("derived-source-review-required", "Derived-source notice review must be completed before package preparation.", "candidate.gate.gateState.reasons"));
   }
 
   const security = gate.securityEvidenceSummary ?? {};
@@ -386,6 +395,12 @@ function inspectGatePolicy(gate, findings) {
   if (projection.redaction && Object.values(projection.redaction).some((value) => value !== true)) {
     findings.push(finding("public-redaction-incomplete", "Public projection redaction flags must all be enabled.", "candidate.gate.publicProjection.redaction"));
   }
+}
+
+function licenseFindingCode(policy) {
+  if (policy === "noncommercial-blocked") return "license-noncommercial";
+  if (policy === "unknown-blocked") return "license-unknown";
+  return "license-review-required";
 }
 
 function inspectCandidateInventory(candidate, candidateType, findings) {
@@ -759,6 +774,9 @@ function sourceNoGoPrerequisites({ gate, capabilities, licensePolicy, runtimeCla
     prerequisites.add("license-review");
   }
   if (gate.licenseProvenance?.provenanceReviewed !== true || gate.licenseProvenance?.perFileLicenseInventory !== true) {
+    prerequisites.add("source-provenance-review");
+  }
+  if (reasons.includes("derived-source-review-required")) {
     prerequisites.add("source-provenance-review");
   }
   if (staticScanState && staticScanState !== "passed") {

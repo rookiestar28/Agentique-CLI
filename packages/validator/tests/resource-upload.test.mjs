@@ -112,6 +112,124 @@ test("upload candidate validator fails closed for runtime deferred and noncommer
   assertFindings(blockedReport, ["source-disposition-blocked", "license-noncommercial"]);
 });
 
+test("upload candidate validator fails closed for unknown license provenance gaps and source digest mismatch", async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agentique-upload-candidate-provenance-"));
+  const unknownPath = path.join(tempDir, "unknown-license.json");
+  await writeJson(
+    unknownPath,
+    skillCandidate({
+      gate: gate({
+        policy: "unknown-blocked",
+        licenseExpression: "NOASSERTION",
+        provenanceReviewed: false,
+        perFileLicenseInventory: false,
+        reasons: ["unknown-license"]
+      })
+    })
+  );
+
+  const unknownReport = await validateUploadCandidate({
+    sourcePath: unknownPath,
+    outputPath: path.join(tempDir, "unknown-report.json"),
+    schemasDir
+  });
+  assert.equal(unknownReport.ok, false);
+  assertFindings(unknownReport, ["license-unknown", "provenance-incomplete", "per-file-license-incomplete", "attribution-review-required"]);
+
+  const derivedPath = path.join(tempDir, "derived-source.json");
+  await writeJson(
+    derivedPath,
+    skillCandidate({
+      gate: gate({
+        policy: "needs-review",
+        licenseExpression: "MIT",
+        derivedSourceNotices: ["Translated source notice requires human review."],
+        reasons: ["derived-source-review-required"]
+      })
+    })
+  );
+  const derivedReport = await validateUploadCandidate({
+    sourcePath: derivedPath,
+    outputPath: path.join(tempDir, "derived-report.json"),
+    schemasDir
+  });
+  assert.equal(derivedReport.ok, false);
+  assertFindings(derivedReport, ["license-review-required", "derived-source-review-required"]);
+
+  const mismatchPath = path.join(tempDir, "digest-mismatch.json");
+  await writeJson(
+    mismatchPath,
+    skillCandidate({
+      gate: gate({
+        snapshotDigest: "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      })
+    })
+  );
+  const mismatchReport = await validateUploadCandidate({
+    sourcePath: mismatchPath,
+    outputPath: path.join(tempDir, "mismatch-report.json"),
+    schemasDir
+  });
+  assert.equal(mismatchReport.ok, false);
+  assertFindings(mismatchReport, ["source-digest-mismatch"]);
+});
+
+test("package dry-run refuses provenance blocked candidates before descriptor output", async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agentique-package-provenance-blocked-"));
+  const candidatePath = path.join(tempDir, "candidate.json");
+  const outputDir = path.join(tempDir, "out");
+  await writeJson(
+    candidatePath,
+    skillCandidate({
+      gate: gate({
+        policy: "unknown-blocked",
+        licenseExpression: "NOASSERTION",
+        provenanceReviewed: false,
+        perFileLicenseInventory: false,
+        reasons: ["unknown-license"]
+      })
+    })
+  );
+
+  const report = await buildStaticPackageDryRun({ sourcePath: candidatePath, outputDir, schemasDir });
+
+  assert.equal(report.ok, false);
+  assertFindings(report, ["license-unknown", "provenance-incomplete", "per-file-license-incomplete"]);
+  assert.equal(await fileExists(path.join(outputDir, "package", "descriptors", "test-driven-development.json")), false);
+});
+
+test("source no-go maps unknown license and provenance blockers to review prerequisites", async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agentique-source-no-go-provenance-"));
+  const candidatePath = path.join(tempDir, "candidate.json");
+  await writeJson(
+    candidatePath,
+    runtimeSkillCandidate({
+      sourceKind: "reference-source",
+      disposition: "reference-only-blocked",
+      policy: "unknown-blocked",
+      licenseExpression: "NOASSERTION",
+      provenanceReviewed: false,
+      perFileLicenseInventory: false,
+      runtimeClass: "repository-graph",
+      capabilities: ["repository-graph"],
+      gateStatus: "blocked",
+      reasons: ["unknown-license", "derived-source-review-required", "reference-only"]
+    })
+  );
+
+  const report = await createSourceNoGoReport({
+    sourcePath: candidatePath,
+    outputPath: path.join(tempDir, "source-no-go-report.json"),
+    schemasDir
+  });
+
+  assert.equal(report.ok, true);
+  assert.equal(report.decision, "license_blocked");
+  assert.equal(report.prerequisites.includes("unknown-license-review"), true);
+  assert.equal(report.prerequisites.includes("source-provenance-review"), true);
+  assert.equal(report.prerequisites.includes("repository-graph-review"), true);
+});
+
 test("upload candidate validator redacts unsafe path secret and overclaim material", async () => {
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agentique-upload-candidate-unsafe-"));
   const candidatePath = path.join(tempDir, "unsafe.json");
@@ -623,6 +741,10 @@ function runtimeSkillCandidate(overrides = {}) {
       snapshotDigest: "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
       policy: overrides.policy ?? "allowed",
       licenseExpression: overrides.licenseExpression ?? "MIT",
+      provenanceReviewed: overrides.provenanceReviewed ?? true,
+      perFileLicenseInventory: overrides.perFileLicenseInventory ?? true,
+      attributionRequired: overrides.attributionRequired ?? true,
+      derivedSourceNotices: overrides.derivedSourceNotices,
       staticScanState: overrides.staticScanState ?? "review-required",
       runtimeClass: overrides.runtimeClass ?? "local-service",
       requiresRuntime: overrides.requiresRuntime ?? true,
@@ -647,9 +769,10 @@ function gate(overrides = {}) {
     licenseProvenance: {
       licenseExpression: overrides.licenseExpression ?? "MIT",
       policy: overrides.policy ?? "allowed",
-      attributionRequired: true,
-      perFileLicenseInventory: true,
-      provenanceReviewed: true
+      attributionRequired: overrides.attributionRequired ?? true,
+      perFileLicenseInventory: overrides.perFileLicenseInventory ?? true,
+      provenanceReviewed: overrides.provenanceReviewed ?? true,
+      ...(overrides.derivedSourceNotices ? { derivedSourceNotices: overrides.derivedSourceNotices } : {})
     },
     securityEvidenceSummary: {
       staticScanState: overrides.staticScanState ?? "passed",
