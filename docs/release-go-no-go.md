@@ -12,6 +12,8 @@ Package registry pages, badge/readback documentation, and action usage documenta
 
 The coordinated `0.2.1` package publish is complete. Registry readback shows schemas, validator, action, readback, and uploader at `0.2.1`.
 
+The coordinated `0.2.2` package candidate is prepared in this source tree for schemas, validator, action, readback, and uploader. The registry-advertised package set remains `0.2.1` until the manual publishing workflow completes and post-publish registry readback plus clean install smoke confirm `0.2.2`.
+
 ## Uploader Publication Decision
 
 Current uploader publication decision: **Go** for npm package availability.
@@ -70,29 +72,27 @@ Closeout evidence for the agent-native patch candidate: source validation, insta
 
 ## Portable Profile Package Release Decision
 
-Current portable profile package release decision: **No-Go** for package publication claims.
+Current portable profile package release decision: **Go** for the coordinated `0.2.2` package-candidate workflow.
 
 Portable profile schemas, generated adapter manifests, descriptor-only generator output, drift checks, parity checks, deferred-risk ledger reports, sandbox-gated measurement preflights, and starter metadata are source-checkout local preparation surfaces in this revision.
 
 Current blockers:
 
-- Hosted release evidence for these source changes is not recorded.
-- Package publication and registry readback for a version containing these source changes are not recorded.
-- Registry install smoke for a version containing these source changes is not recorded.
+- None for preparing and running the `0.2.2` package publishing workflow.
+- Public advertising of these package changes remains disabled until the `0.2.2` registry readback and clean install smoke pass.
 
 These local surfaces do not install files into agent clients, execute generated content, trust lifecycle hooks, provide runtime compatibility, approve resources, certify safety, or replace platform review.
 
 ## Graph Block Package Release Decision
 
-Current graph/block package release decision: **No-Go** for package publication and runtime claims.
+Current graph/block package release decision: **Go** for the coordinated `0.2.2` package-candidate workflow.
 
 Graph/block schemas, bundle validation, import/export plan output, generated block fixture manifests, diagnostic ledger inspection, replay diagnostics, workspace artifact metadata scans, API drift checks, and starter metadata are source-checkout local preparation surfaces in this revision.
 
 Current blockers:
 
-- Hosted release evidence for these source changes is not recorded.
-- Package publication and registry readback for a version containing these source changes are not recorded.
-- Registry install smoke for a version containing these source changes is not recorded.
+- None for preparing and running the `0.2.2` package publishing workflow.
+- Public advertising, runtime, and direct-install claims remain disabled until the `0.2.2` registry readback and clean install smoke pass.
 
 These local surfaces do not install packages, execute graph nodes, load block runtimes, fetch artifact bytes, start services, mutate user agent configuration, provide runtime compatibility, approve resources, certify safety, or replace platform review.
 
@@ -114,8 +114,8 @@ Current public-safe evidence is recorded in [release-evidence.md](release-eviden
 - Parser/variant package surface smoke passes from locally packed tarballs, and registry readback plus registry install smoke verify the same surfaces are included in package version `0.2.1`.
 - Catalog/download package surface smoke passes from locally packed tarballs, live metadata checks passed for public list/detail/download-metadata endpoints, registry install smoke passed for `0.2.1` packages, and owner-approved disposable byte-transfer evidence is recorded.
 - Agent-native package surface smoke passes from locally packed tarballs, registry readback verifies the published `0.2.1` package set, and release go/no-go records the agent-native package release as Go while preserving resolver, direct-install, runtime, approval, and safety-claim No-Go boundaries.
-- Portable profile source tests, starter validation, and package-surface smoke are required before any future package publication claim; current scoped decision is No-Go until hosted release and registry evidence exist.
-- Graph/block source tests, starter validation, and package-surface smoke are required before any future package publication claim; current scoped decision is No-Go until hosted release and registry evidence exist.
+- Portable profile source tests, starter validation, and package-surface smoke are required for the `0.2.2` package candidate; advertising remains disabled until post-publish registry evidence exists.
+- Graph/block source tests, starter validation, and package-surface smoke are required for the `0.2.2` package candidate; advertising and runtime claims remain disabled until post-publish registry evidence exists.
 - Public `main` branch protection is enabled.
 - Final public URLs are approved.
 - `agentique.io` public links are approved.
