@@ -46,7 +46,7 @@ jobs:
           npm run install:smoke
           npm run urls:check
           npm run release:go-no-go
-          node -e "const d=require('./docs/release-go-no-go.json'); const scopes=['decision','uploaderPublicationDecision','parserVariantPublicationDecision','catalogDownloadPublicationDecision']; const blocked=scopes.filter((k)=>((k==='decision'?d:d[k])?.decision)!=='go'); if(blocked.length){throw new Error('publish requires GO decisions for: '+blocked.join(', '));}"
+          node -e "const d=require('./docs/release-go-no-go.json'); const scopes=['decision','uploaderPublicationDecision','parserVariantPublicationDecision','catalogDownloadPublicationDecision','agentNativePublicationDecision','portableProfilePublicationDecision','graphBlockPublicationDecision']; const blocked=scopes.filter((k)=>((k==='decision'?d:d[k])?.decision)!=='go'); if(blocked.length){throw new Error('publish requires GO decisions for: '+blocked.join(', '));}"
           npm audit --omit=dev
           npm --prefix packages/validator audit --omit=dev
           npm --prefix packages/action audit --omit=dev

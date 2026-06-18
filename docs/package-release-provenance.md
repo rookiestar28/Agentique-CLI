@@ -14,14 +14,15 @@ Schemas, validator, action, readback, and uploader are public on npm. The upload
 
 The coordinated package release `0.2.1` is published for schemas, validator, action, readback, and uploader. Owner-approved disposable byte-transfer evidence is recorded for a public catalog resource; this evidence does not certify content safety or approve arbitrary resources.
 
-Portable profile and graph/block source changes in this checkout remain scoped No-Go for package publication and runtime claims until hosted release evidence, package publication, registry readback, and clean registry install smoke exist for a future package version containing those changes.
+Portable profile and graph/block source changes in this checkout are prepared as the coordinated `0.2.2` package candidate. Public advertising of those package changes, runtime claims, and direct-install claims remain disabled until hosted publication, registry readback, and clean registry install smoke confirm `0.2.2`.
 
 ## Patch Candidate
 
-- Coordinated patch target: `0.2.1` for schemas, validator, action, readback, and uploader.
-- Publish status: Go for the owner-approved coordinated `0.2.1` release workflow. Full registry readback, clean install smoke for the full patch set, rollback/unpublish evidence, and branch cleanup are recorded.
-- Scope: canonical public catalog envelope compatibility, ticket-backed download metadata projection, explicit-output CLI byte transfer through the declared unauthenticated POST ticket path, and agent-native schema/validator/readback/uploader dry-run source surfaces.
-- Not in published package claim: portable profile source changes and graph/block source changes in this checkout. They remain local preparation surfaces until a future package version has hosted release, registry readback, and clean install-smoke evidence.
+- Coordinated published patch: `0.2.1` for schemas, validator, action, readback, and uploader.
+- Coordinated package candidate: `0.2.2` for schemas, validator, action, readback, and uploader.
+- Publish status: Go for preparing and running the owner-approved coordinated `0.2.2` release workflow. Full registry readback, clean install smoke for the full `0.2.2` package set, rollback/unpublish evidence, and branch cleanup are required before advertising the new package changes.
+- Scope: canonical public catalog envelope compatibility, ticket-backed download metadata projection, explicit-output CLI byte transfer through the declared unauthenticated POST ticket path, agent-native schema/validator/readback/uploader dry-run source surfaces, portable profile local-preparation contracts, and graph/block local-preparation contracts.
+- Not in published package claim before `0.2.2` readback: portable profile package-change advertising, graph/block package-change advertising, runtime availability, direct-install support, safety certification, approval, hosting, moderation, or resource publication.
 
 ## Required Pre-Publish Checks
 
@@ -52,9 +53,9 @@ npm run registry:readback
 npm run install:smoke
 ```
 
-The registry readback script records the current expected state from `docs/release-go-no-go.json`: schemas, validator, action, readback, and uploader are published at version `0.2.1`.
+The registry readback script records the current expected state from `docs/release-go-no-go.json`: schemas, validator, action, readback, and uploader are published at version `0.2.1`, while the coordinated `0.2.2` package set is pending until publication.
 
-Current uploader publication closeout is Go for npm package availability at `0.2.1` after owner approval, hosted CI evidence, registry publish/readback, and clean install smoke. The package remains review-only; local draft, patch/delta, and agent-native-plan output remain unsubmitted preparation artifacts; portable profile and graph/block source changes remain unpublished local-preparation surfaces; bounded disposable byte-transfer evidence is recorded; and final resource publication stays on `agentique.io`.
+Current uploader publication closeout is Go for npm package availability at `0.2.1` after owner approval, hosted CI evidence, registry publish/readback, and clean install smoke. The package remains review-only; local draft, patch/delta, agent-native-plan, portable profile, and graph/block output remain local preparation artifacts; bounded disposable byte-transfer evidence is recorded; and final resource publication stays on `agentique.io`. The source package version is prepared as `0.2.2` pending registry evidence.
 
 Public package provenance must not include platform scoring, quarantine criteria, internal review procedures, moderation disposition logic, or operational playbooks.
 
