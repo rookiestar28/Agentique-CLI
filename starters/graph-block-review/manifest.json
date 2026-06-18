@@ -1,0 +1,67 @@
+{
+  "formatVersion": "1.0",
+  "name": "graph-block-review",
+  "summary": "A static graph and block metadata package for local no-execution review.",
+  "source": {
+    "type": "git",
+    "url": "https://github.com/rookiestar28/Agentique-CLI/tree/main/starters/graph-block-review"
+  },
+  "distribution": {
+    "mode": "metadata_view",
+    "notes": "Prepared as static graph and block metadata for local review."
+  },
+  "surfacing": {
+    "taskIntents": ["graph-review", "package-preparation", "diagnostic-review"],
+    "audience": ["developer", "integrator", "reviewer", "agent"],
+    "priority": 0.68,
+    "recency": {
+      "lastReviewedAt": "2026-06-18T00:00:00Z",
+      "reviewCadenceDays": 90
+    },
+    "compatibility": {
+      "runtimeFamilies": ["json", "metadata"],
+      "protocols": ["https"]
+    },
+    "contextBudget": {
+      "maxTokens": 2600,
+      "maxBytes": 24576,
+      "preferredSummaryBytes": 3072
+    },
+    "notes": "Surface this starter when creators need static graph and block metadata examples."
+  },
+  "permissionRisk": {
+    "readOnly": true,
+    "destructive": false,
+    "idempotent": true,
+    "openWorld": false,
+    "externalNetwork": false,
+    "credentialed": false,
+    "approvalRequired": false,
+    "dataSensitivity": "public",
+    "capabilities": ["read-public-content"],
+    "reviewNotes": "Synthetic metadata only; the example does not execute, authenticate, fetch, install, or mutate state."
+  },
+  "package": {
+    "formatVersion": "1.0",
+    "files": [
+      "README.md",
+      "graph/graph-block-bundle.json",
+      "blocks/block-manifest.json",
+      "ledger/execution-ledger.json",
+      "artifacts/workspace-artifact.json",
+      "api/api-drift.json",
+      "fixtures/block-manifest.valid.json",
+      "fixtures/generated-block-fixtures-manifest.json"
+    ],
+    "hashes": {
+      "README.md": "sha256:fff5d2dc822bf7364bcd30e6e2d1adbe9ce258c194ed8a1a657ce70acf5120e0",
+      "graph/graph-block-bundle.json": "sha256:4fca443164134e69be0f354c3638525eccac1bc5ad6246bcc98c3e9bc5126c35",
+      "blocks/block-manifest.json": "sha256:b7fe06e6c0850e7b08d303aa860e2f7cb8cf49adc2e3342f140dfd219c3729eb",
+      "ledger/execution-ledger.json": "sha256:999246e6019a1fb060b7c4ac0695bd08f99629fe105920cd712c60f2eefab800",
+      "artifacts/workspace-artifact.json": "sha256:061fc14a0ac4f100afe088b92b67d1934e0a11535f6553c711dfd3a670b3047e",
+      "api/api-drift.json": "sha256:23437a31417303cbc414e46498e6f274d862079c7826ee373f89c158d4397534",
+      "fixtures/block-manifest.valid.json": "sha256:b7fe06e6c0850e7b08d303aa860e2f7cb8cf49adc2e3342f140dfd219c3729eb",
+      "fixtures/generated-block-fixtures-manifest.json": "sha256:3508f0e91d2fe3022685025ea917ccef0d53754b37fb4b3f509a68ec27de3547"
+    }
+  }
+}

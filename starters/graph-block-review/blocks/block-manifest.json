@@ -1,0 +1,64 @@
+{
+  "contractVersion": "agentique.blockManifest.v1",
+  "blockId": "block:review",
+  "name": "Review block",
+  "summary": "Static schema metadata for public graph review.",
+  "version": "1.0.0",
+  "categories": ["transform", "approval"],
+  "compatibility": "compatible",
+  "inputSchema": [
+    {
+      "id": "prompt",
+      "label": "Prompt",
+      "visibility": "standard",
+      "schemaRef": {
+        "kind": "json-schema",
+        "ref": "schema:prompt",
+        "required": true
+      },
+      "required": true,
+      "credentialReferenceOnly": false
+    }
+  ],
+  "outputSchema": [
+    {
+      "id": "result",
+      "label": "Result",
+      "visibility": "standard",
+      "schemaRef": {
+        "kind": "json-schema",
+        "ref": "schema:result",
+        "required": true
+      },
+      "required": true,
+      "credentialReferenceOnly": false
+    }
+  ],
+  "advancedFields": [],
+  "dependencies": [],
+  "discriminators": [],
+  "credentialFields": [],
+  "sensitiveAction": false,
+  "fixtures": [
+    {
+      "fixtureId": "fixture:review",
+      "inputSchemaRef": {
+        "kind": "json-schema",
+        "ref": "schema:prompt",
+        "required": true
+      },
+      "outputSchemaRef": {
+        "kind": "json-schema",
+        "ref": "schema:result",
+        "required": true
+      },
+      "hasInputFixture": true,
+      "hasOutputFixture": true,
+      "staticOnly": true
+    }
+  ],
+  "lifecycle": {
+    "state": "static-metadata",
+    "hooks": []
+  }
+}

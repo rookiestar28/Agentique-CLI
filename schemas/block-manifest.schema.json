@@ -1,0 +1,164 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.agentique.io/block-manifest.schema.json",
+  "title": "Agentique Block Manifest",
+  "$ref": "#/$defs/blockManifest",
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 96,
+      "pattern": "^[a-z0-9][a-z0-9:_-]*$"
+    },
+    "boundedText": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "schemaRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "ref", "required"],
+      "properties": {
+        "kind": { "type": "string", "enum": ["json-schema", "resource-schema", "block-schema"] },
+        "ref": { "$ref": "#/$defs/identifier" },
+        "required": { "type": "boolean" },
+        "credentialReferenceOnly": { "type": "boolean", "const": true }
+      }
+    },
+    "field": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "visibility", "schemaRef", "required", "credentialReferenceOnly"],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifier" },
+        "label": { "$ref": "#/$defs/boundedText" },
+        "visibility": { "type": "string", "enum": ["standard", "advanced"] },
+        "schemaRef": { "$ref": "#/$defs/schemaRef" },
+        "required": { "type": "boolean" },
+        "credentialReferenceOnly": { "type": "boolean" },
+        "dependency": { "$ref": "#/$defs/dependency" },
+        "discriminator": { "$ref": "#/$defs/discriminator" }
+      }
+    },
+    "dependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fieldId", "equals"],
+      "properties": {
+        "fieldId": { "$ref": "#/$defs/identifier" },
+        "equals": {
+          "anyOf": [
+            { "type": "string" },
+            { "type": "number" },
+            { "type": "boolean" }
+          ]
+        }
+      }
+    },
+    "discriminator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fieldId", "cases"],
+      "properties": {
+        "fieldId": { "$ref": "#/$defs/identifier" },
+        "cases": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 24,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["value", "schemaRef"],
+            "properties": {
+              "value": { "$ref": "#/$defs/boundedText" },
+              "schemaRef": { "$ref": "#/$defs/schemaRef" }
+            }
+          }
+        }
+      }
+    },
+    "fixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fixtureId", "inputSchemaRef", "outputSchemaRef", "hasInputFixture", "hasOutputFixture", "staticOnly"],
+      "properties": {
+        "fixtureId": { "$ref": "#/$defs/identifier" },
+        "inputSchemaRef": { "$ref": "#/$defs/schemaRef" },
+        "outputSchemaRef": { "$ref": "#/$defs/schemaRef" },
+        "hasInputFixture": { "type": "boolean", "const": true },
+        "hasOutputFixture": { "type": "boolean", "const": true },
+        "staticOnly": { "type": "boolean", "const": true }
+      }
+    },
+    "blockManifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contractVersion",
+        "blockId",
+        "name",
+        "summary",
+        "version",
+        "categories",
+        "compatibility",
+        "inputSchema",
+        "outputSchema",
+        "advancedFields",
+        "dependencies",
+        "discriminators",
+        "credentialFields",
+        "sensitiveAction",
+        "fixtures",
+        "lifecycle"
+      ],
+      "properties": {
+        "contractVersion": { "type": "string", "const": "agentique.blockManifest.v1" },
+        "blockId": { "$ref": "#/$defs/identifier" },
+        "name": { "$ref": "#/$defs/boundedText" },
+        "summary": { "$ref": "#/$defs/boundedText" },
+        "version": { "$ref": "#/$defs/version" },
+        "categories": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 12,
+          "items": { "type": "string", "enum": ["input", "transform", "approval", "artifact", "credential", "webhook", "diagnostic", "subgraph"] }
+        },
+        "compatibility": { "type": "string", "enum": ["compatible", "requires-review", "blocked", "unsupported"] },
+        "inputSchema": { "type": "array", "minItems": 1, "maxItems": 64, "items": { "$ref": "#/$defs/field" } },
+        "outputSchema": { "type": "array", "minItems": 1, "maxItems": 64, "items": { "$ref": "#/$defs/field" } },
+        "advancedFields": { "type": "array", "maxItems": 64, "items": { "$ref": "#/$defs/field" } },
+        "dependencies": { "type": "array", "maxItems": 64, "items": { "$ref": "#/$defs/dependency" } },
+        "discriminators": { "type": "array", "maxItems": 64, "items": { "$ref": "#/$defs/discriminator" } },
+        "credentialFields": { "type": "array", "maxItems": 64, "items": { "$ref": "#/$defs/identifier" } },
+        "webhook": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["triggerId", "provider", "eventType", "validationState", "payloadSchemaRef"],
+          "properties": {
+            "triggerId": { "$ref": "#/$defs/identifier" },
+            "provider": { "$ref": "#/$defs/identifier" },
+            "eventType": { "type": "string", "minLength": 3, "maxLength": 120 },
+            "validationState": { "type": "string", "enum": ["metadata-only", "validation-required", "blocked"] },
+            "payloadSchemaRef": { "$ref": "#/$defs/schemaRef" }
+          }
+        },
+        "sensitiveAction": { "type": "boolean" },
+        "fixtures": { "type": "array", "minItems": 1, "maxItems": 50, "items": { "$ref": "#/$defs/fixture" } },
+        "lifecycle": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "hooks"],
+          "properties": {
+            "state": { "type": "string", "const": "static-metadata" },
+            "hooks": { "type": "array", "maxItems": 0, "items": false }
+          }
+        }
+      }
+    }
+  }
+}

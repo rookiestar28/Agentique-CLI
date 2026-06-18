@@ -1,0 +1,23 @@
+{
+  "contractVersion": "agentique.generatedBlockFixtures.v1",
+  "generator": {
+    "name": "agentique-block-fixture-generator",
+    "version": "0.1.0",
+    "generatedAt": "2026-06-18T00:00:00.000Z",
+    "noExecution": true
+  },
+  "files": [
+    {
+      "path": "fixtures/block-manifest.valid.json",
+      "role": "valid-fixture",
+      "bytes": 1463,
+      "sha256": "sha256:b7fe06e6c0850e7b08d303aa860e2f7cb8cf49adc2e3342f140dfd219c3729eb"
+    }
+  ],
+  "safety": {
+    "noExecution": true,
+    "importsRuntimeCode": false,
+    "executesBlockTests": false,
+    "referenceExecution": false
+  }
+}

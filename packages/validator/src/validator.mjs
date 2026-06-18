@@ -6,8 +6,13 @@ import addFormats from "ajv-formats";
 
 const schemaFiles = [
   "agent-native.schema.json",
+  "api-drift.schema.json",
+  "block-manifest.schema.json",
   "distribution-mode.schema.json",
+  "execution-ledger.schema.json",
   "generated-adapter-manifest.schema.json",
+  "generated-block-fixtures-manifest.schema.json",
+  "graph-block-bundle.schema.json",
   "context-bundle.schema.json",
   "output-contract.schema.json",
   "package-manifest.schema.json",
@@ -20,6 +25,7 @@ const schemaFiles = [
   "skill-metadata.schema.json",
   "surfacing-metadata.schema.json",
   "tool-listing.schema.json",
+  "workspace-artifact.schema.json",
   "workflow-metadata.schema.json"
 ];
 
@@ -838,6 +844,27 @@ function schemaIdForPackageJson(normalizedRel) {
   }
   if (normalizedRel === "portable/generated-adapter-manifest.json" || normalizedRel.endsWith("/generated-adapter-manifest.json")) {
     return "https://schemas.agentique.io/generated-adapter-manifest.schema.json";
+  }
+  if (normalizedRel === "graph/graph-block-bundle.json" || normalizedRel.endsWith("/graph-block-bundle.json")) {
+    return "https://schemas.agentique.io/graph-block-bundle.schema.json";
+  }
+  if (normalizedRel === "blocks/block-manifest.json" || normalizedRel.endsWith("/block-manifest.json")) {
+    return "https://schemas.agentique.io/block-manifest.schema.json";
+  }
+  if (normalizedRel === "ledger/execution-ledger.json" || normalizedRel.endsWith("/execution-ledger.json")) {
+    return "https://schemas.agentique.io/execution-ledger.schema.json";
+  }
+  if (normalizedRel === "artifacts/workspace-artifact.json" || normalizedRel.endsWith("/workspace-artifact.json")) {
+    return "https://schemas.agentique.io/workspace-artifact.schema.json";
+  }
+  if (normalizedRel === "api/api-drift.json" || normalizedRel.endsWith("/api-drift.json")) {
+    return "https://schemas.agentique.io/api-drift.schema.json";
+  }
+  if (
+    normalizedRel === "fixtures/generated-block-fixtures-manifest.json" ||
+    normalizedRel.endsWith("/generated-block-fixtures-manifest.json")
+  ) {
+    return "https://schemas.agentique.io/generated-block-fixtures-manifest.schema.json";
   }
   return null;
 }

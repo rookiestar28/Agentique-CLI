@@ -1923,6 +1923,644 @@
       }
     }
   },
+  "api-drift.schema.json": {
+    "valid": {
+      "contractVersion": "agentique.apiDrift.v1",
+      "snapshot": {
+        "openapiDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "schemaDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "publicSchemaVersions": {
+          "graph-block-bundle": "1.0"
+        }
+      },
+      "generated": {
+        "openapiDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "schemaDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "clientDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "mockDigest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "generatorVersion": "static-review-v1",
+        "generatedAt": "2026-06-18T00:00:00.000Z"
+      },
+      "mockCoverage": {
+        "requiredStatuses": ["200", "400", "500"],
+        "coveredStatuses": ["200", "400", "500"]
+      },
+      "forbiddenPrivateFields": [],
+      "publicProjection": {
+        "redacted": true,
+        "internalPathsIncluded": false,
+        "secretsIncluded": false
+      },
+      "safety": {
+        "noServiceStart": true,
+        "noCodeGeneration": true,
+        "noNetwork": true
+      }
+    },
+    "invalid": {
+      "missing-required": {
+        "contractVersion": "agentique.apiDrift.v1"
+      },
+      "extra-property": {
+        "contractVersion": "agentique.apiDrift.v1",
+        "snapshot": {
+          "openapiDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "schemaDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "publicSchemaVersions": {}
+        },
+        "generated": {
+          "openapiDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "schemaDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "clientDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "mockDigest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "generatorVersion": "static-review-v1",
+          "generatedAt": "2026-06-18T00:00:00.000Z"
+        },
+        "mockCoverage": {
+          "requiredStatuses": ["200"],
+          "coveredStatuses": ["200"]
+        },
+        "forbiddenPrivateFields": [],
+        "publicProjection": {
+          "redacted": true,
+          "internalPathsIncluded": false,
+          "secretsIncluded": false
+        },
+        "safety": {
+          "noServiceStart": true,
+          "noCodeGeneration": true,
+          "noNetwork": true
+        },
+        "approvalClaim": true
+      },
+      "boundary": {
+        "contractVersion": "agentique.apiDrift.v1",
+        "snapshot": {
+          "openapiDigest": "sha256:not-a-digest",
+          "schemaDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "publicSchemaVersions": {}
+        },
+        "generated": {
+          "openapiDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "schemaDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "clientDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "mockDigest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "generatorVersion": "static-review-v1",
+          "generatedAt": "not-a-date"
+        },
+        "mockCoverage": {
+          "requiredStatuses": ["200"],
+          "coveredStatuses": ["999"]
+        },
+        "forbiddenPrivateFields": ["credentialValue"],
+        "publicProjection": {
+          "redacted": false,
+          "internalPathsIncluded": true,
+          "secretsIncluded": true
+        },
+        "safety": {
+          "noServiceStart": false,
+          "noCodeGeneration": false,
+          "noNetwork": false
+        }
+      }
+    }
+  },
+  "block-manifest.schema.json": {
+    "valid": {
+      "contractVersion": "agentique.blockManifest.v1",
+      "blockId": "block:review",
+      "name": "Review block",
+      "summary": "Static schema metadata for public graph review.",
+      "version": "1.0.0",
+      "categories": ["transform", "approval"],
+      "compatibility": "compatible",
+      "inputSchema": [
+        {
+          "id": "prompt",
+          "label": "Prompt",
+          "visibility": "standard",
+          "schemaRef": {
+            "kind": "json-schema",
+            "ref": "schema:prompt",
+            "required": true
+          },
+          "required": true,
+          "credentialReferenceOnly": false
+        }
+      ],
+      "outputSchema": [
+        {
+          "id": "result",
+          "label": "Result",
+          "visibility": "standard",
+          "schemaRef": {
+            "kind": "json-schema",
+            "ref": "schema:result",
+            "required": true
+          },
+          "required": true,
+          "credentialReferenceOnly": false
+        }
+      ],
+      "advancedFields": [],
+      "dependencies": [],
+      "discriminators": [],
+      "credentialFields": [],
+      "sensitiveAction": false,
+      "fixtures": [
+        {
+          "fixtureId": "fixture:review",
+          "inputSchemaRef": {
+            "kind": "json-schema",
+            "ref": "schema:prompt",
+            "required": true
+          },
+          "outputSchemaRef": {
+            "kind": "json-schema",
+            "ref": "schema:result",
+            "required": true
+          },
+          "hasInputFixture": true,
+          "hasOutputFixture": true,
+          "staticOnly": true
+        }
+      ],
+      "lifecycle": {
+        "state": "static-metadata",
+        "hooks": []
+      }
+    },
+    "invalid": {
+      "missing-required": {
+        "contractVersion": "agentique.blockManifest.v1"
+      },
+      "extra-property": {
+        "contractVersion": "agentique.blockManifest.v1",
+        "unexpected": true
+      },
+      "boundary": {
+        "contractVersion": "agentique.blockManifest.v1",
+        "blockId": "Bad Block",
+        "name": "Review block",
+        "summary": "Static schema metadata for public graph review.",
+        "version": "latest",
+        "categories": ["runtime"],
+        "compatibility": "compatible",
+        "inputSchema": [],
+        "outputSchema": [],
+        "advancedFields": [],
+        "dependencies": [],
+        "discriminators": [],
+        "credentialFields": [],
+        "sensitiveAction": false,
+        "fixtures": [],
+        "lifecycle": {
+          "state": "unsupported-hook",
+          "hooks": ["postinstall"]
+        }
+      }
+    }
+  },
+  "execution-ledger.schema.json": {
+    "valid": {
+      "contractVersion": "agentique.executionLedger.v1",
+      "ledgerId": "ledger:review-flow",
+      "graphId": "graph:review-flow",
+      "graphExecutionId": "execution:review-flow",
+      "state": "completed",
+      "replayDiagnosticOnly": true,
+      "noExecution": {
+        "rawCommandsIncluded": false,
+        "packageManagersExecuted": false,
+        "lifecycleHooksExecuted": false,
+        "graphExecuted": false,
+        "blockRuntimeLoaded": false,
+        "networkRequestsPerformed": false,
+        "filesystemAccessGranted": false,
+        "schedulerStarted": false,
+        "webhookReceiverStarted": false
+      },
+      "events": [
+        {
+          "eventId": "event:graph-completed",
+          "executionId": "execution:review-flow",
+          "entityKind": "graph",
+          "entityId": "graph:review-flow",
+          "state": "completed",
+          "timestamp": "2026-06-18T00:00:00.000Z",
+          "sequence": 1,
+          "message": "Execution metadata recorded.",
+          "publicSummary": "Metadata recorded.",
+          "artifactRefs": [],
+          "replaySafe": true
+        }
+      ]
+    },
+    "invalid": {
+      "missing-required": {
+        "contractVersion": "agentique.executionLedger.v1"
+      },
+      "extra-property": {
+        "contractVersion": "agentique.executionLedger.v1",
+        "unexpected": true
+      },
+      "boundary": {
+        "contractVersion": "agentique.executionLedger.v1",
+        "ledgerId": "ledger:review-flow",
+        "graphId": "graph:review-flow",
+        "graphExecutionId": "execution:review-flow",
+        "state": "running",
+        "replayDiagnosticOnly": false,
+        "noExecution": {
+          "rawCommandsIncluded": false,
+          "packageManagersExecuted": false,
+          "lifecycleHooksExecuted": false,
+          "graphExecuted": true,
+          "blockRuntimeLoaded": false,
+          "networkRequestsPerformed": false,
+          "filesystemAccessGranted": false,
+          "schedulerStarted": false,
+          "webhookReceiverStarted": false
+        },
+        "events": []
+      }
+    }
+  },
+  "generated-block-fixtures-manifest.schema.json": {
+    "valid": {
+      "contractVersion": "agentique.generatedBlockFixtures.v1",
+      "generator": {
+        "name": "agentique-block-fixture-generator",
+        "version": "0.1.0",
+        "generatedAt": "2026-06-18T00:00:00.000Z",
+        "noExecution": true
+      },
+      "files": [
+        {
+          "path": "fixtures/block-manifest.valid.json",
+          "role": "valid-fixture",
+          "bytes": 512,
+          "sha256": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ],
+      "safety": {
+        "noExecution": true,
+        "importsRuntimeCode": false,
+        "executesBlockTests": false,
+        "referenceExecution": false
+      }
+    },
+    "invalid": {
+      "missing-required": {
+        "contractVersion": "agentique.generatedBlockFixtures.v1"
+      },
+      "extra-property": {
+        "contractVersion": "agentique.generatedBlockFixtures.v1",
+        "generator": {
+          "name": "agentique-block-fixture-generator",
+          "version": "0.1.0",
+          "generatedAt": "2026-06-18T00:00:00.000Z",
+          "noExecution": true
+        },
+        "files": [],
+        "safety": {
+          "noExecution": true,
+          "importsRuntimeCode": false,
+          "executesBlockTests": false,
+          "referenceExecution": false
+        },
+        "releaseClaim": true
+      },
+      "boundary": {
+        "contractVersion": "agentique.generatedBlockFixtures.v1",
+        "generator": {
+          "name": "agentique-block-fixture-generator",
+          "version": "*",
+          "generatedAt": "not-a-date",
+          "noExecution": false
+        },
+        "files": [
+          {
+            "path": "../block.json",
+            "role": "valid-fixture",
+            "bytes": 0,
+            "sha256": "sha256:not-a-digest"
+          }
+        ],
+        "safety": {
+          "noExecution": false,
+          "importsRuntimeCode": true,
+          "executesBlockTests": true,
+          "referenceExecution": true
+        }
+      }
+    }
+  },
+  "graph-block-bundle.schema.json": {
+    "valid": {
+      "contractVersion": "agentique.graphBlockBundle.v1",
+      "bundleId": "bundle:review-flow",
+      "graph": {
+        "contractVersion": "agentique.agentGraphRuntime.v1",
+        "graphId": "graph:review-flow",
+        "title": "Review flow",
+        "summary": "Descriptor-only graph metadata for public review.",
+        "version": "1.0.0",
+        "compatibility": "compatible",
+        "blocks": [
+          {
+            "id": "block:input",
+            "manifestRef": "manifest:input",
+            "name": "Input block",
+            "version": "1.0.0",
+            "categories": ["input"],
+            "compatibility": "compatible",
+            "ports": [
+              {
+                "id": "prompt",
+                "name": "Prompt",
+                "direction": "output",
+                "schemaRef": {
+                  "kind": "json-schema",
+                  "ref": "schema:prompt",
+                  "required": true
+                },
+                "credentialReferenceOnly": false
+              }
+            ],
+            "blockedReasons": []
+          }
+        ],
+        "nodes": [
+          {
+            "id": "node:input",
+            "blockId": "block:input",
+            "label": "Input",
+            "inputPorts": [],
+            "outputPorts": ["prompt"],
+            "inputSchemaRefs": [],
+            "outputSchemaRefs": [
+              {
+                "kind": "json-schema",
+                "ref": "schema:prompt",
+                "required": true
+              }
+            ],
+            "credentialReferences": [],
+            "compatibility": "compatible"
+          }
+        ],
+        "edges": [],
+        "publicProjection": {
+          "allowedPublicFields": ["graphId", "title"],
+          "forbiddenPublicFields": ["rawCommands", "credentialValues", "runtimeAvailabilityClaims"],
+          "noExecutionDisclosureRequired": true,
+          "unsupportedRuntimeClaimsForbidden": true
+        },
+        "noExecution": {
+          "rawCommandsIncluded": false,
+          "packageManagersExecuted": false,
+          "lifecycleHooksExecuted": false,
+          "graphExecuted": false,
+          "blockRuntimeLoaded": false,
+          "networkRequestsPerformed": false,
+          "filesystemAccessGranted": false,
+          "schedulerStarted": false,
+          "webhookReceiverStarted": false
+        },
+        "noOverclaim": {
+          "localRunnerAvailable": false,
+          "schedulerAvailable": false,
+          "webhookExecutionAvailable": false,
+          "credentialValuesAvailable": false,
+          "automaticInstallAvailable": false,
+          "externalServiceCertified": false
+        }
+      },
+      "blockManifests": [
+        {
+          "contractVersion": "agentique.blockManifest.v1",
+          "blockId": "block:review",
+          "name": "Review block",
+          "summary": "Static schema metadata for public graph review.",
+          "version": "1.0.0",
+          "categories": ["transform"],
+          "compatibility": "compatible",
+          "inputSchema": [
+            {
+              "id": "prompt",
+              "label": "Prompt",
+              "visibility": "standard",
+              "schemaRef": {
+                "kind": "json-schema",
+                "ref": "schema:prompt",
+                "required": true
+              },
+              "required": true,
+              "credentialReferenceOnly": false
+            }
+          ],
+          "outputSchema": [
+            {
+              "id": "result",
+              "label": "Result",
+              "visibility": "standard",
+              "schemaRef": {
+                "kind": "json-schema",
+                "ref": "schema:result",
+                "required": true
+              },
+              "required": true,
+              "credentialReferenceOnly": false
+            }
+          ],
+          "advancedFields": [],
+          "dependencies": [],
+          "discriminators": [],
+          "credentialFields": [],
+          "sensitiveAction": false,
+          "fixtures": [
+            {
+              "fixtureId": "fixture:review",
+              "inputSchemaRef": {
+                "kind": "json-schema",
+                "ref": "schema:prompt",
+                "required": true
+              },
+              "outputSchemaRef": {
+                "kind": "json-schema",
+                "ref": "schema:result",
+                "required": true
+              },
+              "hasInputFixture": true,
+              "hasOutputFixture": true,
+              "staticOnly": true
+            }
+          ],
+          "lifecycle": {
+            "state": "static-metadata",
+            "hooks": []
+          }
+        }
+      ],
+      "lifecycle": {
+        "transferKind": "import",
+        "lifecycleState": "pending-import",
+        "noAutomaticInstall": true,
+        "noAutomaticExecution": true,
+        "rollbackReadback": {
+          "rollbackAvailable": true,
+          "readbackStatus": "verified",
+          "readbackDigest": "sha256:abcdef123456"
+        }
+      },
+      "diagnostics": {
+        "healthState": "healthy",
+        "readinessState": "ready",
+        "redacted": true,
+        "noPrivateTelemetryLeakage": true
+      },
+      "safety": {
+        "noExecution": true,
+        "noInstall": true,
+        "noNetwork": true,
+        "noArchiveExtraction": true,
+        "noUserConfigMutation": true,
+        "noRuntimeClaim": true,
+        "descriptorOnly": true
+      }
+    },
+    "invalid": {
+      "missing-required": {
+        "contractVersion": "agentique.graphBlockBundle.v1"
+      },
+      "extra-property": {
+        "contractVersion": "agentique.graphBlockBundle.v1",
+        "unexpected": true
+      },
+      "boundary": {
+        "contractVersion": "agentique.graphBlockBundle.v1",
+        "bundleId": "bundle:review-flow",
+        "graph": {
+          "contractVersion": "agentique.agentGraphRuntime.v1",
+          "graphId": "graph:review-flow",
+          "title": "Review flow",
+          "summary": "Descriptor-only graph metadata for public review.",
+          "version": "1.0.0",
+          "compatibility": "compatible",
+          "blocks": [],
+          "nodes": [],
+          "edges": [],
+          "publicProjection": {
+            "allowedPublicFields": [],
+            "forbiddenPublicFields": [],
+            "noExecutionDisclosureRequired": false,
+            "unsupportedRuntimeClaimsForbidden": false
+          },
+          "noExecution": {
+            "rawCommandsIncluded": false,
+            "packageManagersExecuted": false,
+            "lifecycleHooksExecuted": false,
+            "graphExecuted": true,
+            "blockRuntimeLoaded": false,
+            "networkRequestsPerformed": false,
+            "filesystemAccessGranted": false,
+            "schedulerStarted": false,
+            "webhookReceiverStarted": false
+          },
+          "noOverclaim": {
+            "localRunnerAvailable": true,
+            "schedulerAvailable": false,
+            "webhookExecutionAvailable": false,
+            "credentialValuesAvailable": false,
+            "automaticInstallAvailable": false,
+            "externalServiceCertified": false
+          }
+        },
+        "blockManifests": [],
+        "lifecycle": {
+          "transferKind": "import",
+          "lifecycleState": "pending-import",
+          "noAutomaticInstall": false,
+          "noAutomaticExecution": false,
+          "rollbackReadback": {
+            "rollbackAvailable": true,
+            "readbackStatus": "verified",
+            "readbackDigest": "sha256:abcdef123456"
+          }
+        },
+        "diagnostics": {
+          "healthState": "healthy",
+          "readinessState": "ready",
+          "redacted": false,
+          "noPrivateTelemetryLeakage": false
+        },
+        "safety": {
+          "noExecution": false,
+          "noInstall": false,
+          "noNetwork": false,
+          "noArchiveExtraction": false,
+          "noUserConfigMutation": false,
+          "noRuntimeClaim": false,
+          "descriptorOnly": false
+        }
+      }
+    }
+  },
+  "workspace-artifact.schema.json": {
+    "valid": {
+      "contractVersion": "agentique.workspaceArtifact.v1",
+      "artifactId": "artifact:review-result",
+      "scope": "persistent-workspace-artifact",
+      "uri": {
+        "kind": "virtual-uri",
+        "value": "agentique://workspace/artifact:review-result"
+      },
+      "checksum": "sha256:abcdef123456",
+      "mimeType": "application/json",
+      "sizeBytes": 4096,
+      "scanState": "passed",
+      "retentionState": "active",
+      "signedDownload": {
+        "signed": true,
+        "host": "downloads.agentique.local",
+        "expiresAt": "2026-06-18T01:00:00.000Z",
+        "queryMaterialRedacted": true
+      },
+      "softDeleted": false
+    },
+    "invalid": {
+      "missing-required": {
+        "contractVersion": "agentique.workspaceArtifact.v1"
+      },
+      "extra-property": {
+        "contractVersion": "agentique.workspaceArtifact.v1",
+        "unexpected": true
+      },
+      "boundary": {
+        "contractVersion": "agentique.workspaceArtifact.v1",
+        "artifactId": "artifact:review-result",
+        "scope": "persistent-workspace-artifact",
+        "uri": {
+          "kind": "http-url",
+          "value": "http://downloads.example.invalid/../media.png?token=example"
+        },
+        "checksum": "sha256:not-a-digest",
+        "mimeType": "application/x-msdownload",
+        "sizeBytes": 999999999,
+        "scanState": "unscanned",
+        "retentionState": "active",
+        "signedDownload": {
+          "signed": false,
+          "host": "downloads.agentique.local",
+          "expiresAt": "not-a-date",
+          "queryMaterialRedacted": false
+        },
+        "softDeleted": false
+      }
+    }
+  },
   "registry-trust.schema.json": {
     "valid": {
       "contractVersion": "1.0",

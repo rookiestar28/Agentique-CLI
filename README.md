@@ -244,6 +244,7 @@ Available examples:
 - `starters/parser-variant-import-review` - static parser evidence and source-only variant metadata for local review.
 - `starters/agent-native-review` - static namespace, provenance, install-guidance, public boundary, and resolver-intent metadata for local review.
 - `starters/portable-profile-review` - static portable profile, generated adapter manifest, and descriptor-only target output for local review.
+- `starters/graph-block-review` - static graph, block manifest, diagnostic ledger, workspace artifact, API drift, and generated fixture metadata for local review.
 
 Validate every starter:
 
@@ -279,6 +280,14 @@ The validator package includes source-checkout commands for descriptor-only adap
 
 Portable profile outputs are local preparation artifacts. They do not install files into agent clients, execute generated content, trust lifecycle hooks, approve resources, certify safety, provide runtime compatibility, or replace platform review.
 
+## Graph Block Tools
+
+The graph/block starter in [starters/graph-block-review](starters/graph-block-review) shows descriptor-only graph topology, block manifests, diagnostic ledger events, workspace artifact metadata, API drift metadata, and generated block fixture manifests.
+
+The validator package includes source-checkout commands for graph bundle validation, import/export plan generation, fixture manifest generation, diagnostic ledger inspection, replay diagnostics, workspace artifact metadata scanning, and API drift checks.
+
+Graph/block outputs are local preparation artifacts. They do not install packages, execute graph nodes, load block runtimes, fetch artifact bytes, start services, mutate user agent configuration, approve resources, certify safety, provide runtime compatibility, or replace platform review.
+
 ## Validator CLI
 
 The validator is a static checker. It does not install package dependencies, execute package code, upload files, or call private platform APIs.
@@ -311,6 +320,19 @@ node packages/validator/src/cli.mjs debt-ledger <root-dir> --json
 node packages/validator/src/cli.mjs portable-eval <portable-profile.json> --output-dir <dir> --sandbox no-exec-temp --schemas-dir schemas --json
 ```
 
+Run graph/block local preparation commands:
+
+```bash
+node packages/validator/src/cli.mjs bundle-validate <graph-block-bundle.json> --schemas-dir schemas --json
+node packages/validator/src/cli.mjs bundle-import-plan <graph-block-bundle.json> --output-dir <dir> --schemas-dir schemas --json
+node packages/validator/src/cli.mjs bundle-export-plan <graph-block-bundle.json> --output-dir <dir> --schemas-dir schemas --json
+node packages/validator/src/cli.mjs block-fixtures-generate <dir> --schemas-dir schemas --json
+node packages/validator/src/cli.mjs ledger-inspect <execution-ledger.json> --schemas-dir schemas --json
+node packages/validator/src/cli.mjs ledger-replay-diagnostics <execution-ledger.json> --output-dir <dir> --schemas-dir schemas --json
+node packages/validator/src/cli.mjs artifact-scan <workspace-artifact.json> --schemas-dir schemas --json
+node packages/validator/src/cli.mjs api-drift <api-drift.json> --schemas-dir schemas --json
+```
+
 Exit codes:
 
 - `0` - package is locally valid.
@@ -326,6 +348,7 @@ Checks include:
 - Secret-like value detection with redacted findings.
 - Forbidden public-content path and term checks.
 - External intake preflight for raw candidate directories, including repository metadata gates, payload classification, execution-surface inventory, dangerous capability patterns, high-risk truncation blockers, redacted secret fingerprints, and license recognition plus intake-policy signals.
+- Graph/block checks for descriptor-only topology, static block manifests, diagnostic ledgers, redacted artifact metadata, API drift snapshots, generated fixture manifests, and no-execution boundaries.
 
 External intake findings are review inputs only. Passing this local preflight does not publish, approve, certify, moderate, or legally clear a candidate.
 
