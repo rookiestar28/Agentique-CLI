@@ -2657,6 +2657,225 @@
       }
     }
   },
+  "static-package-dry-run.schema.json": {
+    "valid": {
+      "contractVersion": "agentique.staticPackageDryRun.v1",
+      "candidate": {
+        "candidateId": "skill-source:engineering-skills",
+        "candidateType": "skill-source-package",
+        "sourceDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "disposition": "static-review-candidate"
+      },
+      "package": {
+        "packageId": "skill-source:engineering-skills",
+        "packageKind": "static-skill-pack",
+        "resourceName": "engineering-skills",
+        "deterministicDryRunOnly": true,
+        "descriptorOnly": true
+      },
+      "files": [
+        {
+          "path": "package/descriptors/test-driven-development.json",
+          "role": "skill-descriptor",
+          "bytes": 240,
+          "sha256": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        {
+          "path": "package/resource-manifest.preview.json",
+          "role": "resource-manifest-preview",
+          "bytes": 720,
+          "sha256": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        {
+          "path": "package/static-package-dry-run.json",
+          "role": "dry-run-manifest",
+          "bytes": 1200,
+          "sha256": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        }
+      ],
+      "sourceInventory": [
+        {
+          "path": "skills/test-driven-development/SKILL.md",
+          "role": "skill-source",
+          "licenseExpression": "MIT"
+        }
+      ],
+      "resourceManifestPreview": {
+        "formatVersion": "1.0",
+        "name": "engineering-skills",
+        "summary": "Static skill metadata prepared for local review package planning.",
+        "source": {
+          "type": "git",
+          "url": "https://github.com/example/engineering-skills"
+        },
+        "distribution": {
+          "mode": "metadata_view",
+          "notes": "Descriptor-only local dry-run output for review before any platform action."
+        },
+        "package": {
+          "formatVersion": "1.0",
+          "files": [
+            "package/descriptors/test-driven-development.json",
+            "package/resource-manifest.preview.json",
+            "package/static-package-dry-run.json"
+          ],
+          "hashes": {
+            "package/descriptors/test-driven-development.json": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "package/resource-manifest.preview.json": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "package/static-package-dry-run.json": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        }
+      },
+      "safety": {
+        "noExecution": true,
+        "noInstall": true,
+        "noNetwork": true,
+        "noArchiveCreation": true,
+        "noArchiveExtraction": true,
+        "noUserConfigMutation": true,
+        "noConnectorActivation": true,
+        "noUpload": true,
+        "noPublication": true,
+        "localReviewOnly": true
+      }
+    },
+    "invalid": {
+      "missing-required": {
+        "contractVersion": "agentique.staticPackageDryRun.v1"
+      },
+      "extra-property": {
+        "contractVersion": "agentique.staticPackageDryRun.v1",
+        "candidate": {
+          "candidateId": "skill-source:engineering-skills",
+          "candidateType": "skill-source-package",
+          "sourceDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "disposition": "static-review-candidate"
+        },
+        "package": {
+          "packageId": "skill-source:engineering-skills",
+          "packageKind": "static-skill-pack",
+          "resourceName": "engineering-skills",
+          "deterministicDryRunOnly": true,
+          "descriptorOnly": true
+        },
+        "files": [
+          {
+            "path": "package/static-package-dry-run.json",
+            "role": "dry-run-manifest",
+            "bytes": 1200,
+            "sha256": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          },
+          {
+            "path": "package/resource-manifest.preview.json",
+            "role": "resource-manifest-preview",
+            "bytes": 720,
+            "sha256": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        ],
+        "sourceInventory": [
+          {
+            "path": "skills/test-driven-development/SKILL.md",
+            "role": "skill-source",
+            "licenseExpression": "MIT"
+          }
+        ],
+        "resourceManifestPreview": {
+          "formatVersion": "1.0",
+          "name": "engineering-skills",
+          "summary": "Static skill metadata prepared for local review package planning.",
+          "source": {
+            "type": "git",
+            "url": "https://github.com/example/engineering-skills"
+          },
+          "distribution": {
+            "mode": "metadata_view"
+          },
+          "package": {
+            "formatVersion": "1.0",
+            "files": ["package/static-package-dry-run.json"],
+            "hashes": {
+              "package/static-package-dry-run.json": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            }
+          }
+        },
+        "safety": {
+          "noExecution": true,
+          "noInstall": true,
+          "noNetwork": true,
+          "noArchiveCreation": true,
+          "noArchiveExtraction": true,
+          "noUserConfigMutation": true,
+          "noConnectorActivation": true,
+          "noUpload": true,
+          "noPublication": true,
+          "localReviewOnly": true
+        },
+        "publishedAutomatically": true
+      },
+      "boundary": {
+        "contractVersion": "agentique.staticPackageDryRun.v1",
+        "candidate": {
+          "candidateId": "skill-source:engineering-skills",
+          "candidateType": "skill-source-package",
+          "sourceDigest": "sha256:not-a-digest",
+          "disposition": "runtime-deferred"
+        },
+        "package": {
+          "packageId": "skill-source:engineering-skills",
+          "packageKind": "runtime-backed-source",
+          "resourceName": "Engineering Skills",
+          "deterministicDryRunOnly": false,
+          "descriptorOnly": false
+        },
+        "files": [
+          {
+            "path": "../package.json",
+            "role": "dry-run-manifest",
+            "bytes": 0,
+            "sha256": "sha256:not-a-digest"
+          }
+        ],
+        "sourceInventory": [
+          {
+            "path": "../private/SKILL.md",
+            "role": "skill-source",
+            "licenseExpression": "MIT"
+          }
+        ],
+        "resourceManifestPreview": {
+          "formatVersion": "1.0",
+          "name": "bad",
+          "summary": "Too short",
+          "source": {
+            "type": "git",
+            "url": "http://example.com/source"
+          },
+          "distribution": {
+            "mode": "package_download"
+          },
+          "package": {
+            "formatVersion": "1.0",
+            "files": ["../package.json"],
+            "hashes": {
+              "../package.json": "sha256:not-a-digest"
+            }
+          }
+        },
+        "safety": {
+          "noExecution": false,
+          "noInstall": false,
+          "noNetwork": false,
+          "noArchiveCreation": false,
+          "noArchiveExtraction": false,
+          "noUserConfigMutation": false,
+          "noConnectorActivation": false,
+          "noUpload": false,
+          "noPublication": false,
+          "localReviewOnly": false
+        }
+      }
+    }
+  },
   "upload-candidate-gate.schema.json": {
     "validCases": {
       "static-review-candidate": {

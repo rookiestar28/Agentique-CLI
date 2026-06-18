@@ -22,6 +22,8 @@ import {
 } from "./portability.mjs";
 import {
   RESOURCE_UPLOAD_COMMANDS,
+  buildStaticPackageDryRun,
+  formatPackageDryRunHuman,
   formatResourceUploadHuman,
   validateUploadCandidate
 } from "./resource-upload.mjs";
@@ -45,6 +47,7 @@ const usage = `Usage:
   agentique-validator artifact-scan <workspace-artifact.json> [--schemas-dir <dir>] [--json]
   agentique-validator api-drift <api-drift.json> [--schemas-dir <dir>] [--json]
   agentique-validator upload-candidate <candidate.json> --output <file> [--schemas-dir <dir>] [--json]
+  agentique-validator package-dry-run <candidate.json> --output-dir <dir> [--schemas-dir <dir>] [--json]
 `;
 
 const portabilityCommands = new Set([
@@ -165,8 +168,12 @@ async function runResourceUploadCommand(command, subject, rest) {
     process.stderr.write(`${flags.error}\n${usage}`);
     return 2;
   }
-  if (!flags.values.output) {
+  if (command === "upload-candidate" && !flags.values.output) {
     process.stderr.write(`upload-candidate requires --output <file>.\n${usage}`);
+    return 2;
+  }
+  if (command === "package-dry-run" && !flags.values.outputDir) {
+    process.stderr.write(`package-dry-run requires --output-dir <dir>.\n${usage}`);
     return 2;
   }
 
@@ -174,16 +181,23 @@ async function runResourceUploadCommand(command, subject, rest) {
   const json = flags.values.json === true;
 
   try {
-    const report = await validateUploadCandidate({
-      sourcePath: subject,
-      outputPath: flags.values.output,
-      schemasDir
-    });
+    const report =
+      command === "package-dry-run"
+        ? await buildStaticPackageDryRun({
+            sourcePath: subject,
+            outputDir: flags.values.outputDir,
+            schemasDir
+          })
+        : await validateUploadCandidate({
+            sourcePath: subject,
+            outputPath: flags.values.output,
+            schemasDir
+          });
 
     if (json) {
       process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
     } else {
-      process.stdout.write(formatResourceUploadHuman(report));
+      process.stdout.write(command === "package-dry-run" ? formatPackageDryRunHuman(report) : formatResourceUploadHuman(report));
     }
     return report.ok ? 0 : 1;
   } catch (error) {
@@ -447,6 +461,7 @@ function parseResourceUploadFlags(args) {
   const values = {
     json: false,
     output: null,
+    outputDir: null,
     schemasDir: null
   };
 
@@ -456,6 +471,9 @@ function parseResourceUploadFlags(args) {
       values.json = true;
     } else if (arg === "--output") {
       values.output = args[index + 1];
+      index += 1;
+    } else if (arg === "--output-dir") {
+      values.outputDir = args[index + 1];
       index += 1;
     } else if (arg === "--schemas-dir") {
       values.schemasDir = args[index + 1];

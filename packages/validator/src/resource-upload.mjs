@@ -4,16 +4,29 @@ import path from "node:path";
 import Ajv from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
 
-export const RESOURCE_UPLOAD_COMMANDS = new Set(["upload-candidate"]);
+export const RESOURCE_UPLOAD_COMMANDS = new Set(["upload-candidate", "package-dry-run"]);
 
 const RESOURCE_UPLOAD_SCHEMA_FILES = Object.freeze([
+  "agent-native.schema.json",
+  "distribution-mode.schema.json",
+  "output-contract.schema.json",
+  "package-manifest.schema.json",
+  "parser-variant.schema.json",
+  "permission-risk.schema.json",
+  "registry-trust.schema.json",
+  "resource-manifest.schema.json",
+  "skill-metadata.schema.json",
+  "static-package-dry-run.schema.json",
+  "surfacing-metadata.schema.json",
   "upload-candidate-gate.schema.json",
+  "workflow-metadata.schema.json",
   "skill-source-package.schema.json",
   "role-plugin-pack.schema.json"
 ]);
 
 const SKILL_SOURCE_SCHEMA_ID = "https://schemas.agentique.io/skill-source-package.schema.json";
 const ROLE_PLUGIN_SCHEMA_ID = "https://schemas.agentique.io/role-plugin-pack.schema.json";
+const STATIC_PACKAGE_DRY_RUN_SCHEMA_ID = "https://schemas.agentique.io/static-package-dry-run.schema.json";
 
 const contractSchemaIds = new Map([
   ["agentique.skillSourcePackage.v1", SKILL_SOURCE_SCHEMA_ID],
@@ -80,12 +93,123 @@ export async function validateUploadCandidate({ sourcePath, outputPath, schemasD
   };
 }
 
+export async function buildStaticPackageDryRun({ sourcePath, outputDir, schemasDir }) {
+  const outputSafety = validateExplicitOutputDir(outputDir);
+  if (!outputSafety.resolvedOutputDir) {
+    return createPackageDryRunReport({
+      ok: false,
+      decision: "no_go",
+      sourcePath,
+      outputDir,
+      candidate: null,
+      uploadReport: null,
+      manifest: null,
+      files: [],
+      findings: outputSafety.findings
+    });
+  }
+
+  const packageRoot = path.join(outputSafety.resolvedOutputDir, "package");
+  const uploadReportPath = path.join(packageRoot, "upload-candidate-report.json");
+  const uploadReport = await validateUploadCandidate({
+    sourcePath,
+    outputPath: uploadReportPath,
+    schemasDir
+  });
+  const reportFile = await summarizeExistingFile(uploadReportPath, "package/upload-candidate-report.json", "upload-candidate-report");
+  const uploadFindings = [...(uploadReport.findings ?? [])];
+
+  if (!uploadReport.ok) {
+    return createPackageDryRunReport({
+      ok: false,
+      decision: "no_go",
+      sourcePath,
+      outputDir,
+      candidate: null,
+      uploadReport,
+      manifest: null,
+      files: reportFile ? [reportFile] : [],
+      findings: uploadFindings
+    });
+  }
+
+  const loaded = await readJsonWithDigest(sourcePath, "candidate", uploadFindings);
+  const candidate = loaded.value;
+  const candidateType = candidateTypeFor(candidate);
+  const eligibilityFindings = inspectPackageDryRunEligibility(candidate, candidateType);
+  const findings = [...uploadFindings, ...eligibilityFindings];
+  if (findings.length > 0) {
+    return createPackageDryRunReport({
+      ok: false,
+      decision: "no_go",
+      sourcePath,
+      outputDir,
+      candidate,
+      uploadReport,
+      manifest: null,
+      files: reportFile ? [reportFile] : [],
+      findings
+    });
+  }
+
+  const descriptorFiles = await writeReviewDescriptors({ candidate, candidateType, packageRoot });
+  const resourceManifestPreview = createResourceManifestPreview(candidate, candidateType, descriptorFiles);
+  const resourceManifestPath = path.join(packageRoot, "resource-manifest.preview.json");
+  await writeJson(resourceManifestPath, resourceManifestPreview);
+  const resourceManifestFile = await summarizeExistingFile(
+    resourceManifestPath,
+    "package/resource-manifest.preview.json",
+    "resource-manifest-preview"
+  );
+
+  const manifest = createStaticPackageDryRunManifest({
+    candidate,
+    candidateType,
+    sourceDigest: loaded.digest,
+    descriptorFiles,
+    resourceManifestPreview,
+    uploadReportFile: reportFile,
+    resourceManifestFile
+  });
+
+  const manifestFindings = await validateStaticPackageDryRunManifest({ manifest, schemasDir });
+  const manifestPath = path.join(packageRoot, "static-package-dry-run.json");
+  await writeJson(manifestPath, manifest);
+  const manifestFile = await summarizeExistingFile(manifestPath, "package/static-package-dry-run.json", "dry-run-manifest");
+  const files = [reportFile, ...descriptorFiles, resourceManifestFile, manifestFile].filter(Boolean);
+
+  return createPackageDryRunReport({
+    ok: manifestFindings.length === 0,
+    decision: manifestFindings.length === 0 ? "review_candidate" : "no_go",
+    sourcePath,
+    outputDir,
+    candidate,
+    uploadReport,
+    manifest,
+    files,
+    findings: manifestFindings
+  });
+}
+
 export function formatResourceUploadHuman(report) {
   const lines = [`${report.ok ? "OK" : "FAILED"} ${report.command}`];
   lines.push(`- decision: ${report.decision}`);
   if (report.summary?.candidateId) {
     lines.push(`- candidate: ${report.summary.candidateId}`);
   }
+  for (const item of report.findings ?? []) {
+    lines.push(`- ${item.code} at ${item.location}: ${item.message}`);
+  }
+  return `${lines.join("\n")}\n`;
+}
+
+export function formatPackageDryRunHuman(report) {
+  const lines = [`${report.ok ? "OK" : "FAILED"} ${report.command}`];
+  lines.push(`- decision: ${report.decision}`);
+  if (report.summary?.candidateId) {
+    lines.push(`- candidate: ${report.summary.candidateId}`);
+  }
+  lines.push(`- files: ${Array.isArray(report.files) ? report.files.length : 0}`);
   for (const item of report.findings ?? []) {
     lines.push(`- ${item.code} at ${item.location}: ${item.message}`);
   }
@@ -280,6 +404,272 @@ function inspectPackagePlan(plan, location, findings) {
   }
 }
 
+function inspectPackageDryRunEligibility(candidate, candidateType) {
+  const findings = [];
+  if (!candidate || typeof candidate !== "object") {
+    findings.push(finding("candidate-missing", "Candidate metadata is required for package dry-run.", "candidate"));
+    return findings;
+  }
+
+  const packageKind = candidate.packagePlan?.packageKind;
+  const allowedSkillKinds = new Set(["static-skill-pack", "workflow-skill-pack"]);
+  const allowedRoleKinds = new Set(["role-plugin-pack", "connector-metadata-pack"]);
+  if (candidateType === "skill-source-package") {
+    if (!allowedSkillKinds.has(packageKind)) {
+      findings.push(finding("package-kind-blocked", "Only static skill package kinds can produce dry-run descriptors.", "candidate.packagePlan.packageKind"));
+    }
+    for (const [index, skill] of (candidate.skills ?? []).entries()) {
+      if (skill.contentMode !== "static-instructions") {
+        findings.push(finding("skill-content-mode-blocked", "Only static instruction skills can produce dry-run descriptors.", `candidate.skills[${index}].contentMode`));
+      }
+    }
+  } else if (candidateType === "role-plugin-pack") {
+    if (!allowedRoleKinds.has(packageKind)) {
+      findings.push(finding("package-kind-blocked", "Only role/plugin metadata package kinds can produce dry-run descriptors.", "candidate.packagePlan.packageKind"));
+    }
+  } else {
+    findings.push(finding("candidate-type-unsupported", "Candidate contract version is not supported for package dry-run.", "candidate.contractVersion"));
+  }
+
+  if (candidate.gate?.disposition !== "static-review-candidate") {
+    findings.push(finding("source-disposition-blocked", "Only static review candidates can produce dry-run descriptors.", "candidate.gate.disposition"));
+  }
+  if (candidate.gate?.licenseProvenance?.policy !== "allowed") {
+    findings.push(finding("license-review-required", "Package dry-run requires allowed license provenance.", "candidate.gate.licenseProvenance.policy"));
+  }
+  if (candidate.gate?.runtimeRisk?.requiresRuntime === true) {
+    findings.push(finding("runtime-sandbox-required", "Runtime-backed candidates require a separate sandbox/runtime gate.", "candidate.gate.runtimeRisk"));
+  }
+  return findings;
+}
+
+async function writeReviewDescriptors({ candidate, candidateType, packageRoot }) {
+  const descriptorRoot = path.join(packageRoot, "descriptors");
+  await fs.mkdir(descriptorRoot, { recursive: true });
+
+  if (candidateType === "skill-source-package") {
+    const descriptors = [];
+    const skills = [...(candidate.skills ?? [])].sort((left, right) => left.skillId.localeCompare(right.skillId));
+    for (const skill of skills) {
+      const relPath = `package/descriptors/${skill.skillId}.json`;
+      const filePath = path.join(descriptorRoot, `${skill.skillId}.json`);
+      const descriptor = {
+        contractVersion: "agentique.reviewDescriptor.v1",
+        descriptorKind: "skill",
+        skillId: safeText(skill.skillId),
+        title: safeText(skill.title),
+        summary: safeText(skill.summary),
+        platform: safeText(skill.platform),
+        contentMode: safeText(skill.contentMode),
+        sourceFiles: sortedStrings(skill.files),
+        licenseExpression: safeText(skill.licenseExpression),
+        setupRequirements: sortedStrings(skill.setupRequirements),
+        outputKinds: sortedStrings(skill.outputKinds),
+        source: {
+          sourceId: safeText(candidate.source?.sourceId),
+          sourceName: safeText(candidate.source?.sourceName),
+          sourceUrl: safeText(candidate.source?.sourceUrl),
+          snapshotDigest: safeText(candidate.source?.snapshotDigest)
+        },
+        safety: descriptorSafety()
+      };
+      await writeJson(filePath, descriptor);
+      descriptors.push(await summarizeExistingFile(filePath, relPath, "skill-descriptor"));
+    }
+    return descriptors.filter(Boolean);
+  }
+
+  const descriptor = {
+    contractVersion: "agentique.reviewDescriptor.v1",
+    descriptorKind: "role-plugin-pack",
+    packId: safeText(candidate.packId),
+    title: safeText(candidate.title),
+    summary: safeText(candidate.summary),
+    role: safeText(candidate.role),
+    includedSkills: [...(candidate.includedSkills ?? [])]
+      .sort((left, right) => left.skillId.localeCompare(right.skillId))
+      .map((skill) => ({
+        skillId: safeText(skill.skillId),
+        title: safeText(skill.title),
+        sourcePath: safeText(skill.sourcePath),
+        connectorRequired: skill.connectorRequired === true,
+        outputKinds: sortedStrings(skill.outputKinds)
+      })),
+    connectorRequirements: [...(candidate.connectorRequirements ?? [])]
+      .sort((left, right) => left.connectorId.localeCompare(right.connectorId))
+      .map((connector) => ({
+        connectorId: safeText(connector.connectorId),
+        requirementState: safeText(connector.requirementState),
+        credentialValuesIncluded: false,
+        activationIncluded: false,
+        publicSetupNote: safeText(connector.publicSetupNote)
+      })),
+    pluginManifests: [...(candidate.pluginManifests ?? [])]
+      .sort((left, right) => left.path.localeCompare(right.path))
+      .map((manifest) => ({
+        kind: safeText(manifest.kind),
+        path: safeText(manifest.path),
+        sanitized: manifest.sanitized === true,
+        noCredentialValues: manifest.noCredentialValues === true,
+        noRuntimeActivation: manifest.noRuntimeActivation === true
+      })),
+    safety: descriptorSafety()
+  };
+  const relPath = "package/descriptors/role-plugin-pack.json";
+  const filePath = path.join(descriptorRoot, "role-plugin-pack.json");
+  await writeJson(filePath, descriptor);
+  return [await summarizeExistingFile(filePath, relPath, "role-pack-descriptor")].filter(Boolean);
+}
+
+function createResourceManifestPreview(candidate, candidateType, descriptorFiles) {
+  const candidateId = candidateType === "skill-source-package" ? candidate.packageId : candidate.packId;
+  const resourceName = resourceNameForCandidate(candidate);
+  const sourceUrl = candidateType === "skill-source-package" ? candidate.source?.sourceUrl : candidate.gate?.sourceSnapshot?.sourceUrl;
+  return {
+    formatVersion: "1.0",
+    name: resourceName,
+    summary: safeText(candidate.summary, 240),
+    source: {
+      type: "git",
+      url: safeText(sourceUrl)
+    },
+    distribution: {
+      mode: "metadata_view",
+      notes: "Descriptor-only local dry-run output for review before any platform action."
+    },
+    package: {
+      formatVersion: "1.0",
+      files: descriptorFiles.map((file) => file.path).sort(),
+      hashes: Object.fromEntries(descriptorFiles.map((file) => [file.path, file.sha256]).sort(([left], [right]) => left.localeCompare(right)))
+    },
+    ...(candidateType === "skill-source-package" ? { skillSourcePackage: candidate } : { rolePluginPack: candidate }),
+    permissionRisk: {
+      readOnly: true,
+      destructive: false,
+      idempotent: true,
+      openWorld: false,
+      externalNetwork: false,
+      credentialed: false,
+      approvalRequired: false,
+      dataSensitivity: "public",
+      capabilities: ["read-public-content"],
+      reviewNotes: `Descriptor-only review preview for ${candidateId}; it does not execute or install content.`
+    }
+  };
+}
+
+function createStaticPackageDryRunManifest({
+  candidate,
+  candidateType,
+  sourceDigest,
+  descriptorFiles,
+  resourceManifestPreview,
+  uploadReportFile,
+  resourceManifestFile
+}) {
+  const candidateId = candidateType === "skill-source-package" ? candidate.packageId : candidate.packId;
+  const files = [uploadReportFile, ...descriptorFiles, resourceManifestFile].filter(Boolean).sort((left, right) => left.path.localeCompare(right.path));
+  return {
+    contractVersion: "agentique.staticPackageDryRun.v1",
+    candidate: {
+      candidateId: safeText(candidateId),
+      candidateType,
+      sourceDigest: safeText(sourceDigest),
+      disposition: safeText(candidate.gate?.disposition)
+    },
+    package: {
+      packageId: safeText(candidateId),
+      packageKind: safeText(candidate.packagePlan?.packageKind),
+      resourceName: resourceNameForCandidate(candidate),
+      deterministicDryRunOnly: true,
+      descriptorOnly: true
+    },
+    files,
+    sourceInventory: sourceInventoryForCandidate(candidate, candidateType),
+    resourceManifestPreview,
+    safety: dryRunSafety()
+  };
+}
+
+async function validateStaticPackageDryRunManifest({ manifest, schemasDir }) {
+  const findings = [];
+  try {
+    const ajv = await loadResourceUploadAjv(schemasDir);
+    const validate = ajv.getSchema(STATIC_PACKAGE_DRY_RUN_SCHEMA_ID);
+    if (!validate(manifest)) {
+      for (const error of validate.errors ?? []) {
+        findings.push(finding("static-package-schema", `${error.instancePath || "/"} ${error.message ?? "is invalid"}`, "static-package-dry-run"));
+      }
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "unknown schema load error";
+    findings.push(finding("schema-loader", message, "schema"));
+  }
+  return findings;
+}
+
+function sourceInventoryForCandidate(candidate, candidateType) {
+  if (candidateType === "skill-source-package") {
+    return (candidate.skills ?? [])
+      .flatMap((skill) =>
+        (skill.files ?? []).map((filePath) => ({
+          path: safeText(filePath),
+          role: "skill-source",
+          licenseExpression: safeText(skill.licenseExpression)
+        }))
+      )
+      .sort((left, right) => left.path.localeCompare(right.path));
+  }
+
+  const licenseExpression = safeText(candidate.gate?.licenseProvenance?.licenseExpression);
+  return [
+    ...(candidate.includedSkills ?? []).map((skill) => ({
+      path: safeText(skill.sourcePath),
+      role: "role-skill-source",
+      licenseExpression
+    })),
+    ...(candidate.pluginManifests ?? []).map((manifest) => ({
+      path: safeText(manifest.path),
+      role: "plugin-manifest",
+      licenseExpression
+    }))
+  ].sort((left, right) => left.path.localeCompare(right.path));
+}
+
+function descriptorSafety() {
+  return {
+    noExecution: true,
+    noInstall: true,
+    noNetwork: true,
+    noConnectorActivation: true,
+    localReviewOnly: true
+  };
+}
+
+function dryRunSafety() {
+  return {
+    noExecution: true,
+    noInstall: true,
+    noNetwork: true,
+    noArchiveCreation: true,
+    noArchiveExtraction: true,
+    noUserConfigMutation: true,
+    noConnectorActivation: true,
+    noUpload: true,
+    noPublication: true,
+    localReviewOnly: true
+  };
+}
+
+function sortedStrings(value) {
+  return Array.isArray(value) ? value.filter((entry) => typeof entry === "string").map((entry) => safeText(entry)).sort() : [];
+}
+
+function resourceNameForCandidate(candidate) {
+  const id = candidate?.packageId ?? candidate?.packId ?? "resource-package";
+  return String(id).split(":").at(-1).replace(/[^a-z0-9-]/g, "-").replace(/^-+|-+$/g, "").slice(0, 64) || "resource-package";
+}
+
 function inspectTextSafety(value, findings) {
   const strings = collectStrings(value);
   if (strings.some((text) => localPathPattern.test(text))) {
@@ -316,6 +706,33 @@ function createUploadCandidateReport({ ok, sourcePath, outputPath, candidate, ca
   };
 }
 
+function createPackageDryRunReport({ ok, decision, sourcePath, outputDir, candidate, uploadReport, manifest, files, findings }) {
+  const candidateType = candidateTypeFor(candidate);
+  return {
+    ok,
+    command: "package-dry-run",
+    decision,
+    source: labelForPath(sourcePath),
+    output: outputDir ? labelForPath(outputDir) : null,
+    candidateType,
+    summary: summarizePackageDryRunCandidate(candidate, uploadReport),
+    safety: dryRunSafety(),
+    manifest: manifest
+      ? {
+          contractVersion: manifest.contractVersion,
+          packageId: manifest.package.packageId,
+          packageKind: manifest.package.packageKind,
+          resourceName: manifest.package.resourceName,
+          descriptorOnly: manifest.package.descriptorOnly,
+          sourceInventoryCount: manifest.sourceInventory.length,
+          generatedFileCount: Array.isArray(files) ? files.length : 0
+        }
+      : null,
+    files: Array.isArray(files) ? files : [],
+    findings: uniqueFindings(findings)
+  };
+}
+
 function summarizeCandidate(candidate, sourceDigest) {
   if (!candidate || typeof candidate !== "object") {
     return {
@@ -335,6 +752,30 @@ function summarizeCandidate(candidate, sourceDigest) {
     disposition: safeText(candidate.gate?.disposition),
     licensePolicy: safeText(candidate.gate?.licenseProvenance?.policy),
     runtimeClass: safeText(candidate.gate?.runtimeRisk?.runtimeClass),
+    itemCount: isSkill
+      ? Array.isArray(candidate.skills)
+        ? candidate.skills.length
+        : 0
+      : Array.isArray(candidate.includedSkills)
+        ? candidate.includedSkills.length
+        : 0
+  };
+}
+
+function summarizePackageDryRunCandidate(candidate, uploadReport) {
+  if (!candidate || typeof candidate !== "object") {
+    return {
+      candidateId: uploadReport?.summary?.candidateId ?? null,
+      packageKind: null,
+      disposition: uploadReport?.summary?.disposition ?? null,
+      itemCount: 0
+    };
+  }
+  const isSkill = candidate.contractVersion === "agentique.skillSourcePackage.v1";
+  return {
+    candidateId: safeText(isSkill ? candidate.packageId : candidate.packId),
+    packageKind: safeText(candidate.packagePlan?.packageKind),
+    disposition: safeText(candidate.gate?.disposition),
     itemCount: isSkill
       ? Array.isArray(candidate.skills)
         ? candidate.skills.length
@@ -367,6 +808,21 @@ function validateExplicitOutputFile(outputPath) {
     findings.push(finding("output-file-required", "Output must be an explicit report file path.", "output"));
   }
   return { findings, resolvedOutputFile: findings.length === 0 ? resolvedOutputFile : null };
+}
+
+function validateExplicitOutputDir(outputDir) {
+  const findings = [];
+  if (!outputDir || typeof outputDir !== "string") {
+    findings.push(finding("output-required", "An explicit output directory is required.", "output"));
+    return { findings, resolvedOutputDir: null };
+  }
+
+  const resolvedOutputDir = path.resolve(outputDir);
+  const segments = resolvedOutputDir.split(/[\\/]+/).map((segment) => segment.toLowerCase());
+  if (segments.some((segment) => userConfigSegments.has(segment) || blockedOutputSegments.has(segment))) {
+    findings.push(finding("output-path-forbidden", "Output directory cannot target agent configuration, dependency, cache, env, or Git directories.", "output"));
+  }
+  return { findings, resolvedOutputDir: findings.length === 0 ? resolvedOutputDir : null };
 }
 
 function collectStrings(value, result = []) {
@@ -409,6 +865,20 @@ async function hashFile(filePath) {
 
 async function writeJson(filePath, value) {
   await fs.writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+}
+
+async function summarizeExistingFile(filePath, relPath, role) {
+  try {
+    const stat = await fs.stat(filePath);
+    return {
+      path: relPath,
+      role,
+      bytes: stat.size,
+      sha256: `sha256:${await hashFile(filePath)}`
+    };
+  } catch {
+    return null;
+  }
 }
 
 function labelForPath(filePath) {

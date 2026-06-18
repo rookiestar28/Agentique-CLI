@@ -6,7 +6,7 @@ import path from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
-import { validateUploadCandidate } from "../src/resource-upload.mjs";
+import { buildStaticPackageDryRun, validateUploadCandidate } from "../src/resource-upload.mjs";
 
 const repoDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const packageDir = path.resolve(repoDir, "..", "..");
@@ -173,6 +173,157 @@ test("upload candidate CLI emits stable json and requires explicit output", asyn
   );
 });
 
+test("package dry-run builder writes deterministic static skill review descriptors", async () => {
+  const firstDir = await fs.mkdtemp(path.join(os.tmpdir(), "agentique-package-dry-run-skill-a-"));
+  const secondDir = await fs.mkdtemp(path.join(os.tmpdir(), "agentique-package-dry-run-skill-b-"));
+  const candidatePath = path.join(firstDir, "candidate.json");
+  await writeJson(candidatePath, skillCandidate());
+
+  const first = await buildStaticPackageDryRun({ sourcePath: candidatePath, outputDir: firstDir, schemasDir });
+  const second = await buildStaticPackageDryRun({ sourcePath: candidatePath, outputDir: secondDir, schemasDir });
+  const manifestPath = path.join(firstDir, "package", "static-package-dry-run.json");
+  const descriptorPath = path.join(firstDir, "package", "descriptors", "test-driven-development.json");
+  const previewPath = path.join(firstDir, "package", "resource-manifest.preview.json");
+  const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
+
+  assert.equal(first.ok, true);
+  assert.equal(first.decision, "review_candidate");
+  assert.equal(first.manifest.packageId, "skill-source:engineering-skills");
+  assert.equal(manifest.package.descriptorOnly, true);
+  assert.equal(manifest.safety.noExecution, true);
+  assert.equal(manifest.safety.noUpload, true);
+  assert.equal(manifest.resourceManifestPreview.package.files.length, 1);
+  assert.equal(first.files.some((file) => file.path === "package/static-package-dry-run.json"), true);
+  assert.equal(JSON.stringify(first).includes(firstDir), false);
+  assert.equal(JSON.stringify(first).includes(secondDir), false);
+  assert.deepEqual(
+    first.files.map((file) => [file.path, file.sha256]).sort(),
+    second.files.map((file) => [file.path, file.sha256]).sort()
+  );
+  assert.equal(Boolean(await fileExists(descriptorPath)), true);
+  assert.equal(Boolean(await fileExists(previewPath)), true);
+});
+
+test("package dry-run builder writes role plugin descriptors without connector activation", async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agentique-package-dry-run-role-"));
+  const candidatePath = path.join(tempDir, "role-plugin-pack.json");
+  await writeJson(candidatePath, rolePluginCandidate());
+
+  const report = await buildStaticPackageDryRun({ sourcePath: candidatePath, outputDir: tempDir, schemasDir });
+  const descriptor = JSON.parse(await fs.readFile(path.join(tempDir, "package", "descriptors", "role-plugin-pack.json"), "utf8"));
+
+  assert.equal(report.ok, true);
+  assert.equal(report.candidateType, "role-plugin-pack");
+  assert.equal(report.summary.candidateId, "role-pack:data-analysis");
+  assert.equal(descriptor.safety.noConnectorActivation, true);
+  assert.equal(descriptor.connectorRequirements[0].credentialValuesIncluded, false);
+  assert.equal(descriptor.connectorRequirements[0].activationIncluded, false);
+});
+
+test("package dry-run builder fails closed before descriptors for deferred or blocked candidates", async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agentique-package-dry-run-blocked-"));
+  const runtimePath = path.join(tempDir, "runtime.json");
+  await writeJson(
+    runtimePath,
+    skillCandidate({
+      gate: gate({
+        disposition: "runtime-deferred",
+        sourceKind: "runtime-source",
+        staticScanState: "review-required",
+        runtimeClass: "memory-store",
+        requiresRuntime: true,
+        capabilities: ["memory-store"],
+        qualityStatus: "needs-review",
+        gateStatus: "deferred",
+        reasons: ["runtime-sandbox-required"]
+      }),
+      packagePlan: {
+        ...skillCandidate().packagePlan,
+        packageKind: "runtime-backed-source"
+      },
+      skills: [
+        {
+          ...skillCandidate().skills[0],
+          contentMode: "runtime-backed"
+        }
+      ]
+    })
+  );
+
+  const runtimeReport = await buildStaticPackageDryRun({
+    sourcePath: runtimePath,
+    outputDir: path.join(tempDir, "runtime-out"),
+    schemasDir
+  });
+
+  assert.equal(runtimeReport.ok, false);
+  assertFindings(runtimeReport, ["runtime-deferred", "scanner-review-required", "runtime-sandbox-required", "skill-content-mode-blocked"]);
+  assert.equal(await fileExists(path.join(tempDir, "runtime-out", "package", "descriptors", "test-driven-development.json")), false);
+
+  const blockedPath = path.join(tempDir, "noncommercial.json");
+  await writeJson(
+    blockedPath,
+    rolePluginCandidate({
+      gate: gate({
+        disposition: "reference-only-blocked",
+        policy: "noncommercial-blocked",
+        licenseExpression: "PolyForm-Noncommercial-1.0.0",
+        sourceKind: "reference-source",
+        runtimeClass: "repository-graph",
+        gateStatus: "blocked",
+        reasons: ["noncommercial-license", "reference-only"]
+      }),
+      packagePlan: {
+        ...rolePluginCandidate().packagePlan,
+        packageKind: "reference-only-record"
+      }
+    })
+  );
+  const blockedReport = await buildStaticPackageDryRun({
+    sourcePath: blockedPath,
+    outputDir: path.join(tempDir, "blocked-out"),
+    schemasDir
+  });
+
+  assert.equal(blockedReport.ok, false);
+  assertFindings(blockedReport, ["source-disposition-blocked", "license-noncommercial"]);
+  assert.equal(await fileExists(path.join(tempDir, "blocked-out", "package", "descriptors", "role-plugin-pack.json")), false);
+});
+
+test("package dry-run CLI emits stable json and requires explicit output directory", async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agentique-package-dry-run-cli-"));
+  const candidatePath = path.join(tempDir, "candidate.json");
+  const outputDir = path.join(tempDir, "out");
+  await writeJson(candidatePath, skillCandidate());
+
+  const { stdout } = await execFileAsync(process.execPath, [
+    cliPath,
+    "package-dry-run",
+    candidatePath,
+    "--output-dir",
+    outputDir,
+    "--schemas-dir",
+    schemasDir,
+    "--json"
+  ]);
+  const report = JSON.parse(stdout);
+
+  assert.equal(report.ok, true);
+  assert.equal(report.command, "package-dry-run");
+  assert.equal(report.output, "out");
+  assert.equal(report.files.some((file) => file.path === "package/static-package-dry-run.json"), true);
+  assert.equal(JSON.stringify(report).includes(tempDir), false);
+
+  await assert.rejects(
+    () => execFileAsync(process.execPath, [cliPath, "package-dry-run", candidatePath, "--schemas-dir", schemasDir, "--json"]),
+    (error) => {
+      assert.equal(error.code, 2);
+      assert.match(error.stderr, /requires --output-dir <dir>/);
+      return true;
+    }
+  );
+});
+
 function assertFindings(report, expectedCodes) {
   const codes = new Set(report.findings.map((finding) => finding.code));
   for (const code of expectedCodes) {
@@ -183,6 +334,15 @@ function assertFindings(report, expectedCodes) {
 async function writeJson(filePath, value) {
   await fs.mkdir(path.dirname(filePath), { recursive: true });
   await fs.writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+}
+
+async function fileExists(filePath) {
+  try {
+    await fs.access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function skillCandidate(overrides = {}) {
