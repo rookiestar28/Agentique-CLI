@@ -70,4 +70,4 @@ External intake output is advisory review evidence. Registry trust, parser/varia
 
 ## Status
 
-Published on npm as `@agentique.io/validator` at `0.2.1`. Local validation output is not platform approval and is not safety certification.
+Published on npm as `@agentique.io/validator` at `0.2.1`. Source-checkout portable profile and graph/block changes remain scoped No-Go for package publication claims until hosted release, package publication, registry readback, and clean registry install smoke exist for a future version containing those changes. Local validation output is not platform approval and is not safety certification.

@@ -1,6 +1,6 @@
 {
   "releaseBlocked": false,
-  "reason": "Source repository, approved package registry pages, action usage reference, badge/readback documentation, and agentique.io public links are approved for advertising after publication and smoke testing. The coordinated 0.2.1 patch package set is published and passed registry readback plus clean install smoke.",
+  "reason": "Source repository, approved package registry pages, action usage reference, badge/readback documentation, and agentique.io public links are approved for advertising after publication and smoke testing. The coordinated 0.2.1 patch package set is published and passed registry readback plus clean install smoke. Portable profile and graph/block source changes remain scoped No-Go for package publication and runtime claims until future hosted release and registry evidence exists.",
   "entries": [
     {
       "id": "public-repository",

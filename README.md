@@ -18,6 +18,7 @@ This repository is for creators and integrators before and after platform submis
 - Validate package shape, hashes, paths, bounded file reads, contract-bearing JSON files, and secret-like content locally.
 - Run the same validation in GitHub Actions with read-only permissions.
 - Use the review-only uploader CLI for upload plans, parser import dry-runs, variant dry-runs, agent-native dry-runs, creator checkpoint readiness, local draft output, local patch/delta output, and authenticated review-session checks before a platform-owned submission.
+- From a source checkout, review portable profile metadata and graph/block metadata with no-execution local preparation commands.
 - Consume public readback status, trust projection summaries, parser/variant summaries, agent-native summaries, and badge states for resources that are already published by `agentique.io`.
 - From a source checkout, exercise public catalog list/detail/download-metadata reads and direct artifact byte downloads when an approved public readback endpoint and resource id are available.
 - Use public tools to prepare, validate, and display resource status before entering the Agentique website upload flow.
@@ -33,7 +34,10 @@ Local tools in this repository do not publish, approve, certify, edit, delete, m
 - [Resource Package Workflow](#resource-package-workflow)
 - [Starters](#starters)
 - [Non-Static Lane Examples](#non-static-lane-examples)
+- [Parser Variant Examples](#parser-variant-examples)
+- [Agent-Native Examples](#agent-native-examples)
 - [Portable Profile Tools](#portable-profile-tools)
+- [Graph Block Tools](#graph-block-tools)
 - [Validator CLI](#validator-cli)
 - [Uploader CLI](#uploader-cli)
 - [GitHub Action](#github-action)
@@ -137,6 +141,18 @@ node packages/validator/src/cli.mjs portable-eval starters/portable-profile-revi
 
 Portable profile commands are local preparation tools. They generate descriptor-only files into explicit output directories, validate drift and parity, scan explicit deferred-risk markers, and run measurement-only sandbox preflights. They do not install adapters into agent clients, execute generated content, trust lifecycle hooks, call private APIs, approve resources, certify safety, or change user configuration.
 
+Review graph/block behavior locally:
+
+```bash
+node packages/validator/src/cli.mjs bundle-validate starters/graph-block-review/graph/graph-block-bundle.json --schemas-dir schemas --json
+node packages/validator/src/cli.mjs bundle-import-plan starters/graph-block-review/graph/graph-block-bundle.json --output-dir .tmp/graph-block-output --schemas-dir schemas --json
+node packages/validator/src/cli.mjs ledger-inspect starters/graph-block-review/ledger/execution-ledger.json --schemas-dir schemas --json
+node packages/validator/src/cli.mjs artifact-scan starters/graph-block-review/artifacts/workspace-artifact.json --schemas-dir schemas --json
+node packages/validator/src/cli.mjs api-drift starters/graph-block-review/api/api-drift.json --schemas-dir schemas --json
+```
+
+Graph/block commands are local preparation tools. They validate descriptor-only topology and metadata, generate explicit-output plans or diagnostic reports, and check artifact/API metadata without executing graph nodes, loading block runtimes, fetching artifact bytes, starting services, approving resources, certifying safety, or changing user configuration.
+
 Review uploader source behavior locally:
 
 ```bash
@@ -179,6 +195,8 @@ Catalog/download behavior is **Go** for the coordinated `0.2.1` package-release 
 
 Agent-native source changes are **Go** for the coordinated `0.2.1` package-release claim. Registry readback, clean install smoke, rollback evidence, and branch cleanup are recorded. The source changes are local preparation and public readback helper surfaces only.
 
+Portable profile and graph/block source changes are **No-Go** for package publication and runtime claims until hosted release evidence, package publication, registry readback, and clean registry install smoke exist for a future version containing those changes.
+
 Public-safe evidence currently recorded:
 
 - The public repository is available at [github.com/rookiestar28/Agentique](https://github.com/rookiestar28/Agentique).
@@ -207,9 +225,9 @@ Release evidence and approved public channels are tracked in [docs/release-evide
 | Path | Purpose |
 |---|---|
 | `docs/` | Public concepts, manifests, governance, support, release, URL, and go/no-go guidance. |
-| `schemas/` | JSON Schema contracts for public resource manifests, package manifests, distribution modes, and readback projections. |
-| `starters/` | Static example packages for agents, skills, workflows, tool listings, bundles, parser/variant metadata, and agent-native metadata. |
-| `packages/validator` | No-execution CLI and library for local package validation and upload preparation. |
+| `schemas/` | JSON Schema contracts for public resource manifests, package manifests, distribution modes, readback projections, portable profiles, and graph/block review metadata. |
+| `starters/` | Static example packages for agents, skills, workflows, tool listings, bundles, parser/variant metadata, agent-native metadata, portable profile metadata, and graph/block metadata. |
+| `packages/validator` | No-execution CLI and library for local package validation, portable profile checks, graph/block checks, and upload preparation. |
 | `packages/action` | Least-privilege GitHub Action wrapper around local validation. |
 | `packages/readback` | Read-only client and badge helpers for public resource status. |
 | `packages/uploader` | Published review-only uploader CLI package; platform publication decisions remain on `agentique.io`. |
@@ -284,7 +302,7 @@ Portable profile outputs are local preparation artifacts. They do not install fi
 
 The graph/block starter in [starters/graph-block-review](starters/graph-block-review) shows descriptor-only graph topology, block manifests, diagnostic ledger events, workspace artifact metadata, API drift metadata, and generated block fixture manifests.
 
-The validator package includes source-checkout commands for graph bundle validation, import/export plan generation, fixture manifest generation, diagnostic ledger inspection, replay diagnostics, workspace artifact metadata scanning, and API drift checks.
+The validator package includes source-checkout commands for graph bundle validation, import/export plan generation, fixture manifest generation, diagnostic ledger inspection, replay diagnostics, workspace artifact metadata scanning, and API drift checks. See [docs/graph-block-review.md](docs/graph-block-review.md).
 
 Graph/block outputs are local preparation artifacts. They do not install packages, execute graph nodes, load block runtimes, fetch artifact bytes, start services, mutate user agent configuration, approve resources, certify safety, provide runtime compatibility, or replace platform review.
 
@@ -510,6 +528,12 @@ Schemas are stored in `schemas/` and can be used by local tooling or external va
 - `context-bundle.schema.json`
 - `portable-profile.schema.json`
 - `generated-adapter-manifest.schema.json`
+- `graph-block-bundle.schema.json`
+- `block-manifest.schema.json`
+- `execution-ledger.schema.json`
+- `workspace-artifact.schema.json`
+- `api-drift.schema.json`
+- `generated-block-fixtures-manifest.schema.json`
 
 The validator CLI uses these schemas through `--schemas-dir schemas`.
 
@@ -518,6 +542,8 @@ The validator CLI uses these schemas through `--schemas-dir schemas`.
 `agent-native.schema.json` defines public preparation metadata and readback projection shapes for namespace coordinates, non-certifying provenance evidence labels, install-target guidance, public-boundary summaries, and resolver-result summaries. Creator manifests may declare preparation hints, but platform-managed latest pointers, resolver results, access availability, and download-backed install states remain public readback fields owned by `agentique.io`.
 
 `portable-profile.schema.json` and `generated-adapter-manifest.schema.json` define static portability metadata for canonical sources, profile modes, command surfaces, target host support, generated descriptor provenance, drift state, and no-execution safety flags. They are local preparation contracts and do not create runtime or publication claims.
+
+Graph/block schemas define descriptor-only graph topology, static block manifests, diagnostic-only ledgers, workspace artifact metadata, API drift metadata, and generated fixture manifests. They are local preparation contracts and do not execute graphs, load block runtimes, fetch artifact bytes, start services, approve resources, certify safety, or create package-publication claims.
 
 ## Contract Evaluation Fixtures
 
@@ -529,7 +555,7 @@ scripts/fixtures/surfacing-contract-matrix/matrix.json
 
 The matrix covers overlapping tools or resources, relevant candidates with declared risk, stale or off-topic resources, invalid outputs, and context budget overflow. It is baseline release evidence for companion docs, schemas, validators, and readback helpers. It is not a production review rule set and does not expose platform scoring, quarantine criteria, internal review procedures, moderation disposition logic, or operational playbooks.
 
-Parser/variant fixture coverage includes supported parsed/source-only metadata, blocked parser sources, unsupported and stale platform variant states, and public readback parserVariant projection. Agent-native fixture coverage includes creator metadata, stale or missing provenance labels, unsupported/guidance-only install states, public-boundary states, resolver ambiguity, and public readback agentNative projection. These fixtures are local contract evidence only.
+Parser/variant fixture coverage includes supported parsed/source-only metadata, blocked parser sources, unsupported and stale platform variant states, and public readback parserVariant projection. Agent-native fixture coverage includes creator metadata, stale or missing provenance labels, unsupported/guidance-only install states, public-boundary states, resolver ambiguity, and public readback agentNative projection. Portable profile and graph/block fixture coverage includes descriptor-only generated adapter metadata, static graph/block metadata, diagnostic ledgers, artifact metadata, API drift metadata, and generated fixture manifests. These fixtures are local contract evidence only.
 
 See [docs/contract-evaluation-fixtures.md](docs/contract-evaluation-fixtures.md).
 

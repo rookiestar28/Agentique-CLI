@@ -1,13 +1,13 @@
 # Companion Monorepo
 
-Agentique's public companion work is consolidated in this repository. The monorepo contains public-facing docs, schemas, starter kits, parser/variant metadata examples, agent-native preparation examples, local validation, workflow validation, readback helpers, review-only uploader tooling, and release smoke checks.
+Agentique's public companion work is consolidated in this repository. The monorepo contains public-facing docs, schemas, starter kits, parser/variant metadata examples, agent-native preparation examples, portable profile examples, graph/block review examples, local validation, workflow validation, readback helpers, review-only uploader tooling, and release smoke checks.
 
 ## Monorepo Areas
 
 - `docs/`: public usage, release, governance, support, and safety-boundary documentation.
-- `schemas/`: public JSON Schema contracts, parser/variant and agent-native contracts, public projections, and schema fixtures.
-- `starters/`: benign starter kits and canonical examples for public resource preparation, including source-only parser/variant metadata and agent-native local-review metadata.
-- `packages/validator`: static no-execution local checks for package validation, parser/variant metadata, agent-native metadata, and upload preparation.
+- `schemas/`: public JSON Schema contracts, parser/variant, agent-native, portable profile, graph/block, public projection, and schema fixture contracts.
+- `starters/`: benign starter kits and canonical examples for public resource preparation, including source-only parser/variant metadata, agent-native local-review metadata, portable profile metadata, and graph/block review metadata.
+- `packages/validator`: static no-execution local checks for package validation, parser/variant metadata, agent-native metadata, portable profile metadata, graph/block metadata, and upload preparation.
 - `packages/action`: least-privilege workflow wrapper around local validation.
 - `packages/readback`: read-only SDK, catalog/download metadata normalizers, direct byte-download utility, badge helpers, parser/variant and agent-native normalizers, and trust projection normalizers for public status and readback projections.
 - `packages/uploader`: published review-only uploader CLI with plan, import-plan, variant-plan, agent-native-plan, local draft, patch/delta preparation, catalog read, and direct-download commands. Authenticated review-session access and final resource publication remain platform-owned and account/token gated. Catalog/download and agent-native package closeout is complete for `0.2.1` after trusted publishing, registry readback, clean install smoke, rollback evidence, and branch cleanup.
@@ -30,4 +30,4 @@ Current approved advertised links include the public repository, approved npm pa
 
 Parser/variant package changes are Go for the coordinated package-release claim. Registry readback shows schemas, validator, action, readback, and uploader at version `0.2.1`. Owner approval to use the manual GitHub Actions publishing workflow is recorded, and registry install smoke passed.
 
-Catalog/download behavior already published in `0.2.0` remains limited to the evidence recorded for that release. Canonical catalog envelope fixes, ticket-backed byte-transfer fixes, and agent-native schema/validator/readback/uploader dry-run surfaces are published in the owner-approved coordinated `0.2.1` patch package set. Registry readback shows all five companion packages published at `0.2.1`. Owner-approved disposable byte-transfer evidence is recorded for a public catalog resource.
+Catalog/download behavior already published in `0.2.0` remains limited to the evidence recorded for that release. Canonical catalog envelope fixes, ticket-backed byte-transfer fixes, and agent-native schema/validator/readback/uploader dry-run surfaces are published in the owner-approved coordinated `0.2.1` patch package set. Registry readback shows all five companion packages published at `0.2.1`. Portable profile and graph/block source changes remain scoped No-Go for package publication and runtime claims until hosted release and registry evidence exists for a future package version containing those changes. Owner-approved disposable byte-transfer evidence is recorded for a public catalog resource.
