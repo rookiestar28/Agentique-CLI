@@ -210,6 +210,8 @@ Agent-native source changes are **Go** for the coordinated `0.2.2` package-relea
 
 Portable profile and graph/block source changes are **Go** for the coordinated `0.2.2` package-release claim. Registry readback and clean registry install smoke confirm the `0.2.2` package set. Runtime and direct-install claims remain disabled.
 
+Upload-preparation source changes are **Go** for source-checkout local review reports and **No-Go** for live upload, package-publication, runtime, approval, or safety claims until fresh hosted release evidence, registry readback, install smoke, and owner review are recorded for this exact source revision.
+
 Public-safe evidence currently recorded:
 
 - The public repository is available at [github.com/rookiestar28/Agentique](https://github.com/rookiestar28/Agentique).

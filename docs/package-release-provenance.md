@@ -14,7 +14,7 @@ Schemas, validator, action, readback, and uploader are public on npm. The upload
 
 The coordinated package release `0.2.2` is published for schemas, validator, action, readback, and uploader. Owner-approved disposable byte-transfer evidence is recorded for a public catalog resource; this evidence does not certify content safety or approve arbitrary resources.
 
-Portable profile and graph/block source changes in this checkout are published in the coordinated `0.2.2` package set. Upload-preparation source changes in the current checkout are local review surfaces until a future package publication records fresh hosted checks, registry readback, and install smoke for this exact revision. Runtime, direct-install, live upload, approval, and safety claims remain disabled.
+Portable profile and graph/block source changes in this checkout are published in the coordinated `0.2.2` package set. Upload-preparation source changes in the current checkout are local review surfaces until a future package publication records fresh hosted checks, registry readback, install smoke, and owner review for this exact revision. The release go/no-go file records those upload-preparation changes as scoped No-Go for live upload or publication claims. Runtime, direct-install, live upload, approval, and safety claims remain disabled.
 
 ## Patch Candidate
 

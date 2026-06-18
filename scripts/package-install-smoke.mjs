@@ -192,6 +192,40 @@ export function collectGraphBlockPackageSurfaceFailures({
   return failures;
 }
 
+export function collectUploadPreparationPackageSurfaceFailures({
+  uploadCandidateGateSchemaExists,
+  skillSourcePackageSchemaExists,
+  rolePluginPackSchemaExists,
+  sourceNoGoSchemaExists,
+  staticPackageDryRunSchemaExists,
+  validatorHelpText
+}) {
+  const failures = [];
+
+  if (!uploadCandidateGateSchemaExists) {
+    failures.push("schemas package missing upload-candidate-gate.schema.json");
+  }
+  if (!skillSourcePackageSchemaExists) {
+    failures.push("schemas package missing skill-source-package.schema.json");
+  }
+  if (!rolePluginPackSchemaExists) {
+    failures.push("schemas package missing role-plugin-pack.schema.json");
+  }
+  if (!sourceNoGoSchemaExists) {
+    failures.push("schemas package missing source-no-go.schema.json");
+  }
+  if (!staticPackageDryRunSchemaExists) {
+    failures.push("schemas package missing static-package-dry-run.schema.json");
+  }
+  for (const command of ["upload-candidate", "package-dry-run", "source-no-go"]) {
+    if (!new RegExp(`\\b${command}\\b`).test(validatorHelpText ?? "")) {
+      failures.push(`validator help missing ${command} command`);
+    }
+  }
+
+  return failures;
+}
+
 export function packPackage(packagePath, tarballDir, { npmCli = process.env.npm_execpath } = {}) {
   if (!npmCli) {
     throw new Error("npm_execpath is unavailable; run through npm run install:smoke");
@@ -351,6 +385,41 @@ export function runInstalledSmoke(consumerDir) {
     "schemas",
     "generated-block-fixtures-manifest.schema.json"
   );
+  const uploadCandidateGateSchemaFile = path.join(
+    consumerDir,
+    "node_modules",
+    "@agentique.io",
+    "schemas",
+    "upload-candidate-gate.schema.json"
+  );
+  const skillSourcePackageSchemaFile = path.join(
+    consumerDir,
+    "node_modules",
+    "@agentique.io",
+    "schemas",
+    "skill-source-package.schema.json"
+  );
+  const rolePluginPackSchemaFile = path.join(
+    consumerDir,
+    "node_modules",
+    "@agentique.io",
+    "schemas",
+    "role-plugin-pack.schema.json"
+  );
+  const sourceNoGoSchemaFile = path.join(
+    consumerDir,
+    "node_modules",
+    "@agentique.io",
+    "schemas",
+    "source-no-go.schema.json"
+  );
+  const staticPackageDryRunSchemaFile = path.join(
+    consumerDir,
+    "node_modules",
+    "@agentique.io",
+    "schemas",
+    "static-package-dry-run.schema.json"
+  );
   const actionModule = pathToFileURL(
     path.join(consumerDir, "node_modules", "@agentique.io", "action", "src", "action.mjs")
   ).href;
@@ -448,6 +517,18 @@ export function runInstalledSmoke(consumerDir) {
   });
   if (graphBlockFailures.length > 0) {
     throw new Error(`graph/block package smoke failed: ${graphBlockFailures.join("; ")}`);
+  }
+
+  const uploadPreparationFailures = collectUploadPreparationPackageSurfaceFailures({
+    uploadCandidateGateSchemaExists: existsSync(uploadCandidateGateSchemaFile),
+    skillSourcePackageSchemaExists: existsSync(skillSourcePackageSchemaFile),
+    rolePluginPackSchemaExists: existsSync(rolePluginPackSchemaFile),
+    sourceNoGoSchemaExists: existsSync(sourceNoGoSchemaFile),
+    staticPackageDryRunSchemaExists: existsSync(staticPackageDryRunSchemaFile),
+    validatorHelpText
+  });
+  if (uploadPreparationFailures.length > 0) {
+    throw new Error(`upload-preparation package smoke failed: ${uploadPreparationFailures.join("; ")}`);
   }
 }
 
