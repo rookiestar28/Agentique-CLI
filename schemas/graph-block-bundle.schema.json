@@ -1,0 +1,307 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.agentique.io/graph-block-bundle.schema.json",
+  "title": "Agentique Graph Block Bundle",
+  "$ref": "#/$defs/graphBlockBundle",
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 96,
+      "pattern": "^[a-z0-9][a-z0-9:_-]*$"
+    },
+    "boundedText": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{6,64}$"
+    },
+    "schemaRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "ref", "required"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["json-schema", "resource-schema", "block-schema"]
+        },
+        "ref": {
+          "$ref": "#/$defs/identifier"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "credentialReferenceOnly": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "noExecution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rawCommandsIncluded",
+        "packageManagersExecuted",
+        "lifecycleHooksExecuted",
+        "graphExecuted",
+        "blockRuntimeLoaded",
+        "networkRequestsPerformed",
+        "filesystemAccessGranted",
+        "schedulerStarted",
+        "webhookReceiverStarted"
+      ],
+      "properties": {
+        "rawCommandsIncluded": { "type": "boolean", "const": false },
+        "packageManagersExecuted": { "type": "boolean", "const": false },
+        "lifecycleHooksExecuted": { "type": "boolean", "const": false },
+        "graphExecuted": { "type": "boolean", "const": false },
+        "blockRuntimeLoaded": { "type": "boolean", "const": false },
+        "networkRequestsPerformed": { "type": "boolean", "const": false },
+        "filesystemAccessGranted": { "type": "boolean", "const": false },
+        "schedulerStarted": { "type": "boolean", "const": false },
+        "webhookReceiverStarted": { "type": "boolean", "const": false }
+      }
+    },
+    "noOverclaim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "localRunnerAvailable",
+        "schedulerAvailable",
+        "webhookExecutionAvailable",
+        "credentialValuesAvailable",
+        "automaticInstallAvailable",
+        "externalServiceCertified"
+      ],
+      "properties": {
+        "localRunnerAvailable": { "type": "boolean", "const": false },
+        "schedulerAvailable": { "type": "boolean", "const": false },
+        "webhookExecutionAvailable": { "type": "boolean", "const": false },
+        "credentialValuesAvailable": { "type": "boolean", "const": false },
+        "automaticInstallAvailable": { "type": "boolean", "const": false },
+        "externalServiceCertified": { "type": "boolean", "const": false }
+      }
+    },
+    "port": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "direction", "schemaRef", "credentialReferenceOnly"],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifier" },
+        "name": { "$ref": "#/$defs/boundedText" },
+        "direction": { "type": "string", "enum": ["input", "output"] },
+        "schemaRef": { "$ref": "#/$defs/schemaRef" },
+        "credentialReferenceOnly": { "type": "boolean" }
+      }
+    },
+    "block": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "manifestRef", "name", "version", "categories", "compatibility", "ports", "blockedReasons"],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifier" },
+        "manifestRef": { "$ref": "#/$defs/identifier" },
+        "name": { "$ref": "#/$defs/boundedText" },
+        "version": { "$ref": "#/$defs/version" },
+        "categories": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 12,
+          "items": { "$ref": "#/$defs/identifier" }
+        },
+        "compatibility": { "type": "string", "enum": ["compatible", "requires-review", "blocked", "unsupported"] },
+        "ports": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": { "$ref": "#/$defs/port" }
+        },
+        "subgraph": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["graphId", "exposedInputPorts", "exposedOutputPorts"],
+          "properties": {
+            "graphId": { "$ref": "#/$defs/identifier" },
+            "exposedInputPorts": { "type": "array", "items": { "$ref": "#/$defs/identifier" } },
+            "exposedOutputPorts": { "type": "array", "items": { "$ref": "#/$defs/identifier" } }
+          }
+        },
+        "blockedReasons": {
+          "type": "array",
+          "maxItems": 12,
+          "items": { "$ref": "#/$defs/boundedText" }
+        }
+      }
+    },
+    "credentialReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["referenceId", "provider", "scopeRefs", "valueIncluded"],
+      "properties": {
+        "referenceId": { "$ref": "#/$defs/identifier" },
+        "provider": { "$ref": "#/$defs/identifier" },
+        "scopeRefs": { "type": "array", "items": { "$ref": "#/$defs/identifier" } },
+        "valueIncluded": { "type": "boolean", "const": false }
+      }
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "blockId",
+        "label",
+        "inputPorts",
+        "outputPorts",
+        "inputSchemaRefs",
+        "outputSchemaRefs",
+        "credentialReferences",
+        "compatibility"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifier" },
+        "blockId": { "$ref": "#/$defs/identifier" },
+        "label": { "$ref": "#/$defs/boundedText" },
+        "inputPorts": { "type": "array", "items": { "$ref": "#/$defs/identifier" } },
+        "outputPorts": { "type": "array", "items": { "$ref": "#/$defs/identifier" } },
+        "inputSchemaRefs": { "type": "array", "items": { "$ref": "#/$defs/schemaRef" } },
+        "outputSchemaRefs": { "type": "array", "items": { "$ref": "#/$defs/schemaRef" } },
+        "credentialReferences": { "type": "array", "items": { "$ref": "#/$defs/credentialReference" } },
+        "compatibility": { "type": "string", "enum": ["compatible", "requires-review", "blocked", "unsupported"] }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "from", "to"],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifier" },
+        "from": { "$ref": "#/$defs/endpoint" },
+        "to": { "$ref": "#/$defs/endpoint" },
+        "label": { "$ref": "#/$defs/boundedText" }
+      }
+    },
+    "endpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodeId", "portId"],
+      "properties": {
+        "nodeId": { "$ref": "#/$defs/identifier" },
+        "portId": { "$ref": "#/$defs/identifier" }
+      }
+    },
+    "graph": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contractVersion",
+        "graphId",
+        "title",
+        "summary",
+        "version",
+        "compatibility",
+        "blocks",
+        "nodes",
+        "edges",
+        "publicProjection",
+        "noExecution",
+        "noOverclaim"
+      ],
+      "properties": {
+        "contractVersion": { "type": "string", "const": "agentique.agentGraphRuntime.v1" },
+        "graphId": { "$ref": "#/$defs/identifier" },
+        "title": { "$ref": "#/$defs/boundedText" },
+        "summary": { "$ref": "#/$defs/boundedText" },
+        "version": { "$ref": "#/$defs/version" },
+        "compatibility": { "type": "string", "enum": ["compatible", "requires-review", "blocked", "unsupported"] },
+        "blocks": { "type": "array", "minItems": 1, "maxItems": 100, "items": { "$ref": "#/$defs/block" } },
+        "nodes": { "type": "array", "minItems": 1, "maxItems": 200, "items": { "$ref": "#/$defs/node" } },
+        "edges": { "type": "array", "maxItems": 400, "items": { "$ref": "#/$defs/edge" } },
+        "publicProjection": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["allowedPublicFields", "forbiddenPublicFields", "noExecutionDisclosureRequired", "unsupportedRuntimeClaimsForbidden"],
+          "properties": {
+            "allowedPublicFields": { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 120 } },
+            "forbiddenPublicFields": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1, "maxLength": 120 } },
+            "noExecutionDisclosureRequired": { "type": "boolean", "const": true },
+            "unsupportedRuntimeClaimsForbidden": { "type": "boolean", "const": true }
+          }
+        },
+        "noExecution": { "$ref": "#/$defs/noExecution" },
+        "noOverclaim": { "$ref": "#/$defs/noOverclaim" }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["noExecution", "noInstall", "noNetwork", "noArchiveExtraction", "noUserConfigMutation", "noRuntimeClaim", "descriptorOnly"],
+      "properties": {
+        "noExecution": { "type": "boolean", "const": true },
+        "noInstall": { "type": "boolean", "const": true },
+        "noNetwork": { "type": "boolean", "const": true },
+        "noArchiveExtraction": { "type": "boolean", "const": true },
+        "noUserConfigMutation": { "type": "boolean", "const": true },
+        "noRuntimeClaim": { "type": "boolean", "const": true },
+        "descriptorOnly": { "type": "boolean", "const": true }
+      }
+    },
+    "graphBlockBundle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "bundleId", "graph", "blockManifests", "lifecycle", "diagnostics", "safety"],
+      "properties": {
+        "contractVersion": { "type": "string", "const": "agentique.graphBlockBundle.v1" },
+        "bundleId": { "$ref": "#/$defs/identifier" },
+        "graph": { "$ref": "#/$defs/graph" },
+        "blockManifests": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": { "$ref": "https://schemas.agentique.io/block-manifest.schema.json" }
+        },
+        "lifecycle": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["transferKind", "lifecycleState", "noAutomaticInstall", "noAutomaticExecution", "rollbackReadback"],
+          "properties": {
+            "transferKind": { "type": "string", "enum": ["import", "export"] },
+            "lifecycleState": { "type": "string", "enum": ["review", "pending-import", "imported", "stale", "conflict", "error"] },
+            "noAutomaticInstall": { "type": "boolean", "const": true },
+            "noAutomaticExecution": { "type": "boolean", "const": true },
+            "rollbackReadback": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["rollbackAvailable", "readbackStatus", "readbackDigest"],
+              "properties": {
+                "rollbackAvailable": { "type": "boolean" },
+                "readbackStatus": { "type": "string", "enum": ["verified", "missing", "failed"] },
+                "readbackDigest": { "$ref": "#/$defs/digest" }
+              }
+            }
+          }
+        },
+        "diagnostics": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["healthState", "readinessState", "redacted", "noPrivateTelemetryLeakage"],
+          "properties": {
+            "healthState": { "type": "string", "enum": ["healthy", "degraded", "unhealthy", "unknown"] },
+            "readinessState": { "type": "string", "enum": ["ready", "warming", "blocked", "unknown"] },
+            "redacted": { "type": "boolean", "const": true },
+            "noPrivateTelemetryLeakage": { "type": "boolean", "const": true }
+          }
+        },
+        "safety": { "$ref": "#/$defs/safety" }
+      }
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "contractVersion": "agentique.executionLedger.v1",
+  "ledgerId": "ledger:review-flow",
+  "graphId": "graph:review-flow",
+  "graphExecutionId": "execution:review-flow",
+  "state": "completed",
+  "replayDiagnosticOnly": true,
+  "noExecution": {
+    "rawCommandsIncluded": false,
+    "packageManagersExecuted": false,
+    "lifecycleHooksExecuted": false,
+    "graphExecuted": false,
+    "blockRuntimeLoaded": false,
+    "networkRequestsPerformed": false,
+    "filesystemAccessGranted": false,
+    "schedulerStarted": false,
+    "webhookReceiverStarted": false
+  },
+  "events": [
+    {
+      "eventId": "event:graph-started",
+      "executionId": "execution:review-flow",
+      "entityKind": "graph",
+      "entityId": "graph:review-flow",
+      "state": "started",
+      "timestamp": "2026-06-18T00:00:01.000Z",
+      "sequence": 1,
+      "message": "Execution metadata accepted.",
+      "publicSummary": "Graph metadata accepted.",
+      "artifactRefs": [],
+      "replaySafe": true
+    },
+    {
+      "eventId": "event:graph-completed",
+      "executionId": "execution:review-flow",
+      "parentEventId": "event:graph-started",
+      "entityKind": "graph",
+      "entityId": "graph:review-flow",
+      "state": "completed",
+      "timestamp": "2026-06-18T00:00:02.000Z",
+      "sequence": 2,
+      "message": "Execution metadata completed.",
+      "publicSummary": "Graph metadata completed.",
+      "artifactRefs": [],
+      "replaySafe": true
+    }
+  ]
+}

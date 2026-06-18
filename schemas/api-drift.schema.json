@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.agentique.io/api-drift.schema.json",
+  "title": "Agentique API Drift Manifest",
+  "$ref": "#/$defs/apiDrift",
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "statusCode": {
+      "type": "string",
+      "pattern": "^[1-5][0-9][0-9]$"
+    },
+    "apiDrift": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "snapshot", "generated", "mockCoverage", "forbiddenPrivateFields", "publicProjection", "safety"],
+      "properties": {
+        "contractVersion": { "type": "string", "const": "agentique.apiDrift.v1" },
+        "snapshot": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["openapiDigest", "schemaDigest", "publicSchemaVersions"],
+          "properties": {
+            "openapiDigest": { "$ref": "#/$defs/digest" },
+            "schemaDigest": { "$ref": "#/$defs/digest" },
+            "publicSchemaVersions": {
+              "type": "object",
+              "additionalProperties": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+$" }
+            }
+          }
+        },
+        "generated": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["openapiDigest", "schemaDigest", "clientDigest", "mockDigest", "generatorVersion", "generatedAt"],
+          "properties": {
+            "openapiDigest": { "$ref": "#/$defs/digest" },
+            "schemaDigest": { "$ref": "#/$defs/digest" },
+            "clientDigest": { "$ref": "#/$defs/digest" },
+            "mockDigest": { "$ref": "#/$defs/digest" },
+            "generatorVersion": { "type": "string", "minLength": 3, "maxLength": 80 },
+            "generatedAt": { "type": "string", "format": "date-time" }
+          }
+        },
+        "mockCoverage": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["requiredStatuses", "coveredStatuses"],
+          "properties": {
+            "requiredStatuses": { "type": "array", "minItems": 1, "maxItems": 40, "items": { "$ref": "#/$defs/statusCode" } },
+            "coveredStatuses": { "type": "array", "minItems": 1, "maxItems": 40, "items": { "$ref": "#/$defs/statusCode" } }
+          }
+        },
+        "forbiddenPrivateFields": { "type": "array", "maxItems": 0, "items": false },
+        "publicProjection": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["redacted", "internalPathsIncluded", "secretsIncluded"],
+          "properties": {
+            "redacted": { "type": "boolean", "const": true },
+            "internalPathsIncluded": { "type": "boolean", "const": false },
+            "secretsIncluded": { "type": "boolean", "const": false }
+          }
+        },
+        "safety": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["noServiceStart", "noCodeGeneration", "noNetwork"],
+          "properties": {
+            "noServiceStart": { "type": "boolean", "const": true },
+            "noCodeGeneration": { "type": "boolean", "const": true },
+            "noNetwork": { "type": "boolean", "const": true }
+          }
+        }
+      }
+    }
+  }
+}

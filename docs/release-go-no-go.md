@@ -82,6 +82,20 @@ Current blockers:
 
 These local surfaces do not install files into agent clients, execute generated content, trust lifecycle hooks, provide runtime compatibility, approve resources, certify safety, or replace platform review.
 
+## Graph Block Package Release Decision
+
+Current graph/block package release decision: **No-Go** for package publication and runtime claims.
+
+Graph/block schemas, bundle validation, import/export plan output, generated block fixture manifests, diagnostic ledger inspection, replay diagnostics, workspace artifact metadata scans, API drift checks, and starter metadata are source-checkout local preparation surfaces in this revision.
+
+Current blockers:
+
+- Hosted release evidence for these source changes is not recorded.
+- Package publication and registry readback for a version containing these source changes are not recorded.
+- Registry install smoke for a version containing these source changes is not recorded.
+
+These local surfaces do not install packages, execute graph nodes, load block runtimes, fetch artifact bytes, start services, mutate user agent configuration, provide runtime compatibility, approve resources, certify safety, or replace platform review.
+
 Current public-safe evidence is recorded in [release-evidence.md](release-evidence.md).
 
 ## Local Evidence
@@ -101,6 +115,7 @@ Current public-safe evidence is recorded in [release-evidence.md](release-eviden
 - Catalog/download package surface smoke passes from locally packed tarballs, live metadata checks passed for public list/detail/download-metadata endpoints, registry install smoke passed for `0.2.1` packages, and owner-approved disposable byte-transfer evidence is recorded.
 - Agent-native package surface smoke passes from locally packed tarballs, registry readback verifies the published `0.2.1` package set, and release go/no-go records the agent-native package release as Go while preserving resolver, direct-install, runtime, approval, and safety-claim No-Go boundaries.
 - Portable profile source tests, starter validation, and package-surface smoke are required before any future package publication claim; current scoped decision is No-Go until hosted release and registry evidence exist.
+- Graph/block source tests, starter validation, and package-surface smoke are required before any future package publication claim; current scoped decision is No-Go until hosted release and registry evidence exist.
 - Public `main` branch protection is enabled.
 - Final public URLs are approved.
 - `agentique.io` public links are approved.
