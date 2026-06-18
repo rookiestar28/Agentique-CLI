@@ -153,7 +153,7 @@ Portable profile evidence remains limited to local preparation and package-surfa
 Current source evidence:
 
 - `npm --prefix packages/validator test` passes 62 tests including portable schema, generator, drift, parity, debt ledger, and sandbox preflight coverage.
-- `npm run validate:starters` passes 9 starter packages including `portable-profile-review`.
+- `npm run validate:starters` passes 10 starter packages including `portable-profile-review`.
 - `npm run install:smoke` packs schemas and validator tarballs with lifecycle scripts disabled, then confirms `portable-profile.schema.json`, `generated-adapter-manifest.schema.json`, and validator portable profile help survive packaging.
 - `npm run release:go-no-go` records portable profile package publication as scoped No-Go until hosted release, package publication, registry readback, and registry install smoke evidence exist.
 

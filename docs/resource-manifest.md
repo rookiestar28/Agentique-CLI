@@ -139,6 +139,28 @@ Agent-native metadata is descriptive local preparation metadata. It does not res
 
 Blocked, unsupported, stale, private-denied, and resolver-ambiguous states should remain visible as states in fixtures and readback instead of being hidden. The uploader's agent-native plan command uses validator evidence for local review only.
 
+## Portable Profile Metadata
+
+Portable profile files describe how a canonical instruction source can be projected into descriptor-only target formats for local review:
+
+- `portable-profile.schema.json` records canonical source metadata, profile modes, command surfaces, target host support, blocked states, provenance, license metadata, and redaction boundaries.
+- `generated-adapter-manifest.schema.json` records generated descriptor provenance, source digest, target, generated file digests, invariant phrases, command mappings, and no-execution safety flags.
+
+Portable profile metadata is descriptive local preparation metadata. It does not install files into agent clients, execute generated content, trust lifecycle hooks, call private APIs, publish resources, approve submissions, certify safety, prove runtime compatibility, or mutate user configuration.
+
+## Graph Block Metadata
+
+Graph/block files describe descriptor-only graph review inputs:
+
+- `graph-block-bundle.schema.json` records static graph topology, block references, node/edge/port references, schema refs, manifests, and no-execution safety flags.
+- `block-manifest.schema.json` records static block metadata, input/output schema refs, fixture metadata, compatibility state, and lifecycle state.
+- `execution-ledger.schema.json` records diagnostic-only event state, terminal state, replay-safe flags, bounded redacted logs, and artifact refs.
+- `workspace-artifact.schema.json` records public artifact metadata such as virtual URI shape, MIME, size, checksum, scan state, retention state, and signed-download metadata.
+- `api-drift.schema.json` records approved snapshot digests, generated metadata digests, mock coverage, public projection posture, and no-service-start/no-code-generation flags.
+- `generated-block-fixtures-manifest.schema.json` records generated fixture files, digests, generator metadata, and no-execution safety flags.
+
+Graph/block metadata is descriptive local preparation metadata. It does not execute graph nodes, load block runtimes, fetch artifact bytes, start services, generate unreviewed code, publish resources, approve submissions, certify safety, prove runtime compatibility, or mutate user configuration.
+
 ## Scan Readback
 
 Scan, trust, parser, variant, and agent-native readback are public statuses that `agentique.io` exposes after platform processing. Public readback can include desired-state, scanner-policy, trust-panel, review-eligibility, report-action, version-history, parser evidence, compatibility, platform variant fields, namespace/latest-pointer labels, provenance labels, install guidance, public-boundary labels, and resolver-result summaries. Local validation is not platform approval. Local validation is not safety certification.

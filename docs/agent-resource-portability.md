@@ -49,3 +49,7 @@ The evaluation command returns No-Go unless the sandbox flag is explicit. Its re
 ## Starter
 
 See [../starters/portable-profile-review](../starters/portable-profile-review) for a static starter that validates a portable profile, generated adapter manifest, and descriptor-only target file.
+
+## Release Status
+
+Portable profile source changes are local preparation surfaces in this source revision. Package publication and runtime claims remain No-Go until hosted release evidence, package publication, registry readback, and clean registry install smoke exist for a future package version containing these changes.
