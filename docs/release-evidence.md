@@ -19,12 +19,12 @@ This file records public-safe release evidence for the companion repository. Do 
 |---|---:|---|
 | Dependency install | Pass | `npm ci --ignore-scripts` completed with 0 vulnerabilities. |
 | Secret scan | Pass | `python -m detect_secrets scan --all-files --exclude-files '(\\.git/|\\.git\\\\|node_modules/|node_modules\\\\)'` completed with empty `results`. |
-| Tests | Pass | `npm test` passed 214 tests across root scripts, validator, action, readback, and uploader. |
+| Tests | Pass | `npm test` passed 230 tests across root scripts, validator, action, readback, and uploader. |
 | Starter validation | Pass | `npm run validate:starters` passed 10 starter packages. |
 | Release allowlist and public-content check | Pass | `npm run release:check` passed. |
 | Workflow posture | Pass | `npm run workflow:check` passed. |
 | Package dry run | Pass | `npm run pack:dry-run` passed schemas, validator, action, readback, and uploader package checks for `0.2.2`. |
-| Parser/variant, agent-native, catalog/download, portable profile, and graph/block package surface smoke | Pass | `npm run install:smoke` installs locally packed `0.2.2` tarballs with lifecycle scripts disabled and checks parser-variant, agent-native, portable-profile, generated-adapter manifest, graph/block, block manifest, execution ledger, workspace artifact, API drift, and generated block fixture schemas; readback parser/variant and agent-native exports; readback catalog/download exports; uploader import/variant/agent-native help; uploader catalog help; uploader direct-download help; validator portable profile help; and validator graph/block help. |
+| Parser/variant, agent-native, catalog/download, portable profile, graph/block, and upload-preparation package surface smoke | Pass | `npm run install:smoke` installs locally packed `0.2.2` tarballs with lifecycle scripts disabled and checks parser-variant, agent-native, portable-profile, generated adapter manifest, graph/block, block manifest, execution ledger, workspace artifact, API drift, generated block fixture, upload-candidate gate, skill-source package, role/plugin pack, source No-Go, and static package dry-run schemas; readback parser/variant and agent-native exports; readback catalog/download exports; uploader import/variant/agent-native help; uploader catalog help; uploader direct-download help; validator portable profile help; validator graph/block help; and validator upload-candidate, package-dry-run, and source-no-go help. |
 | Registry readback | Pass | `AGENTIQUE_REGISTRY_MODE=published AGENTIQUE_PACKAGE_VERSION=0.2.2 npm run registry:readback` confirms all five companion packages are published at `0.2.2`. |
 | URL inventory check | Pass | `npm run urls:check` passed. |
 | Go/no-go check | Pass | `npm run release:go-no-go` passed with advertised package channels as Go for the coordinated `0.2.2` package set while runtime, direct-install, approval, and safety claims remain disabled. |
@@ -169,6 +169,19 @@ Current source evidence:
 - `npm run validate:starters` passes 10 starter packages including `graph-block-review`.
 - `npm run install:smoke` packs schemas and validator tarballs with lifecycle scripts disabled, then confirms graph/block schemas and validator graph/block help survive packaging.
 - `npm run release:go-no-go` records graph/block package publication as scoped Go for the coordinated `0.2.2` package release while runtime claims and direct-install claims remain disabled.
+
+## Upload-Preparation Source Evidence
+
+This source revision includes public upload-candidate, skill-source package, role/plugin pack, static package dry-run, and source No-Go schemas plus validator commands for local review reports.
+
+Upload-preparation evidence remains limited to source-checkout local review and package-surface smoke until a future package publication records fresh hosted checks, registry readback, and install smoke for this exact revision. It does not advertise live upload availability, source execution, connector activation, package installation, legal clearance, resource approval, safety certification, or platform review replacement.
+
+Current source evidence:
+
+- `npm --prefix packages/validator test` passes 84 tests including upload-candidate, package-dry-run, source-no-go, and fail-closed provenance coverage.
+- `npm run validate:starters` passes 10 starter packages.
+- `npm run install:smoke` packs schemas and validator tarballs with lifecycle scripts disabled, then confirms the upload-candidate, skill-source package, role/plugin pack, source No-Go, and static package dry-run schemas plus validator upload-candidate, package-dry-run, and source-no-go help survive packaging.
+- `npm run release:go-no-go` remains scoped to the current advertised channels and does not advertise live upload, approval, safety, or runtime claims for these source-checkout local review commands.
 
 ## All-Channel Public URL Mode
 

@@ -23,6 +23,7 @@ Use this checklist before any public release, package publish, repository link c
 - Public docs describe parser/variant and agent-native schemas, fixtures, starters, readback helpers, and uploader import/variant/agent-native dry-runs as static local preparation or read-only projection contracts only.
 - Public docs describe portable profile schemas, generated adapter manifests, descriptor-only generated output, drift/parity checks, deferred-risk ledgers, and sandbox-gated measurement preflights as static local preparation contracts only.
 - Public docs describe graph/block schemas, static graph/block starters, bundle validate/import/export plans, block fixture generation, diagnostic ledger inspection/replay diagnostics, artifact metadata scanning, and API drift checks as static local preparation contracts only.
+- Public docs describe upload-candidate, package-dry-run, source No-Go, license, and provenance gates as static local review reports or descriptor previews only.
 - Parser/variant docs do not claim platform download availability, hosted execution, runtime compatibility, publication, approval, or safety outcomes.
 - Portable profile docs do not claim agent-client installation, generated-content execution, lifecycle-hook trust, runtime compatibility, publication, approval, or safety outcomes.
 - Graph/block docs do not claim graph execution, block runtime loading, service startup, artifact byte-transfer availability, generated-code execution, runtime compatibility, publication, approval, or safety outcomes.
@@ -54,6 +55,8 @@ Parser/variant and agent-native helper output is local preparation output only. 
 Portable profile helper output is local preparation output only. It does not install files into agent clients, execute generated content, trust lifecycle hooks, prove runtime compatibility, approve resources, certify safety, or replace platform review.
 
 Graph/block helper output is local preparation output only. It does not execute graph nodes, load block runtimes, fetch artifact bytes, start services, generate unreviewed code, approve resources, certify safety, or replace platform review.
+
+Upload-candidate reports, package dry-runs, source No-Go reports, and provenance gates are local preparation output only. They do not run candidate projects, install dependencies, call external services, upload files, publish resources, approve resources, certify safety, provide legal clearance, or replace platform review.
 
 Generated draft and patch/delta helper output is local preparation output only. It remains unsubmitted until the user confirms the change and the platform validates it through the review flow.
 

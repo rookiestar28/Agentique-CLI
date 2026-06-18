@@ -2,7 +2,7 @@
 
 Static local upload-preparation validator for Agentique resource packages.
 
-`agentique-validator` is a no-execution checker that validates public manifests, package inventory, path safety, registry trust metadata, parser/variant metadata, portable profile metadata, graph/block metadata, and upload-prep metadata without uploading, publishing, installing dependencies, mutating user agent configuration, or executing submitted code.
+`agentique-validator` is a no-execution checker that validates public manifests, package inventory, path safety, registry trust metadata, parser/variant metadata, portable profile metadata, graph/block metadata, skill-source or role/plugin candidate metadata, and upload-prep metadata without uploading, publishing, installing dependencies, mutating user agent configuration, or executing submitted code.
 
 Local validation is not platform approval and is not safety certification. `agentique.io` remains the source of truth for upload, scan, review, moderation, publication, distribution state, and readback.
 
@@ -50,7 +50,8 @@ Exit codes:
 - Graph/block checks for descriptor-only graph topology, static block manifests, diagnostic-only ledgers, redacted workspace artifact metadata, API drift snapshots, generated fixture manifests, and no-execution boundaries.
 - Upload-candidate checks for skill source and role/plugin metadata, license/provenance, scanner summaries, runtime-risk disclosure, explicit report output, redaction, and no-overclaim boundaries.
 - Package dry-run checks generate descriptor-only review manifests for eligible static skill and role/plugin metadata, with explicit output directories and no install, execution, connector activation, upload, or publication behavior.
-- Source No-Go checks report runtime-backed, capability-backed, memory-backed, repository-graph, security-scanner, and reference-only sources as deferred or blocked without service start, browser access, external calls, source execution, upload, or publication behavior.
+- Source No-Go checks report runtime-backed, capability-backed, memory-backed, repository-graph, security-scanner, unknown-license, incomplete-provenance, noncommercial, and reference-only sources as deferred or blocked without service start, browser access, external calls, source execution, upload, or publication behavior.
+- Provenance gates fail closed when source inventory, per-file license evidence, attribution review, derived-source review, or source digests are incomplete.
 
 ## External Intake
 
@@ -72,8 +73,8 @@ The report includes:
 - Secret findings with redacted previews and stable fingerprints.
 - License inventory with missing, unknown, and conflict findings.
 
-External intake output is advisory review evidence. Registry trust, parser/variant, portable profile, and graph/block findings are local preparation findings. Neither output is publication approval, safety assurance, moderation status, runtime compatibility proof, platform download availability, or legal review.
+External intake output is advisory review evidence. Registry trust, parser/variant, portable profile, graph/block, upload-candidate, package-dry-run, and source-no-go findings are local preparation findings. Neither output is publication approval, safety assurance, moderation status, runtime compatibility proof, platform download availability, or legal review.
 
 ## Status
 
-Published on npm as `@agentique.io/validator`; registry readback currently records the published package set at `0.2.2`. Portable profile and graph/block local-preparation checks are included in the published package set. Runtime claims and direct-install claims remain disabled. Local validation output is not platform approval and is not safety certification.
+Published on npm as `@agentique.io/validator`; registry readback currently records the published package set at `0.2.2`. This source revision includes upload-candidate, package-dry-run, source-no-go, portable profile, and graph/block local-preparation checks. Runtime, direct-install, live upload, approval, and safety claims remain disabled. Local validation output is not platform approval and is not safety certification.

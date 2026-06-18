@@ -8,7 +8,7 @@ Upload, platform scan, moderation, publication, distribution state, and readback
 
 Newer starters include contract examples for surfacing hints, permission and risk declarations, output shape boundaries, and bounded context bundles. Public manifests may also include registry trust metadata for creator checkpoints, package context, generated draft metadata, explicit patch/delta metadata, or parser and variant metadata. These fields are descriptive package metadata so reviewers and integrators can see why a resource should be selected, what it can access, and how much context it is expected to consume.
 
-Parser, variant, agent-native, portable profile, and graph/block starters use static evidence and source-only or guidance-only metadata for local review. Blocked, unsupported, stale, private-denied, resolver-ambiguous, and runtime-overclaim cases stay in the schema fixture corpus so the validating starter set remains green.
+Parser, variant, agent-native, portable profile, and graph/block starters use static evidence and source-only or guidance-only metadata for local review. Skill-source and role/plugin upload-preparation examples stay in schema fixtures and validator reports rather than runnable starters because they describe source eligibility, provenance, and readiness decisions. Blocked, unsupported, stale, private-denied, resolver-ambiguous, provenance-incomplete, reference-only, and runtime-overclaim cases stay in the schema fixture corpus so the validating starter set remains green.
 
 ## Starters
 
@@ -26,6 +26,8 @@ Parser, variant, agent-native, portable profile, and graph/block starters use st
 Keep starter files static and inspectable. Do not add restricted auth material, personal data, local machine paths, generated archives, or executable payloads.
 
 Generated draft and patch/delta metadata should stay local and unsubmitted until a user confirms the change and the platform validates it through the review flow.
+
+Upload-candidate, package-dry-run, and source-no-go reports are local review artifacts. They can explain whether a source is ready for a descriptor preview, but they do not upload source code, run candidate projects, approve publication, certify safety, or replace platform review.
 
 ## Non-Static Lane Descriptors
 

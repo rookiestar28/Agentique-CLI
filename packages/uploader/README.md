@@ -48,4 +48,4 @@ agentique catalog download-metadata resource-id --api-url https://www.agentique.
 agentique download resource-id --output ./downloads/ --api-url https://www.agentique.io --json
 ```
 
-Use `@agentique.io/validator` for local no-execution package validation and `@agentique.io/readback` for read-only public status, catalog metadata, trust projection, and safe byte-download helpers.
+Use `@agentique.io/validator` for local no-execution package validation, upload-candidate reports, descriptor dry-runs, and source No-Go reports. Use `@agentique.io/readback` for read-only public status, catalog metadata, trust projection, and safe byte-download helpers.

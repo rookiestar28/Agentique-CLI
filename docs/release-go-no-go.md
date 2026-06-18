@@ -92,6 +92,20 @@ Current blockers:
 
 These local surfaces do not install packages, execute graph nodes, load block runtimes, fetch artifact bytes, start services, mutate user agent configuration, provide runtime compatibility, approve resources, certify safety, or replace platform review.
 
+## Upload-Preparation Source Decision
+
+Current upload-preparation source decision: **No-Go** for live upload, package publication, runtime enablement, approval, or safety claims; **Go** for source-checkout local review reports.
+
+Upload-candidate, package-dry-run, and source-no-go commands are present in this source revision for local review of skill-source and role/plugin candidates. They can report readiness, write descriptor previews for eligible static candidates, and explain why a source is deferred or blocked.
+
+Current blockers for live upload or publication claims:
+
+- Fresh hosted release evidence, registry readback, and install smoke for this exact source revision are not yet recorded.
+- Platform review, moderation, final publication, and public readback remain owned by `agentique.io`.
+- Runtime-backed, capability-backed, unknown-license, incomplete-provenance, noncommercial, and reference-only sources still require additional evidence or a different platform-owned review path.
+
+These local reports do not run candidate projects, install dependencies, call external services, activate connectors, upload files, publish resources, approve resources, certify safety, provide legal clearance, or replace platform review.
+
 Current public-safe evidence is recorded in [release-evidence.md](release-evidence.md).
 
 ## Local Evidence
@@ -112,6 +126,7 @@ Current public-safe evidence is recorded in [release-evidence.md](release-eviden
 - Agent-native package surface smoke passes from locally packed tarballs, registry readback verifies the published `0.2.2` package set, and release go/no-go records the agent-native package release as Go while preserving resolver, direct-install, runtime, approval, and safety-claim No-Go boundaries.
 - Portable profile source tests, starter validation, package-surface smoke, registry readback, and registry install smoke pass for the `0.2.2` package set.
 - Graph/block source tests, starter validation, package-surface smoke, registry readback, and registry install smoke pass for the `0.2.2` package set.
+- Upload-preparation source tests, schema package dry-runs, validator package dry-runs, and local package-surface smoke pass for source-checkout review commands while live upload, approval, safety, and runtime claims remain No-Go.
 - Public `main` branch protection is enabled.
 - Final public URLs are approved.
 - `agentique.io` public links are approved.
