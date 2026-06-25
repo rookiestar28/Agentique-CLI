@@ -1,0 +1,185 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.agentique.io/role-plugin-pack.schema.json",
+  "title": "Agentique Role And Plugin Pack Metadata",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractVersion",
+    "packId",
+    "title",
+    "summary",
+    "role",
+    "includedSkills",
+    "connectorRequirements",
+    "pluginManifests",
+    "packagePlan",
+    "gate"
+  ],
+  "properties": {
+    "contractVersion": {
+      "type": "string",
+      "const": "agentique.rolePluginPack.v1"
+    },
+    "packId": {
+      "type": "string",
+      "pattern": "^role-pack:[a-z0-9][a-z0-9-]{2,63}$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 80
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 20,
+      "maxLength": 240
+    },
+    "role": {
+      "type": "string",
+      "enum": ["data-analytics", "sales", "product-design", "financial-markets", "engineering", "general-productivity"]
+    },
+    "includedSkills": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 80,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["skillId", "title", "sourcePath", "connectorRequired"],
+        "properties": {
+          "skillId": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]{2,63}$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 80
+          },
+          "sourcePath": {
+            "type": "string",
+            "pattern": "^(?!/)(?![A-Za-z]:)(?!.*(?:^|/)\\.env(?:/|$))(?!.*(?:^|/)\\.git(?:/|$))(?!.*(?:^|/)node_modules(?:/|$))(?!.*\\.\\.)(?!.*[\\\\]).{1,160}$"
+          },
+          "connectorRequired": {
+            "type": "boolean"
+          },
+          "outputKinds": {
+            "type": "array",
+            "maxItems": 12,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": ["analysis", "summary", "draft", "presentation", "report", "review", "workflow-plan"]
+            }
+          }
+        }
+      }
+    },
+    "connectorRequirements": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["connectorId", "requirementState", "credentialValuesIncluded", "activationIncluded"],
+        "properties": {
+          "connectorId": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]{2,63}$"
+          },
+          "requirementState": {
+            "type": "string",
+            "enum": ["required", "optional", "placeholder-redacted", "unavailable"]
+          },
+          "credentialValuesIncluded": {
+            "type": "boolean",
+            "const": false
+          },
+          "activationIncluded": {
+            "type": "boolean",
+            "const": false
+          },
+          "publicSetupNote": {
+            "type": "string",
+            "minLength": 12,
+            "maxLength": 240
+          }
+        }
+      }
+    },
+    "pluginManifests": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "path", "sanitized", "noCredentialValues", "noRuntimeActivation"],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": ["codex-plugin", "app-manifest", "mcp-manifest", "connector-placeholder"]
+          },
+          "path": {
+            "type": "string",
+            "pattern": "^(?!/)(?![A-Za-z]:)(?!.*(?:^|/)\\.env(?:/|$))(?!.*(?:^|/)\\.git(?:/|$))(?!.*(?:^|/)node_modules(?:/|$))(?!.*\\.\\.)(?!.*[\\\\]).{1,160}$"
+          },
+          "sanitized": {
+            "type": "boolean",
+            "const": true
+          },
+          "noCredentialValues": {
+            "type": "boolean",
+            "const": true
+          },
+          "noRuntimeActivation": {
+            "type": "boolean",
+            "const": true
+          }
+        }
+      }
+    },
+    "packagePlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "packageKind",
+        "deterministicDryRunOnly",
+        "noAutomaticInstall",
+        "directInstallAvailable",
+        "connectorActivationIncluded",
+        "executesPackContent"
+      ],
+      "properties": {
+        "packageKind": {
+          "type": "string",
+          "enum": ["role-plugin-pack", "connector-metadata-pack", "reference-only-record"]
+        },
+        "deterministicDryRunOnly": {
+          "type": "boolean",
+          "const": true
+        },
+        "noAutomaticInstall": {
+          "type": "boolean",
+          "const": true
+        },
+        "directInstallAvailable": {
+          "type": "boolean",
+          "const": false
+        },
+        "connectorActivationIncluded": {
+          "type": "boolean",
+          "const": false
+        },
+        "executesPackContent": {
+          "type": "boolean",
+          "const": false
+        }
+      }
+    },
+    "gate": {
+      "$ref": "https://schemas.agentique.io/upload-candidate-gate.schema.json"
+    }
+  }
+}

@@ -13,6 +13,7 @@ import {
   collectGraphBlockPackageSurfaceFailures,
   collectParserVariantPackageSurfaceFailures,
   collectPortableProfilePackageSurfaceFailures,
+  collectUploadPreparationPackageSurfaceFailures,
   collectForbiddenPackedFiles,
   PACKAGE_PATHS,
   summarizePackResult
@@ -127,6 +128,23 @@ test("release go/no-go accepts scoped graph block publication no-go", () => {
   );
 });
 
+test("release go/no-go accepts scoped upload preparation source no-go", () => {
+  assert.deepEqual(
+    collectReleaseDecisionFailures({
+      decision: "go",
+      releaseBlocked: false,
+      localChecks: { tests: true },
+      externalEvidence: { ownerApproval: true },
+      uploadPreparationSourceDecision: {
+        decision: "no_go",
+        releaseBlocked: true,
+        blockers: ["upload-preparation source changes need hosted release and registry readback before publication claims"]
+      }
+    }),
+    []
+  );
+});
+
 test("release go/no-go rejects scoped parser variant no-go without blockers", () => {
   assert.deepEqual(
     collectReleaseDecisionFailures({
@@ -139,6 +157,21 @@ test("release go/no-go rejects scoped parser variant no-go without blockers", ()
       }
     }),
     ["parserVariantPublicationDecision: no_go decision requires explicit blockers"]
+  );
+});
+
+test("release go/no-go rejects scoped upload preparation no-go without blockers", () => {
+  assert.deepEqual(
+    collectReleaseDecisionFailures({
+      decision: "go",
+      releaseBlocked: false,
+      uploadPreparationSourceDecision: {
+        decision: "no_go",
+        releaseBlocked: true,
+        blockers: []
+      }
+    }),
+    ["uploadPreparationSourceDecision: no_go decision requires explicit blockers"]
   );
 });
 
@@ -332,6 +365,45 @@ test("install smoke covers graph block package surface", () => {
       "validator help missing ledger-replay-diagnostics command",
       "validator help missing artifact-scan command",
       "validator help missing api-drift command"
+    ]
+  );
+});
+
+test("install smoke covers upload preparation package surface", () => {
+  assert.deepEqual(
+    collectUploadPreparationPackageSurfaceFailures({
+      uploadCandidateGateSchemaExists: true,
+      skillSourcePackageSchemaExists: true,
+      rolePluginPackSchemaExists: true,
+      sourceNoGoSchemaExists: true,
+      staticPackageDryRunSchemaExists: true,
+      validatorHelpText: [
+        "agentique-validator upload-candidate",
+        "agentique-validator package-dry-run",
+        "agentique-validator source-no-go"
+      ].join("\n")
+    }),
+    []
+  );
+
+  assert.deepEqual(
+    collectUploadPreparationPackageSurfaceFailures({
+      uploadCandidateGateSchemaExists: false,
+      skillSourcePackageSchemaExists: false,
+      rolePluginPackSchemaExists: false,
+      sourceNoGoSchemaExists: false,
+      staticPackageDryRunSchemaExists: false,
+      validatorHelpText: "agentique-validator validate ./pkg"
+    }),
+    [
+      "schemas package missing upload-candidate-gate.schema.json",
+      "schemas package missing skill-source-package.schema.json",
+      "schemas package missing role-plugin-pack.schema.json",
+      "schemas package missing source-no-go.schema.json",
+      "schemas package missing static-package-dry-run.schema.json",
+      "validator help missing upload-candidate command",
+      "validator help missing package-dry-run command",
+      "validator help missing source-no-go command"
     ]
   );
 });

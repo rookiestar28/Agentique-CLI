@@ -316,17 +316,20 @@ test("catalog get and download-metadata return stable public readback envelopes"
         availability: "available",
         data: {
           resourceId: "agent-1",
-          method: "POST",
-          downloadEndpoint: "/api/agents/agent-1/download?ignored=true",
-          files: [
-            {
-              filename: "agent-1.zip",
-              mediaType: "application/zip",
-              sizeBytes: 42,
-              digest: `sha256:${"a".repeat(64)}`,
-              objectPath: "hidden"
+          sourcePackage: {
+            platformId: "source-package",
+            artifactKind: "source-package",
+            status: "DOWNLOADABLE",
+            method: "POST",
+            downloadEndpoint: "/api/agents/agent-1/download?ignored=true",
+            file: {
+              fileName: "agent-1.zip",
+              contentType: "application/zip",
+              byteSize: 42,
+              checksumSha256: "a".repeat(64),
+              storageKey: "hidden"
             }
-          ]
+          }
         }
       });
     }
@@ -535,16 +538,19 @@ test("download supports public ticket flow without auth forwarding or signed-url
               availability: "available",
               data: {
                 resourceId: "agent-ticket",
-                method: "POST",
-                downloadEndpoint: "/api/agents/agent-ticket/download",
-                files: [
-                  {
-                    filename: "agent-ticket.txt",
-                    mediaType: "text/plain",
-                    sizeBytes: Buffer.byteLength(body),
-                    digest: `sha256:${digest}`
+                sourcePackage: {
+                  platformId: "source-package",
+                  artifactKind: "source-package",
+                  status: "DOWNLOADABLE",
+                  method: "POST",
+                  downloadEndpoint: "/api/agents/agent-ticket/download",
+                  file: {
+                    fileName: "agent-ticket.txt",
+                    contentType: "text/plain",
+                    byteSize: Buffer.byteLength(body),
+                    checksumSha256: digest
                   }
-                ]
+                }
               }
             });
           }
@@ -714,11 +720,29 @@ test("download fails closed for unsafe options and unavailable metadata before a
           calls += 1;
           assert.match(String(url), /\/download$/);
           return jsonResponse({
-            resourceId: "agent-1",
-            download: {
-              availability: "source-only",
-              url: "https://storage.agentique.example/files/agent-1.txt?sig=private",
-              filename: "agent-1.txt"
+            availability: "available",
+            data: {
+              resourceId: "agent-1",
+              downloadEndpoint: "/api/agents/agent-1/legacy-download",
+              files: [
+                {
+                  filename: "legacy-agent-1.txt",
+                  url: "https://storage.agentique.example/files/agent-1.txt?sig=private"
+                }
+              ],
+              sourcePackage: {
+                platformId: "source-package",
+                artifactKind: "source-package",
+                status: "METADATA_ONLY",
+                method: "POST",
+                file: {
+                  fileName: "agent-1.txt",
+                  contentType: "text/plain",
+                  byteSize: 8,
+                  checksumSha256: "b".repeat(64),
+                  storageKey: "hidden"
+                }
+              }
             }
           });
         }

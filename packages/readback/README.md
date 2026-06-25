@@ -6,7 +6,7 @@ This package helps integrators consume public Agentique resource status from `ag
 
 `agentique.io` remains the source of truth for upload, scan, review, moderation, publication, distribution state, and readback. This package does not publish, edit, delete, moderate, approve, certify, install, extract, open, or execute resources.
 
-Catalog and direct-download helpers are included in the published `0.2.2` package for canonical public catalog envelopes, ticket-backed byte transfer, and agent-native readback projection helpers. The helpers remain read-only or explicit-output only. Owner-approved disposable byte-transfer evidence is recorded for a public catalog resource, but this evidence does not certify content safety, approve arbitrary resources, or guarantee every public resource is downloadable.
+Catalog and direct-download helpers are included in the published `0.2.2` package for canonical public catalog envelopes, ticket-backed byte transfer, and agent-native readback projection helpers. The helpers remain read-only or explicit-output only. Download readiness is derived from canonical source-package metadata, not legacy top-level availability alone. Owner-approved disposable byte-transfer evidence is recorded for a public catalog resource, but this evidence does not certify content safety, approve arbitrary resources, or guarantee every public resource is downloadable.
 
 ## Install
 
@@ -67,13 +67,13 @@ Returned payloads are normalized with a defense-in-depth projection pass that re
 
 `normalizeTrustReadback()` projects public desired-state, scanner-policy, trust-panel, review-eligibility, report-action, and version-history fields into a stable readback summary when those fields are present.
 
-`normalizeResourceList()` projects public catalog list payloads into stable item and page-info fields. `normalizeDownloadMetadata()` projects public download metadata into availability, filename, media type, size, digest, and expiry fields while filtering private projection fields.
+`normalizeResourceList()` projects public catalog list payloads into stable item and page-info fields. `normalizeDownloadMetadata()` projects public download metadata into availability, filename, media type, size, digest, and expiry fields while filtering private projection fields. When `sourcePackage` metadata is present, it is authoritative: `DOWNLOADABLE` status, POST ticket endpoint, safe filename and content type, positive byte size, and SHA-256 digest are required before availability becomes `available`. Legacy top-level availability cannot make metadata-only or malformed canonical source-package rows downloadable. Placeholder, source-index, schema-only, review-only, review-guide, demo-only, or example-only public package labels normalize to unavailable.
 
 `normalizeParserVariantReadback()` projects public parser evidence and platform variant fields into a bounded summary when those fields are present. It reports digest presence instead of raw digests and keeps parser/variant state descriptive. Source-only variant metadata remains preparation evidence and is not treated as platform download readiness.
 
 `normalizeAgentNativeReadback()` projects public namespace, provenance, install guidance, public-boundary, resolver result, and checkpoint fields into a bounded summary when those fields are present. It reports digest presence instead of raw digests and keeps resolver output non-certifying.
 
-`downloadResourceArtifact()` can write available artifact bytes to an explicit output path. It enforces HTTPS outside loopback development, manual redirect handling, no-overwrite by default, safe filename/path checks, temp-file cleanup, size limits, and digest verification. It does not install, extract, open, execute, approve, certify, publish, host, or moderate downloaded content. Treat downloaded bytes as untrusted until separately reviewed.
+`downloadResourceArtifact()` can write available artifact bytes to an explicit output path only after normalized download metadata passes the same source-package gate. It enforces HTTPS outside loopback development, POST ticket handoff or safe direct URL handling, manual redirect handling, no-overwrite by default, safe filename/path checks, temp-file cleanup, size limits, and digest verification. It omits raw signed URLs and absolute local output paths from public result/error data. It does not install, extract, open, execute, approve, certify, publish, host, or moderate downloaded content. Treat downloaded bytes as untrusted until separately reviewed.
 
 ## Badge States
 

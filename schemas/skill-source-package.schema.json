@@ -1,0 +1,187 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.agentique.io/skill-source-package.schema.json",
+  "title": "Agentique Skill Source Package Metadata",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractVersion", "packageId", "title", "summary", "source", "skills", "packagePlan", "gate"],
+  "properties": {
+    "contractVersion": {
+      "type": "string",
+      "const": "agentique.skillSourcePackage.v1"
+    },
+    "packageId": {
+      "type": "string",
+      "pattern": "^skill-source:[a-z0-9][a-z0-9-]{2,63}$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 80
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 20,
+      "maxLength": 240
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceId", "sourceName", "sourceUrl", "snapshotDigest", "licenseExpression"],
+      "properties": {
+        "sourceId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{2,63}$"
+        },
+        "sourceName": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 80
+        },
+        "sourceUrl": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://"
+        },
+        "snapshotDigest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "licenseExpression": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 120
+        }
+      }
+    },
+    "skills": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 50,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["skillId", "title", "summary", "platform", "contentMode", "files", "licenseExpression"],
+        "properties": {
+          "skillId": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]{2,63}$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 80
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 240
+          },
+          "platform": {
+            "type": "string",
+            "enum": ["codex-skill", "claude-code-skill", "markdown-skill", "source-package"]
+          },
+          "contentMode": {
+            "type": "string",
+            "enum": ["static-instructions", "source-package", "runtime-backed", "reference-only"]
+          },
+          "files": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 20,
+            "items": {
+              "type": "string",
+              "pattern": "^(?!/)(?![A-Za-z]:)(?!.*(?:^|/)\\.env(?:/|$))(?!.*(?:^|/)\\.git(?:/|$))(?!.*(?:^|/)node_modules(?:/|$))(?!.*\\.\\.)(?!.*[\\\\]).{1,160}$"
+            }
+          },
+          "licenseExpression": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 120
+          },
+          "setupRequirements": {
+            "type": "array",
+            "maxItems": 12,
+            "items": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 120
+            }
+          },
+          "outputKinds": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 12,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": ["plan", "review", "summary", "checklist", "patch-guidance", "documentation", "translation"]
+            }
+          }
+        }
+      }
+    },
+    "packagePlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["packageKind", "deterministicDryRunOnly", "includesRuntimeCode", "installsDependencies", "executesCandidateCode"],
+      "properties": {
+        "packageKind": {
+          "type": "string",
+          "enum": ["static-skill-pack", "workflow-skill-pack", "runtime-backed-source", "reference-only-record"]
+        },
+        "deterministicDryRunOnly": {
+          "type": "boolean",
+          "const": true
+        },
+        "includesRuntimeCode": {
+          "type": "boolean",
+          "const": false
+        },
+        "installsDependencies": {
+          "type": "boolean",
+          "const": false
+        },
+        "executesCandidateCode": {
+          "type": "boolean",
+          "const": false
+        },
+        "outputManifestPath": {
+          "type": "string",
+          "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\.\\.)(?!.*[\\\\]).{1,160}$"
+        }
+      }
+    },
+    "gate": {
+      "$ref": "https://schemas.agentique.io/upload-candidate-gate.schema.json"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "packagePlan": {
+            "type": "object",
+            "properties": {
+              "packageKind": {
+                "const": "static-skill-pack"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "gate": {
+            "type": "object",
+            "properties": {
+              "disposition": {
+                "const": "static-review-candidate"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

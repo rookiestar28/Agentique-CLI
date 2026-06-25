@@ -1,0 +1,435 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.agentique.io/upload-candidate-gate.schema.json",
+  "title": "Agentique Upload Candidate Gate Metadata",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractVersion",
+    "disposition",
+    "sourceSnapshot",
+    "licenseProvenance",
+    "securityEvidenceSummary",
+    "runtimeRisk",
+    "qualityRubric",
+    "publicProjection",
+    "gateState"
+  ],
+  "properties": {
+    "contractVersion": {
+      "type": "string",
+      "const": "agentique.uploadCandidateGate.v1"
+    },
+    "disposition": {
+      "type": "string",
+      "enum": ["static-review-candidate", "runtime-deferred", "reference-only-blocked", "excluded"]
+    },
+    "sourceSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceId", "sourceKind", "sourceUrl", "snapshotDigest"],
+      "properties": {
+        "sourceId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{2,63}$"
+        },
+        "sourceKind": {
+          "type": "string",
+          "enum": ["skill-repository", "role-plugin-repository", "runtime-source", "reference-source"]
+        },
+        "sourceUrl": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://"
+        },
+        "snapshotDigest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "sourceVersion": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 80
+        }
+      }
+    },
+    "licenseProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "licenseExpression",
+        "policy",
+        "attributionRequired",
+        "perFileLicenseInventory",
+        "provenanceReviewed"
+      ],
+      "properties": {
+        "licenseExpression": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 120,
+          "pattern": "^(?!.*(?:Unknown|UNLICENSED|internal)).*$"
+        },
+        "policy": {
+          "type": "string",
+          "enum": ["allowed", "needs-review", "noncommercial-blocked", "unknown-blocked"]
+        },
+        "attributionRequired": {
+          "type": "boolean"
+        },
+        "perFileLicenseInventory": {
+          "type": "boolean"
+        },
+        "provenanceReviewed": {
+          "type": "boolean"
+        },
+        "derivedSourceNotices": {
+          "type": "array",
+          "maxItems": 12,
+          "items": {
+            "type": "string",
+            "minLength": 6,
+            "maxLength": 160
+          }
+        }
+      }
+    },
+    "securityEvidenceSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["staticScanState", "noSecretsDetected", "noInternalMarkers", "findingCategoryCounts"],
+      "properties": {
+        "staticScanState": {
+          "type": "string",
+          "enum": ["passed", "review-required", "blocked", "not-run"]
+        },
+        "noSecretsDetected": {
+          "type": "boolean",
+          "const": true
+        },
+        "noInternalMarkers": {
+          "type": "boolean",
+          "const": true
+        },
+        "findingCategoryCounts": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 999
+          },
+          "propertyNames": {
+            "enum": [
+              "prompt-injection",
+              "data-exfiltration",
+              "privilege-escalation",
+              "supply-chain",
+              "memory-privacy",
+              "connector-risk",
+              "package-lifecycle",
+              "external-network",
+              "local-filesystem",
+              "license-policy"
+            ]
+          },
+          "maxProperties": 10
+        },
+        "summaryDigest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        }
+      }
+    },
+    "runtimeRisk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runtimeClass", "requiresRuntime", "noExecution", "noRuntimeClaim", "capabilities"],
+      "properties": {
+        "runtimeClass": {
+          "type": "string",
+          "enum": [
+            "static-descriptor",
+            "connector-required",
+            "local-service",
+            "memory-store",
+            "internet-capability",
+            "repository-graph",
+            "security-scanner"
+          ]
+        },
+        "requiresRuntime": {
+          "type": "boolean"
+        },
+        "noExecution": {
+          "type": "boolean",
+          "const": true
+        },
+        "noRuntimeClaim": {
+          "type": "boolean",
+          "const": true
+        },
+        "sandboxRequired": {
+          "type": "boolean"
+        },
+        "capabilities": {
+          "type": "array",
+          "maxItems": 12,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "static-instructions",
+              "connector-metadata",
+              "mcp-metadata",
+              "external-network",
+              "browser-state",
+              "local-db",
+              "memory-store",
+              "repository-graph",
+              "package-lifecycle",
+              "filesystem-read",
+              "filesystem-write",
+              "shell-command"
+            ]
+          }
+        }
+      }
+    },
+    "qualityRubric": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "dimensions", "humanReviewRequired"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["review-candidate", "needs-review", "blocked"]
+        },
+        "dimensions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 12,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "state"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "enum": [
+                  "scope-specificity",
+                  "setup-clarity",
+                  "output-contract",
+                  "license-readiness",
+                  "runtime-boundary",
+                  "public-language",
+                  "attribution",
+                  "safety-review"
+                ]
+              },
+              "state": {
+                "type": "string",
+                "enum": ["passed", "needs-review", "blocked"]
+              }
+            }
+          }
+        },
+        "humanReviewRequired": {
+          "type": "boolean"
+        }
+      }
+    },
+    "publicProjection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "nonCertifying",
+        "noApprovalClaim",
+        "noRuntimeClaim",
+        "noPublicationClaim",
+        "redaction"
+      ],
+      "properties": {
+        "nonCertifying": {
+          "type": "boolean",
+          "const": true
+        },
+        "noApprovalClaim": {
+          "type": "boolean",
+          "const": true
+        },
+        "noRuntimeClaim": {
+          "type": "boolean",
+          "const": true
+        },
+        "noPublicationClaim": {
+          "type": "boolean",
+          "const": true
+        },
+        "redaction": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "secrets",
+            "privatePaths",
+            "internalPlanning",
+            "rawFindings",
+            "rawSource",
+            "scannerThresholds",
+            "credentialValues",
+            "signedUrls"
+          ],
+          "properties": {
+            "secrets": {
+              "type": "boolean",
+              "const": true
+            },
+            "privatePaths": {
+              "type": "boolean",
+              "const": true
+            },
+            "internalPlanning": {
+              "type": "boolean",
+              "const": true
+            },
+            "rawFindings": {
+              "type": "boolean",
+              "const": true
+            },
+            "rawSource": {
+              "type": "boolean",
+              "const": true
+            },
+            "scannerThresholds": {
+              "type": "boolean",
+              "const": true
+            },
+            "credentialValues": {
+              "type": "boolean",
+              "const": true
+            },
+            "signedUrls": {
+              "type": "boolean",
+              "const": true
+            }
+          }
+        }
+      }
+    },
+    "gateState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reasons"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["review-candidate", "deferred", "blocked", "excluded"]
+        },
+        "reasons": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 12,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "static-review-ready",
+              "license-needs-review",
+              "runtime-sandbox-required",
+              "connector-review-required",
+              "memory-privacy-review-required",
+              "noncommercial-license",
+              "unknown-license",
+              "derived-source-review-required",
+              "security-review-required",
+              "reference-only"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "disposition": {
+            "const": "static-review-candidate"
+          }
+        },
+        "required": ["disposition"]
+      },
+      "then": {
+        "properties": {
+          "runtimeRisk": {
+            "type": "object",
+            "properties": {
+              "requiresRuntime": {
+                "const": false
+              }
+            }
+          },
+          "gateState": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "const": "review-candidate"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "disposition": {
+            "const": "runtime-deferred"
+          }
+        },
+        "required": ["disposition"]
+      },
+      "then": {
+        "properties": {
+          "runtimeRisk": {
+            "type": "object",
+            "properties": {
+              "requiresRuntime": {
+                "const": true
+              }
+            }
+          },
+          "gateState": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "const": "deferred"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "disposition": {
+            "const": "reference-only-blocked"
+          }
+        },
+        "required": ["disposition"]
+      },
+      "then": {
+        "properties": {
+          "gateState": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "const": "blocked"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -14,7 +14,7 @@ Schemas, validator, action, readback, and uploader are public on npm. The upload
 
 The coordinated package release `0.2.2` is published for schemas, validator, action, readback, and uploader. Owner-approved disposable byte-transfer evidence is recorded for a public catalog resource; this evidence does not certify content safety or approve arbitrary resources.
 
-Portable profile and graph/block source changes in this checkout are published in the coordinated `0.2.2` package set. Runtime claims and direct-install claims remain disabled.
+Portable profile and graph/block source changes in this checkout are published in the coordinated `0.2.2` package set. Upload-preparation source changes in the current checkout are local review surfaces until a future package publication records fresh hosted checks, registry readback, install smoke, and owner review for this exact revision. The release go/no-go file records those upload-preparation changes as scoped No-Go for live upload or publication claims. Runtime, direct-install, live upload, approval, and safety claims remain disabled.
 
 ## Patch Candidate
 
@@ -31,7 +31,7 @@ Portable profile and graph/block source changes in this checkout are published i
 - Release manifest and public-content checks pass.
 - Release notes are reviewed for private data, local paths, unsupported claims, and package scope accuracy.
 - Final public repository and package URLs are approved.
-- Public release notes mention surfacing contracts, lane descriptors, uploader source status, local draft and patch/delta preparation, current catalog/download source status, agent-native local-review/readback-helper source status, portable profile local-preparation status, graph/block local-preparation status, and read-only helper support only as baseline companion metadata.
+- Public release notes mention surfacing contracts, lane descriptors, uploader source status, local draft and patch/delta preparation, current catalog/download source status, agent-native local-review/readback-helper source status, portable profile local-preparation status, graph/block local-preparation status, upload-preparation source status, and read-only helper support only as baseline companion metadata.
 
 ## Provenance Posture
 
@@ -50,7 +50,7 @@ npm run install:smoke
 
 The registry readback script records the current expected state from `docs/release-go-no-go.json`: schemas, validator, action, readback, and uploader are published at version `0.2.2`.
 
-Current uploader publication closeout is Go for npm package availability at `0.2.2` after owner approval, hosted CI evidence, registry publish/readback, and clean install smoke. The package remains review-only; local draft, patch/delta, agent-native-plan, portable profile, and graph/block output remain local preparation artifacts; bounded disposable byte-transfer evidence is recorded; and final resource publication stays on `agentique.io`.
+Current uploader publication closeout is Go for npm package availability at `0.2.2` after owner approval, hosted CI evidence, registry publish/readback, and clean install smoke. The package remains review-only; local draft, patch/delta, agent-native-plan, portable profile, graph/block, upload-candidate, package-dry-run, and source-no-go output remain local preparation artifacts; bounded disposable byte-transfer evidence is recorded; and final resource publication stays on `agentique.io`.
 
 Public package provenance must not include platform scoring, quarantine criteria, internal review procedures, moderation disposition logic, or operational playbooks.
 

@@ -1,6 +1,6 @@
 # Known Issues
 
-Last reviewed: 2026-06-13
+Last reviewed: 2026-06-18
 
 This document catalogues all known defects, edge cases, and potential risks
 identified through static analysis, code review, and test-suite evaluation of
@@ -30,7 +30,7 @@ root cause, severity assessment, and a recommended remediation path.
 | **Severity** | Medium |
 | **Module** | CI / CD |
 | **File** | `.github/workflows/publish-packages.yml`; `docs/package-release-provenance.md`; `scripts/lib/workflow-posture.mjs` |
-| **Status** | Resolved for the current `0.2.1` release — GitHub Actions Trusted Publishing succeeded; future publisher, workflow, package, or environment changes still require owner-side confirmation |
+| **Status** | Resolved for the current `0.2.2` release — GitHub Actions Trusted Publishing succeeded; future publisher, workflow, package, or environment changes still require owner-side confirmation |
 
 ### Description
 
@@ -40,7 +40,7 @@ The repository-side posture now requires a manual workflow, `contents: read`,
 `id-token: write`, no repository secret references, and explicit `--provenance`
 on every `npm publish` command.
 
-The coordinated `0.2.1` package release completed through GitHub Actions
+The coordinated `0.2.2` package release completed through GitHub Actions
 Trusted Publishing. The remaining risk is future drift: if the npm
 organization/package owner changes package ownership, workflow file paths,
 environments, or repository linkage, a later token-free trusted publish can
@@ -483,18 +483,18 @@ according to owner review.
 | **Severity** | Medium |
 | **Module** | `@agentique.io/uploader` — Release and Registry State |
 | **File** | `packages/uploader`; `docs/package-release-provenance.md`; `docs/public-url-inventory.json`; `docs/release-go-no-go.json` |
-| **Status** | Resolved — uploader `0.2.1` npm registry publication, registry readback, and install smoke are recorded |
+| **Status** | Resolved — uploader `0.2.2` npm registry publication, registry readback, and install smoke are recorded |
 
 ### Description
 
 The uploader package is implemented in source and included in local tests,
 package dry-run, workflow posture checks, and production dependency audit.
-npm registry readback reports `@agentique.io/uploader` as published at `0.2.1`,
-and registry install smoke passes for the full `0.2.1` package set.
+npm registry readback reports `@agentique.io/uploader` as published at `0.2.2`,
+and registry install smoke passes for the full `0.2.2` package set.
 
 The public URL inventory tracks the uploader package page as approved.
 Published package pages for schemas, validator, action, readback, and uploader
-remain approved advertised channels and now read back at `0.2.1`.
+remain approved advertised channels and now read back at `0.2.2`.
 
 ### Required Closeout
 
@@ -502,7 +502,7 @@ Closeout evidence recorded:
 
 1. The exact reviewed package version was published through the approved package
    publishing route.
-2. Registry readback verifies version and dist-tag state for `0.2.1`.
+2. Registry readback verifies version and dist-tag state for `0.2.2`.
 3. Clean install smoke passed without lifecycle scripts.
 4. CLI smoke proves help/version and review-only behavior through the registry
    install smoke.

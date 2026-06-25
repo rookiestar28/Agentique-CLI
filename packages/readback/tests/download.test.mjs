@@ -149,6 +149,77 @@ test("downloads ticket metadata through unauthenticated ticket POST and safe byt
   }
 });
 
+test("downloads canonical source-package metadata through public ticket flow", async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), "agentique-download-canonical-ticket-"));
+  try {
+    const body = "canonical artifact";
+    const digest = sha256(body);
+    const calls = [];
+
+    const result = await downloadResourceArtifact({
+      metadata: {
+        ok: true,
+        availability: "available",
+        data: {
+          resourceId: "agent-canonical",
+          sourcePackage: {
+            platformId: "source-package",
+            artifactKind: "source-package",
+            status: "DOWNLOADABLE",
+            method: "POST",
+            downloadEndpoint: "/api/agents/agent-canonical/download",
+            file: {
+              fileName: "agent-canonical.txt",
+              contentType: "text/plain",
+              byteSize: Buffer.byteLength(body),
+              checksumSha256: digest
+            }
+          }
+        }
+      },
+      baseUrl: "https://agentique.example",
+      outputPath: tempDir + path.sep,
+      fetchImpl: async (url, options = {}) => {
+        calls.push({ url: String(url), options });
+        if (String(url) === "https://agentique.example/api/agents/agent-canonical/download") {
+          assert.equal(options.method, "POST");
+          assert.equal(options.redirect, "manual");
+          assert.equal(headerValue(options.headers, "authorization"), null);
+          assert.equal(headerValue(options.headers, "cookie"), null);
+          return jsonResponse({
+            data: {
+              transfer: {
+                url: "https://storage.agentique.example/files/agent-canonical.txt?sig=private"
+              }
+            }
+          });
+        }
+
+        assert.equal(String(url), "https://storage.agentique.example/files/agent-canonical.txt?sig=private");
+        assert.equal(options.method, "GET");
+        assert.equal(options.redirect, "manual");
+        assert.equal(Object.hasOwn(options, "headers"), false);
+        return new Response(body, {
+          status: 200,
+          headers: {
+            "content-length": String(Buffer.byteLength(body))
+          }
+        });
+      }
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.resourceId, "agent-canonical");
+    assert.equal(result.filename, "agent-canonical.txt");
+    assert.equal(result.bytesWritten, Buffer.byteLength(body));
+    assert.deepEqual(result.digest, { algorithm: "sha256", value: digest });
+    assert.equal(await readFile(path.join(tempDir, "agent-canonical.txt"), "utf8"), body);
+    assert.equal(calls.length, 2);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
 test("ticket metadata fails closed before unsafe or unsupported ticket requests", async () => {
   const tempDir = await mkdtemp(path.join(os.tmpdir(), "agentique-download-ticket-fail-"));
   try {
@@ -333,6 +404,38 @@ test("rejects unsafe metadata before fetching", async () => {
         }
       }),
     (error) => error instanceof ReadbackError && error.code === "invalid-download-digest"
+  );
+
+  await assert.rejects(
+    () =>
+      downloadResourceArtifact({
+        metadata: {
+          ok: true,
+          availability: "available",
+          data: {
+            resourceId: "agent-metadata",
+            downloadEndpoint: "/api/agents/agent-metadata/legacy-download",
+            sourcePackage: {
+              platformId: "source-package",
+              artifactKind: "source-package",
+              status: "METADATA_ONLY",
+              method: "POST",
+              file: {
+                fileName: "agent-metadata.txt",
+                contentType: "text/plain",
+                byteSize: 5,
+                checksumSha256: sha256("never")
+              }
+            }
+          }
+        },
+        outputPath: "unused.txt",
+        fetchImpl: async () => {
+          fetched = true;
+          return new Response("never");
+        }
+      }),
+    (error) => error instanceof ReadbackError && error.code === "download-unavailable"
   );
 
   assert.equal(fetched, false);

@@ -19,8 +19,9 @@ This repository is for creators and integrators before and after platform submis
 - Run the same validation in GitHub Actions with read-only permissions.
 - Use the review-only uploader CLI for upload plans, parser import dry-runs, variant dry-runs, agent-native dry-runs, creator checkpoint readiness, local draft output, local patch/delta output, and authenticated review-session checks before a platform-owned submission.
 - From a source checkout, review portable profile metadata and graph/block metadata with no-execution local preparation commands.
+- From a source checkout, review skill-source and role/plugin candidates with explicit local reports before deciding whether they are ready for the website upload flow.
 - Consume public readback status, trust projection summaries, parser/variant summaries, agent-native summaries, and badge states for resources that are already published by `agentique.io`.
-- From a source checkout, exercise public catalog list/detail/download-metadata reads and direct artifact byte downloads when an approved public readback endpoint and resource id are available.
+- From a source checkout, exercise public catalog list/detail/download-metadata reads and direct artifact byte downloads when an approved public readback endpoint, resource id, and canonical downloadable source-package metadata are available.
 - Use public tools to prepare, validate, and display resource status before entering the Agentique website upload flow.
 
 Local tools in this repository do not publish, approve, certify, edit, delete, moderate, install, extract, open, or execute resources.
@@ -60,7 +61,7 @@ Published package pages currently include `@agentique.io/schemas`, `@agentique.i
 
 Parser/variant package surfaces were included in the coordinated npm package release `0.2.0` and are carried forward in the published `0.2.2` package set; the scoped release decision in [docs/release-go-no-go.md](docs/release-go-no-go.md) records hosted CI, package publication, registry readback, clean install smoke, and rollback/unpublish procedure evidence.
 
-Catalog/download CLI and SDK surfaces are included in the coordinated npm package releases. The `0.2.2` package set is published for canonical public catalog envelopes and ticket-backed byte transfer. Owner-approved disposable byte-transfer evidence is recorded for a public catalog resource; this is a bounded live transfer smoke, not a safety certification or platform approval of downloaded content.
+Catalog/download CLI and SDK surfaces are included in the coordinated npm package releases. The `0.2.2` package set is published for canonical public catalog envelopes and ticket-backed byte transfer. Download readiness is derived from route-ready source-package metadata, not legacy top-level availability alone. Owner-approved disposable byte-transfer evidence is recorded for a public catalog resource; this is a bounded live transfer smoke, not a safety certification or platform approval of downloaded content.
 
 Agent-native schema, validator, readback, badge, uploader dry-run, and starter changes are published in the `0.2.2` package set. These changes do not provide a public resolver, direct-install path, managed runtime access, or trust certification.
 
@@ -155,6 +156,16 @@ node packages/validator/src/cli.mjs api-drift starters/graph-block-review/api/ap
 
 Graph/block commands are local preparation tools. They validate descriptor-only topology and metadata, generate explicit-output plans or diagnostic reports, and check artifact/API metadata without executing graph nodes, loading block runtimes, fetching artifact bytes, starting services, approving resources, certifying safety, or changing user configuration.
 
+Review skill-source or role/plugin candidates locally:
+
+```bash
+node packages/validator/src/cli.mjs upload-candidate <candidate.json> --output .tmp/upload-candidate-report.json --schemas-dir schemas --json
+node packages/validator/src/cli.mjs package-dry-run <candidate.json> --output-dir .tmp/static-package-preview --schemas-dir schemas --json
+node packages/validator/src/cli.mjs source-no-go <candidate.json> --output .tmp/source-no-go-report.json --schemas-dir schemas --json
+```
+
+These commands review metadata and write explicit local reports or descriptor previews. `upload-candidate` checks license, provenance, scanner summaries, source inventory, runtime-risk labels, redaction, and public wording. `package-dry-run` only writes descriptor previews for eligible static candidates. `source-no-go` explains why runtime-backed, capability-backed, unknown-license, incomplete-provenance, or reference-only sources are not ready for packaging. They do not install source projects, run package managers, execute code, call browsers or external services, activate connectors, upload files, publish resources, approve submissions, certify safety, or replace the website review flow.
+
 Review uploader source behavior locally:
 
 ```bash
@@ -171,7 +182,7 @@ node packages/uploader/src/cli.mjs catalog download-metadata <resource-id> --api
 node packages/uploader/src/cli.mjs download <resource-id> --output ./downloads/ --api-url https://www.agentique.io --json
 ```
 
-The uploader can create review-only upload sessions when configured with platform API access and checkpoint-ready package metadata. Import-plan, variant-plan, and agent-native-plan commands are local dry-runs from validator evidence. Local draft and patch commands are unsubmitted helper outputs. Catalog commands are read-only public readback requests. Direct download writes bytes only to the explicit output path and does not install, extract, open, or execute content. The uploader does not publish, approve, certify, host, or moderate resources.
+The uploader can create review-only upload sessions when configured with platform API access and checkpoint-ready package metadata. Import-plan, variant-plan, and agent-native-plan commands are local dry-runs from validator evidence. Local draft and patch commands are unsubmitted helper outputs. Catalog commands are read-only public readback requests. Direct download requires canonical source-package metadata with `DOWNLOADABLE` status, a POST ticket endpoint, safe file metadata, positive byte size, and SHA-256 digest before it writes bytes to the explicit output path. It does not install, extract, open, or execute content. The uploader does not publish, approve, certify, host, or moderate resources.
 
 Run release-readiness checks locally:
 
@@ -198,6 +209,8 @@ Catalog/download behavior is **Go** for the coordinated `0.2.2` package-release 
 Agent-native source changes are **Go** for the coordinated `0.2.2` package-release claim. Registry readback, clean install smoke, rollback evidence, and branch cleanup are recorded. The source changes are local preparation and public readback helper surfaces only.
 
 Portable profile and graph/block source changes are **Go** for the coordinated `0.2.2` package-release claim. Registry readback and clean registry install smoke confirm the `0.2.2` package set. Runtime and direct-install claims remain disabled.
+
+Upload-preparation source changes are **Go** for source-checkout local review reports and **No-Go** for live upload, package-publication, runtime, approval, or safety claims until fresh hosted release evidence, registry readback, install smoke, and owner review are recorded for this exact source revision.
 
 Public-safe evidence currently recorded:
 
@@ -228,9 +241,9 @@ Release evidence and approved public channels are tracked in [docs/release-evide
 | Path | Purpose |
 |---|---|
 | `docs/` | Public concepts, manifests, governance, support, release, URL, and go/no-go guidance. |
-| `schemas/` | JSON Schema contracts for public resource manifests, package manifests, distribution modes, readback projections, portable profiles, and graph/block review metadata. |
-| `starters/` | Static example packages for agents, skills, workflows, tool listings, bundles, parser/variant metadata, agent-native metadata, portable profile metadata, and graph/block metadata. |
-| `packages/validator` | No-execution CLI and library for local package validation, portable profile checks, graph/block checks, and upload preparation. |
+| `schemas/` | JSON Schema contracts for public resource manifests, package manifests, distribution modes, readback projections, portable profiles, graph/block review metadata, and skill-source or role/plugin upload-preparation metadata. |
+| `starters/` | Static example packages for agents, skills, workflows, tool listings, bundles, parser/variant metadata, agent-native metadata, portable profile metadata, graph/block metadata, and upload-preparation boundaries. |
+| `packages/validator` | No-execution CLI and library for local package validation, portable profile checks, graph/block checks, skill-source or role/plugin candidate checks, and upload preparation. |
 | `packages/action` | Least-privilege GitHub Action wrapper around local validation. |
 | `packages/readback` | Read-only client and badge helpers for public resource status. |
 | `packages/uploader` | Published review-only uploader CLI package; platform publication decisions remain on `agentique.io`. |
@@ -246,9 +259,10 @@ Release evidence and approved public channels are tracked in [docs/release-evide
 6. Add optional `parserVariant` metadata only for static parser evidence, sanitized graph summaries, compatibility reasons, and source-only platform variant descriptions.
 7. Add optional `agentNative` metadata only for namespace, non-certifying provenance labels, source-only or guidance-only install guidance, public boundary labels, and resolver intent.
 8. Validate locally with the validator CLI.
-9. Use uploader plan, import-plan, variant-plan, agent-native-plan, draft, or patch commands for local review-only preparation when useful.
-10. Submit through the platform-owned upload flow or an authenticated review-only uploader session when configured.
-11. Use readback helpers only after `agentique.io` exposes public resource status.
+9. Use upload-candidate, package-dry-run, or source-no-go reports when reviewing skill-source or role/plugin candidates from a source checkout.
+10. Use uploader plan, import-plan, variant-plan, agent-native-plan, draft, or patch commands for local review-only preparation when useful.
+11. Submit through the platform-owned upload flow or an authenticated review-only uploader session when configured.
+12. Use readback helpers only after `agentique.io` exposes public resource status.
 
 Package concepts are documented in [docs/resource-manifest.md](docs/resource-manifest.md).
 
@@ -354,6 +368,14 @@ node packages/validator/src/cli.mjs artifact-scan <workspace-artifact.json> --sc
 node packages/validator/src/cli.mjs api-drift <api-drift.json> --schemas-dir schemas --json
 ```
 
+Run skill-source or role/plugin upload-preparation commands:
+
+```bash
+node packages/validator/src/cli.mjs upload-candidate <candidate.json> --output <report.json> --schemas-dir schemas --json
+node packages/validator/src/cli.mjs package-dry-run <candidate.json> --output-dir <dir> --schemas-dir schemas --json
+node packages/validator/src/cli.mjs source-no-go <candidate.json> --output <report.json> --schemas-dir schemas --json
+```
+
 Exit codes:
 
 - `0` - package is locally valid.
@@ -370,10 +392,11 @@ Checks include:
 - Forbidden public-content path and term checks.
 - External intake preflight for raw candidate directories, including repository metadata gates, payload classification, execution-surface inventory, dangerous capability patterns, high-risk truncation blockers, redacted secret fingerprints, and license recognition plus intake-policy signals.
 - Graph/block checks for descriptor-only topology, static block manifests, diagnostic ledgers, redacted artifact metadata, API drift snapshots, generated fixture manifests, and no-execution boundaries.
+- Skill-source and role/plugin upload-preparation checks for source inventory, source digests, license and provenance status, per-file evidence, scanner summaries, runtime-risk labels, public wording, explicit output paths, and fail-closed review states for unknown, incomplete, noncommercial, or reference-only inputs.
 
 External intake findings are review inputs only. Passing this local preflight does not publish, approve, certify, moderate, or legally clear a candidate.
 
-License findings distinguish recognized signals from intake policy outcomes such as allowed, needs-review, blocked, and unknown. These labels are conservative local review signals, not legal advice or platform approval.
+License and provenance findings distinguish recognized signals from intake policy outcomes such as allowed, needs-review, blocked, and unknown. These labels are conservative local review signals, not legal advice or platform approval. Static package dry-runs are only descriptor previews; source No-Go reports are only readiness explanations for candidates that need more evidence or a different platform-owned review path.
 
 See [packages/validator/README.md](packages/validator/README.md).
 
@@ -409,7 +432,7 @@ node packages/uploader/src/cli.mjs download <resource-id> --output ./downloads/ 
 
 `upload plan` reports validator-backed package evidence and creator checkpoint readiness. From the source checkout, `upload import-plan` reports parser evidence, graph counts, and compatibility for local review, `upload variant-plan` reports source-only variant states and review reasons for local review, and `upload agent-native-plan` reports namespace, provenance, install-guidance, public-boundary, and resolver-intent labels for local review. `upload draft` and `upload patch` are local-only and unsubmitted. `upload submit` requires scoped token auth, an Agentique API origin, checkpoint-ready package metadata, and server completion verification.
 
-`catalog list`, `catalog get`, and `catalog download-metadata` are GET-only public readback commands and do not require uploader auth. `download` resolves public metadata, writes bytes to the explicit `--output` path, verifies SDK size/digest checks, and redacts signed URLs and absolute local paths from CLI output. It does not install, extract, open, execute, approve, certify, publish, host, or moderate content. Uploader package installation is available from npm at `0.2.2`. Owner-approved disposable byte-transfer evidence is recorded for a public catalog resource.
+`catalog list`, `catalog get`, and `catalog download-metadata` are GET-only public readback commands and do not require uploader auth. `download` resolves public metadata through the canonical source-package gate: `DOWNLOADABLE` status, POST ticket endpoint, safe filename and content type, positive byte size, and SHA-256 digest are required. Metadata-only, malformed, placeholder, source-index, schema-only, or review-only package metadata stays unavailable. Successful downloads write bytes to the explicit `--output` path, verify SDK size/digest checks, and redact signed URLs and absolute local paths from CLI output. The command does not install, extract, open, execute, approve, certify, publish, host, or moderate content. Uploader package installation is available from npm at `0.2.2`. Owner-approved disposable byte-transfer evidence is recorded for a public catalog resource.
 
 See [packages/uploader/README.md](packages/uploader/README.md), [docs/release-go-no-go.md](docs/release-go-no-go.md), and [docs/package-release-provenance.md](docs/package-release-provenance.md).
 
@@ -489,7 +512,7 @@ Read-only methods:
 - `getContextBundle(resourceId, params)`
 - `getSelectionReadback(resourceId, params)`
 
-`downloadResourceArtifact()` can write available artifact bytes to an explicit output path with HTTPS or loopback URL validation, manual redirect handling, no-overwrite default, temp-file cleanup, size checks, and digest checks. It does not install, extract, open, execute, approve, certify, publish, host, or moderate content. Callers should treat downloaded bytes as untrusted until they perform their own review.
+`normalizeDownloadMetadata()` treats canonical `sourcePackage` metadata as authoritative when present. `downloadResourceArtifact()` can write available artifact bytes to an explicit output path only after route-ready source-package metadata passes the `DOWNLOADABLE` status, POST ticket endpoint, safe filename/content type, positive byte size, and SHA-256 digest checks. Metadata-only, malformed, placeholder, source-index, schema-only, or review-only package metadata remains unavailable. The helper also enforces HTTPS or loopback URL validation, manual redirect handling, no-overwrite default, temp-file cleanup, size checks, and digest checks. It does not install, extract, open, execute, approve, certify, publish, host, or moderate content. Callers should treat downloaded bytes as untrusted until they perform their own review.
 
 Badge states:
 

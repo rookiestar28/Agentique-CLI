@@ -42,6 +42,8 @@ Current catalog/download package release decision: **Go** for the coordinated `0
 
 Existing catalog/download surfaces that were already published in the coordinated `0.2.0` package set remain advertised only within the evidence recorded for that release. The canonical-host live envelope compatibility and unauthenticated POST ticket byte-transfer path are published in the coordinated `0.2.2` package set.
 
+Current catalog/download source semantics treat canonical `sourcePackage` metadata as authoritative for download readiness. `DOWNLOADABLE` status, POST ticket endpoint, safe file metadata, positive byte size, and SHA-256 digest are required before byte transfer; metadata-only, malformed, placeholder, source-index, schema-only, or review-only package metadata remains unavailable.
+
 Reason: local source validation, installed-tarball smoke, live metadata checks, owner-approved disposable byte-transfer evidence, hosted Release Check, registry publication, registry readback, clean install smoke, rollback/unpublish evidence, and branch cleanup passed for the coordinated `0.2.2` package release.
 
 Current blockers:
@@ -92,6 +94,20 @@ Current blockers:
 
 These local surfaces do not install packages, execute graph nodes, load block runtimes, fetch artifact bytes, start services, mutate user agent configuration, provide runtime compatibility, approve resources, certify safety, or replace platform review.
 
+## Upload-Preparation Source Decision
+
+Current upload-preparation source decision: **No-Go** for live upload, package publication, runtime enablement, approval, or safety claims; **Go** for source-checkout local review reports. The scoped decision is recorded in `docs/release-go-no-go.json` and checked by `npm run release:go-no-go`.
+
+Upload-candidate, package-dry-run, and source-no-go commands are present in this source revision for local review of skill-source and role/plugin candidates. They can report readiness, write descriptor previews for eligible static candidates, and explain why a source is deferred or blocked.
+
+Current blockers for live upload or publication claims:
+
+- Fresh hosted release evidence, registry readback, and install smoke for this exact source revision are not yet recorded.
+- Platform review, moderation, final publication, and public readback remain owned by `agentique.io`.
+- Runtime-backed, capability-backed, unknown-license, incomplete-provenance, noncommercial, and reference-only sources still require additional evidence or a different platform-owned review path.
+
+These local reports do not run candidate projects, install dependencies, call external services, activate connectors, upload files, publish resources, approve resources, certify safety, provide legal clearance, or replace platform review.
+
 Current public-safe evidence is recorded in [release-evidence.md](release-evidence.md).
 
 ## Local Evidence
@@ -112,6 +128,7 @@ Current public-safe evidence is recorded in [release-evidence.md](release-eviden
 - Agent-native package surface smoke passes from locally packed tarballs, registry readback verifies the published `0.2.2` package set, and release go/no-go records the agent-native package release as Go while preserving resolver, direct-install, runtime, approval, and safety-claim No-Go boundaries.
 - Portable profile source tests, starter validation, package-surface smoke, registry readback, and registry install smoke pass for the `0.2.2` package set.
 - Graph/block source tests, starter validation, package-surface smoke, registry readback, and registry install smoke pass for the `0.2.2` package set.
+- Upload-preparation source tests, schema package dry-runs, validator package dry-runs, local package-surface smoke, and the scoped release go/no-go decision pass for source-checkout review commands while live upload, package publication, approval, safety, and runtime claims remain No-Go.
 - Public `main` branch protection is enabled.
 - Final public URLs are approved.
 - `agentique.io` public links are approved.

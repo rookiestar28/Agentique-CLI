@@ -1,0 +1,293 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.agentique.io/source-no-go.schema.json",
+  "title": "Agentique Source No-Go Report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractVersion",
+    "command",
+    "ok",
+    "decision",
+    "state",
+    "candidate",
+    "runtime",
+    "prerequisites",
+    "safety",
+    "uploadCandidateSummary"
+  ],
+  "properties": {
+    "contractVersion": {
+      "type": "string",
+      "const": "agentique.sourceNoGo.v1"
+    },
+    "command": {
+      "type": "string",
+      "const": "source-no-go"
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "decision": {
+      "type": "string",
+      "enum": ["runtime_deferred", "reference_blocked", "license_blocked", "security_review_required", "not_no_go"]
+    },
+    "state": {
+      "type": "string",
+      "enum": ["deferred", "blocked"]
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["candidateId", "candidateType", "sourceId", "sourceKind", "disposition"],
+      "properties": {
+        "candidateId": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 80
+        },
+        "candidateType": {
+          "type": "string",
+          "enum": ["skill-source-package", "role-plugin-pack", "unknown"]
+        },
+        "sourceId": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 80
+        },
+        "sourceKind": {
+          "type": "string",
+          "enum": ["skill-repository", "role-plugin-repository", "runtime-source", "reference-source", "unknown"]
+        },
+        "disposition": {
+          "type": "string",
+          "enum": ["runtime-deferred", "reference-only-blocked", "excluded", "static-review-candidate", "unknown"]
+        }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runtimeClass", "requiresRuntime", "capabilities"],
+      "properties": {
+        "runtimeClass": {
+          "type": "string",
+          "enum": [
+            "static-descriptor",
+            "connector-required",
+            "local-service",
+            "memory-store",
+            "internet-capability",
+            "repository-graph",
+            "security-scanner",
+            "unknown"
+          ]
+        },
+        "requiresRuntime": {
+          "type": "boolean"
+        },
+        "capabilities": {
+          "type": "array",
+          "maxItems": 12,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 80
+          }
+        }
+      }
+    },
+    "prerequisites": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "sandbox-runtime-review",
+          "security-tool-review",
+          "memory-privacy-review",
+          "internet-capability-review",
+          "browser-session-consent",
+          "repository-graph-review",
+          "license-review",
+          "noncommercial-license-review",
+          "unknown-license-review",
+          "source-provenance-review",
+          "scanner-review",
+          "connector-review"
+        ]
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "noExecution",
+        "noInstall",
+        "noNetwork",
+        "noBrowserAccess",
+        "noMemoryStoreRead",
+        "noRepositoryGraphRuntime",
+        "noConnectorActivation",
+        "noUpload",
+        "noPublication",
+        "reportOnly"
+      ],
+      "properties": {
+        "noExecution": {
+          "type": "boolean",
+          "const": true
+        },
+        "noInstall": {
+          "type": "boolean",
+          "const": true
+        },
+        "noNetwork": {
+          "type": "boolean",
+          "const": true
+        },
+        "noBrowserAccess": {
+          "type": "boolean",
+          "const": true
+        },
+        "noMemoryStoreRead": {
+          "type": "boolean",
+          "const": true
+        },
+        "noRepositoryGraphRuntime": {
+          "type": "boolean",
+          "const": true
+        },
+        "noConnectorActivation": {
+          "type": "boolean",
+          "const": true
+        },
+        "noUpload": {
+          "type": "boolean",
+          "const": true
+        },
+        "noPublication": {
+          "type": "boolean",
+          "const": true
+        },
+        "reportOnly": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "uploadCandidateSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ok", "findingCodes"],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        },
+        "findingCodes": {
+          "type": "array",
+          "maxItems": 30,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 80
+          }
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "maxItems": 30,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "message", "location"],
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 80
+          },
+          "message": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 240
+          },
+          "location": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          }
+        }
+      }
+    },
+    "files": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "role", "bytes", "sha256"],
+        "properties": {
+          "path": {
+            "type": "string",
+            "pattern": "^(?!/)(?![A-Za-z]:)(?!.*(?:^|/)\\.env(?:/|$))(?!.*(?:^|/)\\.git(?:/|$))(?!.*(?:^|/)\\.cache(?:/|$))(?!.*(?:^|/)node_modules(?:/|$))(?!.*\\.\\.)(?!.*[\\\\]).{1,160}$"
+          },
+          "role": {
+            "type": "string",
+            "const": "source-no-go-report"
+          },
+          "bytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1048576
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "decision": {
+            "const": "runtime_deferred"
+          }
+        },
+        "required": ["decision"]
+      },
+      "then": {
+        "properties": {
+          "state": {
+            "const": "deferred"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "decision": {
+            "enum": ["reference_blocked", "license_blocked", "security_review_required"]
+          }
+        },
+        "required": ["decision"]
+      },
+      "then": {
+        "properties": {
+          "state": {
+            "const": "blocked"
+          }
+        }
+      }
+    }
+  ]
+}

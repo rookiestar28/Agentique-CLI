@@ -6,7 +6,7 @@ This package exposes a review-only upload lane plus public readback/download hel
 
 The package remains review-only; authenticated review-session access and final resource publication stay on `agentique.io`.
 
-Catalog and direct-download commands are included in the published `0.2.2` package for canonical public catalog envelopes, ticket-backed byte transfer, agent-native dry-run planning, portable profile review surfaces, and graph/block review surfaces. The commands remain read-only, local-preparation, or explicit-output only. Owner-approved disposable byte-transfer evidence is recorded for a public catalog resource, but this evidence does not certify content safety, approve arbitrary resources, or guarantee every public resource is downloadable.
+Catalog and direct-download commands are included in the published `0.2.2` package for canonical public catalog envelopes, ticket-backed byte transfer, agent-native dry-run planning, portable profile review surfaces, and graph/block review surfaces. The commands remain read-only, local-preparation, or explicit-output only. Download readiness is derived from canonical source-package metadata, not legacy top-level availability alone. Owner-approved disposable byte-transfer evidence is recorded for a public catalog resource, but this evidence does not certify content safety, approve arbitrary resources, or guarantee every public resource is downloadable.
 
 Current boundary:
 
@@ -21,7 +21,9 @@ Current boundary:
 - Upload submit requires token auth, an Agentique API origin, checkpoint-ready package metadata, local validation, review-only session creation, evidence transfer, and server completion verification.
 - Upload status requires token auth and reads a review-only submission status.
 - Catalog list, get, and download-metadata commands are GET-only public readback requests and do not require uploader auth.
-- Direct download resolves public metadata, writes bytes only to the explicit output path, verifies SDK size/digest checks, and never installs, extracts, opens, or executes content.
+- Direct download resolves public metadata through the canonical source-package gate, requiring `DOWNLOADABLE` status, POST ticket endpoint, safe file metadata, positive byte size, and SHA-256 digest before writing bytes to the explicit output path.
+- Metadata-only, malformed, placeholder, source-index, schema-only, or review-only package metadata stays unavailable and is not byte-fetched.
+- Direct download verifies SDK size/digest checks and never installs, extracts, opens, or executes content.
 - Direct download success and error output omit raw signed URLs and absolute local output paths.
 - JSON output is available with `--json`.
 - Browser sessions, cookies, CSRF state, storage URLs, and bearer tokens are not printed in CLI output.
@@ -48,4 +50,4 @@ agentique catalog download-metadata resource-id --api-url https://www.agentique.
 agentique download resource-id --output ./downloads/ --api-url https://www.agentique.io --json
 ```
 
-Use `@agentique.io/validator` for local no-execution package validation and `@agentique.io/readback` for read-only public status, catalog metadata, trust projection, and safe byte-download helpers.
+Use `@agentique.io/validator` for local no-execution package validation, upload-candidate reports, descriptor dry-runs, and source No-Go reports. Use `@agentique.io/readback` for read-only public status, catalog metadata, trust projection, canonical source-package download normalization, and safe byte-download helpers.

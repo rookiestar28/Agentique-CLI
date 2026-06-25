@@ -15,6 +15,12 @@ import {
   normalizeResourceList,
   normalizeTrustReadback
 } from "../src/index.mjs";
+import {
+  makeDownloadMetadataFixture,
+  publicResourceUsabilityGoldenFixtureVersion,
+  publicResourceUsabilityInvalidFixtures,
+  publicResourceUsabilityValidFixture
+} from "./fixtures/public-resource-usability-golden-fixtures.mjs";
 
 function jsonResponse(payload, options = {}) {
   const headers = new Map(Object.entries(options.headers ?? {}));
@@ -763,19 +769,19 @@ describe("normalizer", () => {
         resourceId: "agent-ticket",
         selectedPlatform: "source-package",
         status: "published",
-        method: "POST",
-        downloadEndpoint: "/api/agents/agent-ticket/download?ignored=true",
-        files: [
-          {
-            filename: "agent-ticket.zip",
-            mediaType: "application/zip",
-            sizeBytes: 64,
-            digest: `sha256:${"b".repeat(64)}`,
-            privateUrl: "hidden"
-          }
-        ],
         sourcePackage: {
-          objectPath: "hidden"
+          platformId: "source-package",
+          artifactKind: "source-package",
+          status: "DOWNLOADABLE",
+          method: "POST",
+          downloadEndpoint: "/api/agents/agent-ticket/download?ignored=true",
+          file: {
+            fileName: "agent-ticket.zip",
+            contentType: "application/zip",
+            byteSize: 64,
+            checksumSha256: "b".repeat(64),
+            storageKey: "hidden"
+          }
         }
       }
     });
@@ -783,7 +789,7 @@ describe("normalizer", () => {
     assert.deepEqual(normalized, {
       resourceId: "agent-ticket",
       platformId: "source-package",
-      artifactKind: null,
+      artifactKind: "source-package",
       availability: "available",
       downloadKind: "ticket",
       method: "POST",
@@ -805,6 +811,116 @@ describe("normalizer", () => {
       expiresAt: null
     });
     assert.equal(JSON.stringify(normalized).includes("hidden"), false);
+  });
+
+  it("rejects canonical metadata-only source packages even when legacy fields suggest availability", () => {
+    const normalized = normalizeDownloadMetadata({
+      ok: true,
+      availability: "available",
+      data: {
+        resourceId: "agent-metadata",
+        selectedPlatform: "source-package",
+        status: "published",
+        method: "POST",
+        downloadEndpoint: "/api/agents/agent-metadata/legacy-download",
+        files: [
+          {
+            filename: "legacy-agent.zip",
+            mediaType: "application/zip",
+            sizeBytes: 64,
+            digest: `sha256:${"c".repeat(64)}`
+          }
+        ],
+        sourcePackage: {
+          platformId: "source-package",
+          artifactKind: "source-package",
+          status: "METADATA_ONLY",
+          method: "POST",
+          unavailableReason: "source_file_not_route_ready",
+          file: {
+            fileName: "agent-metadata.zip",
+            contentType: "application/zip",
+            byteSize: 64,
+            checksumSha256: "c".repeat(64)
+          }
+        }
+      }
+    });
+
+    assert.equal(normalized.availability, "unavailable");
+    assert.equal(normalized.downloadKind, "unavailable");
+    assert.equal(normalized.method, "POST");
+    assert.equal(normalized.ticketEndpoint, null);
+    assert.equal(normalized.filename, "agent-metadata.zip");
+    assert.equal(normalized.digest.value, "c".repeat(64));
+    assert.equal(normalized.unavailableReason, "source_file_not_route_ready");
+    assert.doesNotMatch(JSON.stringify(normalized), /legacy-agent|legacy-download/i);
+  });
+
+  it("rejects malformed canonical source packages before download handoff", () => {
+    const normalized = normalizeDownloadMetadata({
+      ok: true,
+      availability: "available",
+      data: {
+        resourceId: "agent-malformed",
+        sourcePackage: {
+          platformId: "source-package",
+          artifactKind: "source-package",
+          status: "DOWNLOADABLE",
+          method: "GET",
+          downloadEndpoint: "/api/agents/agent-malformed/download",
+          file: {
+            fileName: "../agent-malformed.zip",
+            contentType: "application/zip",
+            byteSize: 0,
+            checksumSha256: "not-a-checksum"
+          }
+        }
+      }
+    });
+
+    assert.equal(normalized.availability, "unavailable");
+    assert.equal(normalized.downloadKind, "unavailable");
+    assert.equal(normalized.ticketEndpoint, "/api/agents/agent-malformed/download");
+    assert.equal(normalized.filename, null);
+    assert.equal(normalized.sizeBytes, 0);
+    assert.equal(normalized.digest, null);
+    assert.equal(normalized.digestPresent, true);
+    assert.equal(normalized.digestValid, false);
+    assert.equal(normalized.unavailableReason, "source_file_name_invalid");
+  });
+
+  it("matches public resource usability golden fixtures", () => {
+    const fixtureText = JSON.stringify({
+      version: publicResourceUsabilityGoldenFixtureVersion,
+      valid: publicResourceUsabilityValidFixture,
+      invalid: publicResourceUsabilityInvalidFixtures
+    });
+    assert.equal(publicResourceUsabilityGoldenFixtureVersion, "agentique.publicResourceUsabilityGolden.v1");
+    assert.doesNotMatch(fixtureText, /storageKey|signedUrl|token|secret|[A-Za-z]:[\\/]/i);
+
+    const valid = normalizeDownloadMetadata(makeDownloadMetadataFixture(publicResourceUsabilityValidFixture.sourcePackage));
+    assert.equal(valid.resourceId, publicResourceUsabilityValidFixture.resourceId);
+    assert.equal(valid.availability, "available");
+    assert.equal(valid.downloadKind, "ticket");
+    assert.equal(valid.method, "POST");
+    assert.equal(valid.ticketEndpoint, "/api/public/v1/resources/agent.research.alpha/download");
+    assert.equal(valid.filename, publicResourceUsabilityValidFixture.expected.filename);
+    assert.equal(valid.mediaType, publicResourceUsabilityValidFixture.expected.mediaType);
+    assert.equal(valid.sizeBytes, publicResourceUsabilityValidFixture.expected.sizeBytes);
+    assert.deepEqual(valid.digest, {
+      algorithm: "sha256",
+      value: publicResourceUsabilityValidFixture.expected.digest
+    });
+    assert.equal(valid.unavailableReason, null);
+
+    for (const fixture of publicResourceUsabilityInvalidFixtures) {
+      const normalized = normalizeDownloadMetadata(makeDownloadMetadataFixture(fixture.sourcePackage));
+      assert.equal(normalized.availability, "unavailable", fixture.id);
+      assert.equal(normalized.downloadKind, "unavailable", fixture.id);
+      assert.equal(normalized.unavailableReason, fixture.expectedReason, fixture.id);
+      assert.doesNotMatch(JSON.stringify(normalized), /legacy-overclaim|legacy-download/i, fixture.id);
+    }
   });
 
   it("redacts signed direct URLs from metadata projection", () => {
