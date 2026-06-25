@@ -45,6 +45,8 @@ const PRIVATE_PROJECTION_KEYS = new Set([
 const PUBLIC_PRIVATE_TERM_KEYS = new Set(["privatemcpboundary", "credentialreferencekind", "credentialvaluespresent"]);
 
 const PROTOTYPE_POLLUTION_KEYS = new Set(["__proto__", "constructor", "prototype"]);
+const WINDOWS_RESERVED_NAMES = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\..*)?$/i;
+const UNSAFE_FILENAME_PATTERN = /[<>:"/\\|?*\x00-\x1f]/;
 
 export class ReadbackError extends Error {
   constructor(message, options = {}) {
@@ -264,60 +266,98 @@ export function normalizeDownloadMetadata(value) {
   }
 
   const body = unwrapDownloadMetadataEnvelope(normalized);
+  const canonicalSourcePackage = projectCanonicalSourcePackage(body.sourcePackage);
   const download = isRecord(body.download) ? body.download : {};
-  const file = firstRecord(download.file, body.file, download.files?.[0], body.files?.[0], body.sourcePackage);
-  const endpointValue = firstString(
-    download.ticketEndpoint,
-    body.ticketEndpoint,
-    download.downloadEndpoint,
-    body.downloadEndpoint,
-    download.endpoint,
-    body.endpoint,
-    download.path,
-    body.path
-  );
-  const rawUrl = firstString(download.url, body.downloadUrl, body.url, file?.url, file?.downloadUrl);
+  const file = canonicalSourcePackage?.file ?? firstRecord(download.file, body.file, download.files?.[0], body.files?.[0]);
+  const endpointValue = canonicalSourcePackage
+    ? canonicalSourcePackage.endpointValue
+    : firstString(
+      download.ticketEndpoint,
+      body.ticketEndpoint,
+      download.downloadEndpoint,
+      body.downloadEndpoint,
+      download.endpoint,
+      body.endpoint,
+      download.path,
+      body.path
+    );
+  const rawUrl = canonicalSourcePackage ? null : firstString(download.url, body.downloadUrl, body.url, file?.url, file?.downloadUrl);
   const projectedUrl = projectPublicDownloadUrl(rawUrl);
   const ticketEndpoint = projectTicketEndpoint(endpointValue);
-  const digestValue = firstString(download.digest, body.digest, file?.digest, download.sha256, body.sha256, file?.sha256);
+  const digestValue = canonicalSourcePackage
+    ? canonicalSourcePackage.digestValue
+    : firstString(download.digest, body.digest, file?.digest, download.sha256, body.sha256, file?.sha256);
   const digest = projectDigest(digestValue);
-  const availability = normalizePublicState(
-    download.availability ?? body.availability ?? file?.availability ?? body.status ?? normalized.availability ?? normalized.status ?? normalized.state
+  const method = normalizeDownloadMethod(
+    canonicalSourcePackage ? canonicalSourcePackage.methodValue : download.method ?? body.method ?? (ticketEndpoint ? "POST" : null)
   );
-  const method = normalizeDownloadMethod(download.method ?? body.method ?? (ticketEndpoint ? "POST" : null));
+  const canonicalUnavailableReason = canonicalSourcePackage
+    ? getCanonicalSourcePackageUnavailableReason(canonicalSourcePackage, { digest, method, ticketEndpoint })
+    : null;
+  const availability = canonicalSourcePackage
+    ? canonicalUnavailableReason
+      ? "unavailable"
+      : "available"
+    : normalizePublicState(
+        download.availability ?? body.availability ?? file?.availability ?? body.status ?? normalized.availability ?? normalized.status ?? normalized.state
+      );
   const downloadKind = projectDownloadKind({
     availability,
     url: projectedUrl,
     ticketEndpoint,
     method
   });
+  const digestValid = canonicalSourcePackage
+    ? typeof digestValue !== "string" || isSha256Digest(digest)
+    : typeof digestValue !== "string" || digest !== null;
 
   return Object.freeze({
     resourceId: stringOrNull(body.resourceId ?? body.id ?? normalized.resourceId ?? normalized.id),
-    platformId: stringOrNull(download.platformId ?? body.platformId ?? body.selectedPlatform ?? normalized.platformId),
-    artifactKind: stringOrNull(download.artifactKind ?? body.artifactKind ?? file?.artifactKind ?? normalized.artifactKind),
+    platformId: stringOrNull(
+      canonicalSourcePackage?.sourcePackage.platformId ??
+        download.platformId ??
+        body.platformId ??
+        body.selectedPlatform ??
+        normalized.platformId
+    ),
+    artifactKind: stringOrNull(
+      canonicalSourcePackage?.sourcePackage.artifactKind ?? download.artifactKind ?? body.artifactKind ?? file?.artifactKind ?? normalized.artifactKind
+    ),
     availability,
     downloadKind,
     method,
     ticketEndpoint,
     url: projectedUrl,
     urlRedacted: typeof rawUrl === "string" && projectedUrl === null,
-    filename: stringOrNull(download.filename ?? download.fileName ?? body.filename ?? body.fileName ?? file?.filename ?? file?.fileName),
-    mediaType: stringOrNull(
-      download.mediaType ?? body.mediaType ?? file?.mediaType ?? download.contentType ?? body.contentType ?? file?.contentType
-    ),
-    sizeBytes: numberOrNull(
-      download.sizeBytes ?? download.size ?? body.sizeBytes ?? body.size ?? file?.sizeBytes ?? file?.size ?? body.contentLength
-    ),
+    filename: canonicalSourcePackage
+      ? canonicalSourcePackage.filename
+      : stringOrNull(download.filename ?? download.fileName ?? body.filename ?? body.fileName ?? file?.filename ?? file?.fileName),
+    mediaType: canonicalSourcePackage
+      ? canonicalSourcePackage.mediaType
+      : stringOrNull(download.mediaType ?? body.mediaType ?? file?.mediaType ?? download.contentType ?? body.contentType ?? file?.contentType),
+    sizeBytes: canonicalSourcePackage
+      ? canonicalSourcePackage.sizeBytes
+      : numberOrNull(download.sizeBytes ?? download.size ?? body.sizeBytes ?? body.size ?? file?.sizeBytes ?? file?.size ?? body.contentLength),
     digest,
     digestPresent: typeof digestValue === "string",
-    digestValid: typeof digestValue !== "string" || digest !== null,
-    reasons: arrayOfStrings(download.reasons ?? body.reasons ?? file?.reasons ?? normalized.reasons),
+    digestValid,
+    reasons: arrayOfStrings(canonicalSourcePackage?.sourcePackage.reasons ?? download.reasons ?? body.reasons ?? file?.reasons ?? normalized.reasons),
     unavailableReason: stringOrNull(
-      firstString(download.unavailableReason, body.unavailableReason, file?.unavailableReason, download.reason, body.reason)
+      canonicalSourcePackage
+        ? firstString(
+            canonicalSourcePackage.sourcePackage.unavailableReason,
+            canonicalSourcePackage.file?.unavailableReason,
+            canonicalSourcePackage.sourcePackage.reason,
+            canonicalUnavailableReason
+          )
+        : firstString(download.unavailableReason, body.unavailableReason, file?.unavailableReason, download.reason, body.reason)
     ),
-    observedAt: stringOrNull(download.observedAt ?? body.observedAt ?? file?.observedAt ?? normalized.observedAt ?? normalized.updatedAt),
-    expiresAt: stringOrNull(download.expiresAt ?? body.expiresAt ?? file?.expiresAt ?? normalized.expiresAt)
+    observedAt: stringOrNull(
+      canonicalSourcePackage?.sourcePackage.observedAt ?? download.observedAt ?? body.observedAt ?? file?.observedAt ?? normalized.observedAt ?? normalized.updatedAt
+    ),
+    expiresAt: stringOrNull(
+      canonicalSourcePackage?.sourcePackage.expiresAt ?? download.expiresAt ?? body.expiresAt ?? file?.expiresAt ?? normalized.expiresAt
+    )
   });
 }
 
@@ -622,6 +662,93 @@ function unwrapDownloadMetadataEnvelope(normalized) {
   return normalized;
 }
 
+function projectCanonicalSourcePackage(value) {
+  if (!hasCanonicalSourcePackageFields(value)) {
+    return null;
+  }
+
+  const sourcePackage = value;
+  const file = isRecord(sourcePackage.file) ? sourcePackage.file : {};
+  const filenameValue = firstString(file.fileName, file.filename, sourcePackage.fileName, sourcePackage.filename);
+  const mediaTypeValue = firstString(file.contentType, file.mediaType, sourcePackage.contentType, sourcePackage.mediaType);
+
+  return {
+    sourcePackage,
+    file,
+    status: normalizeSourcePackageStatus(sourcePackage.status),
+    methodValue: firstString(sourcePackage.method, sourcePackage.downloadMethod),
+    endpointValue: firstString(
+      sourcePackage.downloadEndpoint,
+      sourcePackage.ticketEndpoint,
+      sourcePackage.endpoint,
+      sourcePackage.path
+    ),
+    filename: isSafePublicFilename(filenameValue) ? filenameValue : null,
+    filenameValue,
+    mediaType: isSafePublicContentType(mediaTypeValue) ? mediaTypeValue : null,
+    mediaTypeValue,
+    sizeBytes: numberOrNull(file.byteSize ?? file.sizeBytes ?? file.size ?? sourcePackage.byteSize ?? sourcePackage.sizeBytes ?? sourcePackage.size),
+    digestValue: firstString(
+      file.checksumSha256,
+      file.sha256,
+      file.digestSha256,
+      file.digest,
+      sourcePackage.checksumSha256,
+      sourcePackage.sha256,
+      sourcePackage.digestSha256,
+      sourcePackage.digest
+    )
+  };
+}
+
+function hasCanonicalSourcePackageFields(value) {
+  if (!isRecord(value)) {
+    return false;
+  }
+  return ["status", "file", "method", "downloadMethod", "downloadEndpoint", "ticketEndpoint", "artifactKind", "platformId"].some((key) =>
+    Object.hasOwn(value, key)
+  );
+}
+
+function normalizeSourcePackageStatus(value) {
+  if (typeof value !== "string") {
+    return "";
+  }
+  return value.trim().toUpperCase().replace(/[-\s]+/g, "_");
+}
+
+function getCanonicalSourcePackageUnavailableReason(sourcePackage, { digest, method, ticketEndpoint }) {
+  // Canonical source-package metadata is authoritative; legacy top-level availability must not make metadata-only rows downloadable.
+  if (sourcePackage.status !== "DOWNLOADABLE") {
+    return "source_package_not_downloadable";
+  }
+  if (!isSafePublicFilename(sourcePackage.filenameValue)) {
+    return "source_file_name_invalid";
+  }
+  if (hasUnsupportedSourcePackagePublicText(sourcePackage.filenameValue)) {
+    return "source_package_public_text_unsupported";
+  }
+  if (!isSafePublicContentType(sourcePackage.mediaTypeValue)) {
+    return "source_file_content_type_invalid";
+  }
+  if (!Number.isSafeInteger(sourcePackage.sizeBytes) || sourcePackage.sizeBytes <= 0) {
+    return "source_file_size_invalid";
+  }
+  if (typeof sourcePackage.digestValue !== "string") {
+    return "source_file_checksum_missing";
+  }
+  if (!isSha256Digest(digest)) {
+    return "source_file_checksum_invalid";
+  }
+  if (method !== "POST") {
+    return "download_method_unsupported";
+  }
+  if (!ticketEndpoint) {
+    return "download_endpoint_missing";
+  }
+  return null;
+}
+
 function firstRecord(...values) {
   return values.find(isRecord) ?? {};
 }
@@ -705,6 +832,35 @@ function isLoopbackHost(hostname) {
   return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
 }
 
+function isSafePublicFilename(value) {
+  return (
+    typeof value === "string" &&
+    value.trim() !== "" &&
+    value === value.trim() &&
+    value !== "." &&
+    value !== ".." &&
+    !value.includes("/") &&
+    !value.includes("\\") &&
+    !UNSAFE_FILENAME_PATTERN.test(value) &&
+    !WINDOWS_RESERVED_NAMES.test(value)
+  );
+}
+
+function isSafePublicContentType(value) {
+  return (
+    typeof value === "string" &&
+    /^[a-z0-9][a-z0-9!#$&^_.+-]*\/[a-z0-9][a-z0-9!#$&^_.+-]*(?:\s*;\s*[a-z0-9!#$&^_.+-]+=[^;\r\n]+)*$/i.test(
+      value.trim()
+    )
+  );
+}
+
+function hasUnsupportedSourcePackagePublicText(value) {
+  return /source[- ]?index|metadata[- ]?only|review[- ]?only|schema[- ]?only|review guide|fake demo|demo resource|placeholder|not a real|example only/i.test(
+    String(value ?? "")
+  );
+}
+
 function unwrapResourceCollection(normalized) {
   if (Array.isArray(normalized)) {
     return { items: normalized, pageInfo: null, observedAt: null, updatedAt: null };
@@ -779,6 +935,14 @@ function projectDigest(value) {
   }
 
   const trimmed = value.trim();
+  const rawSha256 = /^[A-Fa-f0-9]{64}$/.exec(trimmed);
+  if (rawSha256) {
+    return Object.freeze({
+      algorithm: "sha256",
+      value: trimmed.toLowerCase()
+    });
+  }
+
   const prefixed = /^([A-Za-z0-9-]+):([A-Fa-f0-9]+)$/.exec(trimmed);
   if (!prefixed) {
     return null;
@@ -788,6 +952,15 @@ function projectDigest(value) {
     algorithm: prefixed[1].toLowerCase(),
     value: prefixed[2].toLowerCase()
   });
+}
+
+function isSha256Digest(value) {
+  return (
+    isRecord(value) &&
+    (value.algorithm === "sha256" || value.algorithm === "sha-256") &&
+    typeof value.value === "string" &&
+    /^[a-f0-9]{64}$/.test(value.value)
+  );
 }
 
 function firstString(...values) {

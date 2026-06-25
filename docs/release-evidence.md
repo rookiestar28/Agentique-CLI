@@ -274,8 +274,12 @@ Catalog/download behavior already published in `0.2.0` remains limited to that
 release evidence. The canonical-host live envelope, POST-ticket byte-transfer
 compatibility, and agent-native local-review/readback-helper surfaces in this
 source revision are published in the coordinated `0.2.2` package set.
-Portable profile and graph/block source changes are also published in `0.2.2`;
-runtime claims and direct-install claims remain disabled.
+Current download readiness requires authoritative canonical `sourcePackage`
+metadata, including `DOWNLOADABLE` status, POST ticket endpoint, safe file
+metadata, positive byte size, and SHA-256 digest; metadata-only, malformed,
+placeholder, source-index, schema-only, or review-only package metadata remains
+unavailable. Portable profile and graph/block source changes are also published
+in `0.2.2`; runtime claims and direct-install claims remain disabled.
 Authenticated review-session access and final resource publication remain
 platform-owned and account/token gated. GitHub Marketplace-style promotion
 remains separate from this source/package release.

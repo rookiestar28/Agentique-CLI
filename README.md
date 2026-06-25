@@ -21,7 +21,7 @@ This repository is for creators and integrators before and after platform submis
 - From a source checkout, review portable profile metadata and graph/block metadata with no-execution local preparation commands.
 - From a source checkout, review skill-source and role/plugin candidates with explicit local reports before deciding whether they are ready for the website upload flow.
 - Consume public readback status, trust projection summaries, parser/variant summaries, agent-native summaries, and badge states for resources that are already published by `agentique.io`.
-- From a source checkout, exercise public catalog list/detail/download-metadata reads and direct artifact byte downloads when an approved public readback endpoint and resource id are available.
+- From a source checkout, exercise public catalog list/detail/download-metadata reads and direct artifact byte downloads when an approved public readback endpoint, resource id, and canonical downloadable source-package metadata are available.
 - Use public tools to prepare, validate, and display resource status before entering the Agentique website upload flow.
 
 Local tools in this repository do not publish, approve, certify, edit, delete, moderate, install, extract, open, or execute resources.
@@ -61,7 +61,7 @@ Published package pages currently include `@agentique.io/schemas`, `@agentique.i
 
 Parser/variant package surfaces were included in the coordinated npm package release `0.2.0` and are carried forward in the published `0.2.2` package set; the scoped release decision in [docs/release-go-no-go.md](docs/release-go-no-go.md) records hosted CI, package publication, registry readback, clean install smoke, and rollback/unpublish procedure evidence.
 
-Catalog/download CLI and SDK surfaces are included in the coordinated npm package releases. The `0.2.2` package set is published for canonical public catalog envelopes and ticket-backed byte transfer. Owner-approved disposable byte-transfer evidence is recorded for a public catalog resource; this is a bounded live transfer smoke, not a safety certification or platform approval of downloaded content.
+Catalog/download CLI and SDK surfaces are included in the coordinated npm package releases. The `0.2.2` package set is published for canonical public catalog envelopes and ticket-backed byte transfer. Download readiness is derived from route-ready source-package metadata, not legacy top-level availability alone. Owner-approved disposable byte-transfer evidence is recorded for a public catalog resource; this is a bounded live transfer smoke, not a safety certification or platform approval of downloaded content.
 
 Agent-native schema, validator, readback, badge, uploader dry-run, and starter changes are published in the `0.2.2` package set. These changes do not provide a public resolver, direct-install path, managed runtime access, or trust certification.
 
@@ -182,7 +182,7 @@ node packages/uploader/src/cli.mjs catalog download-metadata <resource-id> --api
 node packages/uploader/src/cli.mjs download <resource-id> --output ./downloads/ --api-url https://www.agentique.io --json
 ```
 
-The uploader can create review-only upload sessions when configured with platform API access and checkpoint-ready package metadata. Import-plan, variant-plan, and agent-native-plan commands are local dry-runs from validator evidence. Local draft and patch commands are unsubmitted helper outputs. Catalog commands are read-only public readback requests. Direct download writes bytes only to the explicit output path and does not install, extract, open, or execute content. The uploader does not publish, approve, certify, host, or moderate resources.
+The uploader can create review-only upload sessions when configured with platform API access and checkpoint-ready package metadata. Import-plan, variant-plan, and agent-native-plan commands are local dry-runs from validator evidence. Local draft and patch commands are unsubmitted helper outputs. Catalog commands are read-only public readback requests. Direct download requires canonical source-package metadata with `DOWNLOADABLE` status, a POST ticket endpoint, safe file metadata, positive byte size, and SHA-256 digest before it writes bytes to the explicit output path. It does not install, extract, open, or execute content. The uploader does not publish, approve, certify, host, or moderate resources.
 
 Run release-readiness checks locally:
 
@@ -432,7 +432,7 @@ node packages/uploader/src/cli.mjs download <resource-id> --output ./downloads/ 
 
 `upload plan` reports validator-backed package evidence and creator checkpoint readiness. From the source checkout, `upload import-plan` reports parser evidence, graph counts, and compatibility for local review, `upload variant-plan` reports source-only variant states and review reasons for local review, and `upload agent-native-plan` reports namespace, provenance, install-guidance, public-boundary, and resolver-intent labels for local review. `upload draft` and `upload patch` are local-only and unsubmitted. `upload submit` requires scoped token auth, an Agentique API origin, checkpoint-ready package metadata, and server completion verification.
 
-`catalog list`, `catalog get`, and `catalog download-metadata` are GET-only public readback commands and do not require uploader auth. `download` resolves public metadata, writes bytes to the explicit `--output` path, verifies SDK size/digest checks, and redacts signed URLs and absolute local paths from CLI output. It does not install, extract, open, execute, approve, certify, publish, host, or moderate content. Uploader package installation is available from npm at `0.2.2`. Owner-approved disposable byte-transfer evidence is recorded for a public catalog resource.
+`catalog list`, `catalog get`, and `catalog download-metadata` are GET-only public readback commands and do not require uploader auth. `download` resolves public metadata through the canonical source-package gate: `DOWNLOADABLE` status, POST ticket endpoint, safe filename and content type, positive byte size, and SHA-256 digest are required. Metadata-only, malformed, placeholder, source-index, schema-only, or review-only package metadata stays unavailable. Successful downloads write bytes to the explicit `--output` path, verify SDK size/digest checks, and redact signed URLs and absolute local paths from CLI output. The command does not install, extract, open, execute, approve, certify, publish, host, or moderate content. Uploader package installation is available from npm at `0.2.2`. Owner-approved disposable byte-transfer evidence is recorded for a public catalog resource.
 
 See [packages/uploader/README.md](packages/uploader/README.md), [docs/release-go-no-go.md](docs/release-go-no-go.md), and [docs/package-release-provenance.md](docs/package-release-provenance.md).
 
@@ -512,7 +512,7 @@ Read-only methods:
 - `getContextBundle(resourceId, params)`
 - `getSelectionReadback(resourceId, params)`
 
-`downloadResourceArtifact()` can write available artifact bytes to an explicit output path with HTTPS or loopback URL validation, manual redirect handling, no-overwrite default, temp-file cleanup, size checks, and digest checks. It does not install, extract, open, execute, approve, certify, publish, host, or moderate content. Callers should treat downloaded bytes as untrusted until they perform their own review.
+`normalizeDownloadMetadata()` treats canonical `sourcePackage` metadata as authoritative when present. `downloadResourceArtifact()` can write available artifact bytes to an explicit output path only after route-ready source-package metadata passes the `DOWNLOADABLE` status, POST ticket endpoint, safe filename/content type, positive byte size, and SHA-256 digest checks. Metadata-only, malformed, placeholder, source-index, schema-only, or review-only package metadata remains unavailable. The helper also enforces HTTPS or loopback URL validation, manual redirect handling, no-overwrite default, temp-file cleanup, size checks, and digest checks. It does not install, extract, open, execute, approve, certify, publish, host, or moderate content. Callers should treat downloaded bytes as untrusted until they perform their own review.
 
 Badge states:
 

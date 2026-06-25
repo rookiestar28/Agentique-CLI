@@ -42,6 +42,8 @@ Current catalog/download package release decision: **Go** for the coordinated `0
 
 Existing catalog/download surfaces that were already published in the coordinated `0.2.0` package set remain advertised only within the evidence recorded for that release. The canonical-host live envelope compatibility and unauthenticated POST ticket byte-transfer path are published in the coordinated `0.2.2` package set.
 
+Current catalog/download source semantics treat canonical `sourcePackage` metadata as authoritative for download readiness. `DOWNLOADABLE` status, POST ticket endpoint, safe file metadata, positive byte size, and SHA-256 digest are required before byte transfer; metadata-only, malformed, placeholder, source-index, schema-only, or review-only package metadata remains unavailable.
+
 Reason: local source validation, installed-tarball smoke, live metadata checks, owner-approved disposable byte-transfer evidence, hosted Release Check, registry publication, registry readback, clean install smoke, rollback/unpublish evidence, and branch cleanup passed for the coordinated `0.2.2` package release.
 
 Current blockers:
