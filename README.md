@@ -6,6 +6,9 @@
 
 # Agentique
 
+> [!WARNING]
+> **Discontinued.** The agentique.io service was shut down on 2026-11-27 and this repository is no longer maintained. It is archived and kept read-only for reference. The `@agentique.io/*` packages are deprecated, and commands that contact agentique.io no longer work.
+
 [Agentique.io](https://agentique.io) is a platform for preparing, reviewing, publishing, and displaying public AI resource listings. The platform owns upload, scan, review, moderation, publication state, distribution state, and public readback.
 
 This repository is the public companion developer kit for Agentique creators and integrators. It provides public schemas, starter packages, local no-execution validation, read-only readback helpers, a least-privilege validation action, and a review-only uploader CLI.
